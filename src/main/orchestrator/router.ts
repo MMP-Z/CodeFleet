@@ -207,7 +207,7 @@ export class Router {
     if (candidates.length === 0) return null;
 
     // Sắp xếp: ưu tiên không bị low quota trước, sau đó theo priorityList
-    const priority = context.priorityList ?? ['claude', 'gemini', 'codex'];
+    const priority = context.priorityList ?? ['claude', 'gemini', 'codex', 'agy'];
 
     const sorted = [...candidates].sort((a, b) => {
       const aIsLow = context.lowQuotaUnits?.has(`${a.agentId}:${a.modelId}`) ? 1 : 0;

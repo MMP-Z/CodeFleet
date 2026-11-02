@@ -58,6 +58,21 @@ export function getAgentBinaryCandidates(agentId: AgentId): string[] {
         'gemini',
       ];
 
+    case 'agy':
+      return [
+        // 1. Antigravity CLI PowerShell installer standard directory
+        path.join(localAppData, 'agy', 'bin', `agy${exeSuffix}`),
+        // 2. Gemini/Antigravity user directory
+        path.join(home, '.gemini', 'bin', `agy${exeSuffix}`),
+        path.join(home, '.gemini', 'antigravity', 'bin', `agy${exeSuffix}`),
+        path.join(localAppData, 'Programs', 'Antigravity', 'bin', `agy${exeSuffix}`),
+        path.join(appData, 'Antigravity', 'bin', `agy${exeSuffix}`),
+        // 3. User local bin (macOS/Linux or winget/scoop)
+        path.join(home, '.local', 'bin', `agy${exeSuffix}`),
+        // 4. Bare command on system PATH
+        'agy',
+      ];
+
     default:
       return [agentId];
   }

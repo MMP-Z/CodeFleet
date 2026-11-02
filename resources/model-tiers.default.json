@@ -95,6 +95,42 @@
         { "contains": "pro", "tier": "strong" },
         { "contains": "flash", "tier": "fast" }
       ]
+    },
+    "agy": {
+      "displayName": "Antigravity CLI",
+      "logoLetter": "A",
+      "color": "#1A73E8",
+      "darkColor": "#8AB4F8",
+      "docsUrl": "https://antigravity.google/docs/cli/reference",
+      "installCommand": {
+        "win32": "irm https://antigravity.google/cli/install.ps1 | iex",
+        "darwin": "curl -fsSL https://antigravity.google/cli/install.sh | bash",
+        "linux": "curl -fsSL https://antigravity.google/cli/install.sh | bash"
+      },
+      "loginCommand": "agy",
+      "models": [
+        {
+          "id": "gemini-4-argon-medium",
+          "label": "Gemini 4 Argon",
+          "tier": "strong"
+        },
+        {
+          "id": "claude-sonnet-5-5-high",
+          "label": "Claude Sonnet 5.5",
+          "tier": "balanced"
+        },
+        {
+          "id": "gemini-3.8-flash-high",
+          "label": "Gemini 3.8 Flash",
+          "tier": "fast"
+        }
+      ],
+      "patternTiers": [
+        { "contains": "argon", "tier": "strong" },
+        { "contains": "opus", "tier": "strong" },
+        { "contains": "sonnet", "tier": "balanced" },
+        { "contains": "flash", "tier": "fast" }
+      ]
     }
   }
 }

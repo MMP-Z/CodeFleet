@@ -5,6 +5,7 @@ import { resolveAgentBinary } from './binary-resolver';
 import { ClaudeAdapter } from './claude';
 import { CodexAdapter } from './codex';
 import { GeminiAdapter } from './gemini';
+import { AgyAdapter } from './agy';
 import type { ModelTierService } from './models';
 import type { AgentSessionRepository } from './session-repo';
 import type { AgentAdapter, AgentId, DetectResult } from './types';
@@ -60,9 +61,11 @@ export class AgentRegistry {
       const claude = new ClaudeAdapter(options.modelsService, options.sessionRepo);
       const codex = new CodexAdapter(options.modelsService, options.sessionRepo);
       const gemini = new GeminiAdapter(options.modelsService, options.sessionRepo);
+      const agy = new AgyAdapter(options.modelsService, options.sessionRepo);
       this.adapters.set(claude.id, claude);
       this.adapters.set(codex.id, codex);
       this.adapters.set(gemini.id, gemini);
+      this.adapters.set(agy.id, agy);
     }
   }
 

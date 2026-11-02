@@ -291,18 +291,19 @@ describe('Adapters: Claude, Codex, Gemini & AgentRegistry (Luật P5, P10, B3, B
   });
 
   describe('AgentRegistry', () => {
-    it('detectAll() trả về trạng thái của cả 3 AI CLI', async () => {
+    it('detectAll() trả về trạng thái của cả 4 AI CLI (claude, codex, gemini, agy)', async () => {
       const registry = new AgentRegistry({
         modelsService,
         sessionRepo,
       });
 
       const results = await registry.detectAll();
-      expect(results.length).toBe(3);
+      expect(results.length).toBe(4);
       const agentIds = results.map((r) => r.agentId);
       expect(agentIds).toContain('claude');
       expect(agentIds).toContain('codex');
       expect(agentIds).toContain('gemini');
+      expect(agentIds).toContain('agy');
     });
 
     it('mở cửa sổ login bằng lệnh chính thức qua terminalLauncher theo Luật B3', async () => {
@@ -323,6 +324,9 @@ describe('Adapters: Claude, Codex, Gemini & AgentRegistry (Luật P5, P10, B3, B
 
       await registry.openLoginTerminal('gemini');
       expect(launchedCommand).toBe('gemini auth login');
+
+      await registry.openLoginTerminal('agy');
+      expect(launchedCommand).toMatch(/(?:agy|agy\.exe"?)/);
     });
   });
 });

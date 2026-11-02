@@ -6,18 +6,21 @@ import {
 } from './binary-resolver';
 
 describe('binary-resolver', () => {
-  it('returns candidate paths for codex, claude, gemini', () => {
+  it('returns candidate paths for codex, claude, gemini, agy', () => {
     const codexCandidates = getAgentBinaryCandidates('codex');
     const claudeCandidates = getAgentBinaryCandidates('claude');
     const geminiCandidates = getAgentBinaryCandidates('gemini');
+    const agyCandidates = getAgentBinaryCandidates('agy');
 
     expect(codexCandidates.length).toBeGreaterThan(1);
     expect(claudeCandidates.length).toBeGreaterThan(1);
     expect(geminiCandidates.length).toBeGreaterThan(1);
+    expect(agyCandidates.length).toBeGreaterThan(1);
 
     expect(codexCandidates).toContain('codex');
     expect(claudeCandidates).toContain('claude');
     expect(geminiCandidates).toContain('gemini');
+    expect(agyCandidates).toContain('agy');
   });
 
   it('determines proper shell execution options', () => {

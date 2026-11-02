@@ -9,7 +9,7 @@ import type {
   TierSource,
 } from '@shared/agents';
 
-export type BuiltinAgentId = 'claude' | 'codex' | 'gemini';
+export type BuiltinAgentId = 'claude' | 'codex' | 'gemini' | 'agy';
 export type AgentId = BuiltinAgentId | (string & {});
 
 export type {
