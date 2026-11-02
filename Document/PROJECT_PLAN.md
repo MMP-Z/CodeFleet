@@ -1,6 +1,6 @@
 # KẾ HOẠCH TRIỂN KHAI — Ứng dụng chat "vibe code có hiểu"
 
-> **Phiên bản tài liệu:** 0.12
+> **Phiên bản tài liệu:** 0.13
 > **Cập nhật lần cuối:** 2026-11-02
 > **Giai đoạn hiện tại:** Phase 2 — Kết nối CLI (Đang làm)
 > **Tên ứng dụng:** CodeFleet (xem ADR-011)
@@ -594,14 +594,14 @@ Ký hiệu: `Chưa bắt đầu` / `Đang làm` / `Xong` / `Tạm dừng`
 ### Phase 2 — Kết nối CLI
 **Mục tiêu:** app nhận biết và nói chuyện được với 3 CLI qua adapter chung.
 
-- [ ] Định nghĩa `AgentAdapter`, `AgentSession`, sự kiện chuẩn hoá (mục 4.4).
+- [x] Định nghĩa `AgentAdapter`, `AgentSession`, sự kiện chuẩn hoá (mục 4.4).
 - [ ] `detect()`: phát hiện CLI đã cài, phiên bản, trạng thái đăng nhập; hướng dẫn cài/đăng nhập bằng lời thường.
-- [ ] Máy khách ACP dùng chung.
+- [x] Máy khách ACP dùng chung.
 - [ ] Adapter Claude Code chạy trọn một lượt hội thoại (làm đầu tiên).
 - [ ] Adapter Codex CLI.
 - [ ] Adapter Gemini CLI.
-- [ ] Mở lại session cũ bằng mã session (bảng `agent_sessions`).
-- [ ] `listModels()` và chọn model khi mở phiên cho từng adapter (lưu bảng `models`, ánh xạ bậc theo file cấu hình); sự kiện `rate_limit` kèm model.
+- [x] Mở lại session cũ bằng mã session (bảng `agent_sessions`).
+- [x] `listModels()` và chọn model khi mở phiên cho từng adapter (lưu bảng `models`, ánh xạ bậc theo file cấu hình); sự kiện `rate_limit` kèm model.
 - [ ] Phát hiện rate limit (quota tầng C) trong từng adapter.
 - [ ] Fixture test cho cả ba adapter (P5).
 - [x] Kiểm soát đường dẫn ghi (B4): thử AI cố ghi ra ngoài thư mục dự án.
@@ -906,6 +906,7 @@ Ghi nguồn (đường dẫn tài liệu, ngày kiểm tra) cho mỗi ô đã đ
 
 | Ngày | Phiên bản TL | Người/AI | Thay đổi | Lý do |
 |---|---|---|---|---|
+| 2026-11-02 | 0.13 | Antigravity (AI) | Triển khai nền tảng adapter: kiểu chuẩn hoá `AgentAdapter`/`AgentEvent` (`src/shared/agents.ts`, `src/main/agents/types.ts`), `ModelTierService` kết hợp catalog và SQLite `models` (`src/main/agents/models.ts`), `AgentSessionRepository` quản lý `agent_sessions` (`src/main/agents/session-repo.ts`), và `AcpClientBridge` qua `@agentclientprotocol/sdk` v2.2.0 tích hợp bảo vệ đường dẫn B4 | Hoàn thành hạ tầng adapter và quản lý model cho Phase 2 |
 | 2026-11-02 | 0.12 | Antigravity (AI) | Bắt đầu Phase 2: chốt ADR-019 (cấu hình ánh xạ bậc model tách rời tại `resources/model-tiers.default.json` + `<userData>/model-tiers.user.json`), triển khai bộ kiểm soát đường dẫn `src/main/security/path-guard.ts` chặn `..` và symlink thoát khỏi thư mục dự án (Luật B4) kèm unit test | Khởi động Phase 2 — Kết nối CLI theo xác nhận của chủ dự án |
 | 2026-11-02 | 0.11 | Antigravity (AI) | Bổ sung GitHub Actions CI ma trận `windows-latest` + `macos-latest` (`.github/workflows/ci.yml`); sửa cấu hình đóng gói `preload` tự thân cho `sandbox: true`; kiểm thử mở cửa sổ Electron 45 thật đối chiếu mockup `11-cai-dat.html` và đóng gói thử `CodeFleet.exe`; hoàn tất và đóng Phase 1 | Đạt toàn bộ tiêu chí thoát của Phase 1 — Khung dự án |
 | 2026-11-02 | 0.10 | Antigravity (AI) | Hoàn thiện tầng giao diện Phase 1: file chuỗi `src/renderer/i18n/vi.json`, bộ thành phần cơ bản (`Button`, `Pill`, `Toggle`, `Segmented`, `Progress`, `Notice`, `Dialog`, `Toast`, `ProjectPill`, `AppHeader`), trang thử `/dev/components` sau feature flag (Luật P6), và khung màn `MH-11 Cài đặt` (mục Chung & Dữ liệu) kèm unit test | Hoàn thành toàn bộ hạng mục giao diện của Phase 1 theo `UI_SPEC.md` mục 9 và `Prompt 1` |

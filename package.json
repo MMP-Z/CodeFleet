@@ -23,6 +23,7 @@
     "prepare": "node scripts/setup-hooks.mjs"
   },
   "dependencies": {
+    "@agentclientprotocol/sdk": "^2.2.0",
     "@fontsource/be-vietnam-pro": "^5.2.5",
     "@fontsource/jetbrains-mono": "^5.2.5",
     "better-sqlite3": "^13.0.3",
