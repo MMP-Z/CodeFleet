@@ -9,12 +9,14 @@ import type { DatabaseService } from '../db/database';
 import { DecisionRepository } from '../db/decision-repo';
 import { ProjectMapRepository } from '../db/project-map-repo';
 import { ProjectRepository } from '../db/project-repo';
+import { PluginRepository } from '../db/plugin-repo';
 import { QuotaRepository } from '../db/quota-repo';
 import { SettingsRepository } from '../db/settings-repo';
 import { StepFilesRepository } from '../db/step-files-repo';
 import { UserEditsRepository } from '../db/user-edits-repo';
 import type { Logger } from '../logger/logger';
 import { Orchestrator } from '../orchestrator/orchestrator';
+import { PluginService } from '../plugins/plugin-service';
 import { ConflictDetector } from '../project/conflict-detector';
 import { EditableScanner } from '../project/editable-scanner';
 import { PreviewServerService } from '../project/preview-server';
@@ -42,6 +44,8 @@ export interface IpcDependencies {
   readonly checkpointRepo?: CheckpointRepository;
   readonly previewServer?: PreviewServerService;
   readonly orchestrator?: Orchestrator;
+  readonly pluginRepo?: PluginRepository;
+  readonly pluginService?: PluginService;
   readonly pickFolderDialog?: () => Promise<{ canceled: boolean; folderPath: string | null }>;
   readonly broadcastEvent?: (channel: string, payload: unknown) => void;
 }
@@ -114,6 +118,9 @@ export function registerIpcHandlers(registrar: IpcRegistrar, deps: IpcDependenci
   const quotaRepo = deps.quotaRepo ?? new QuotaRepository(db);
   const quotaService =
     deps.quotaService ?? new QuotaService(quotaRepo, settingsRepo, agentRegistry);
+
+  const pluginRepo = deps.pluginRepo ?? new PluginRepository(db);
+  const pluginService = deps.pluginService ?? new PluginService({ repo: pluginRepo });
 
   const orchestrator =
     deps.orchestrator ??
@@ -655,6 +662,43 @@ export function registerIpcHandlers(registrar: IpcRegistrar, deps: IpcDependenci
     registrar,
     IPC_CONTRACTS[IPC_CHANNELS.QUOTA_REFRESH],
     async () => quotaService.refreshPassive(),
+    ipcLogger,
+  );
+
+  // === PLUGINS (PHASE 6: MH-10, PLAN 6.7, ADR-016) ===
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.PLUGINS_LIST],
+    () => [...pluginService.listVMs()],
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.PLUGINS_INSTALL],
+    ({ pluginId, grantedPermissions, externalManifest }) =>
+      pluginService.install(pluginId, grantedPermissions, externalManifest),
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.PLUGINS_UNINSTALL],
+    ({ pluginId }) => pluginService.uninstall(pluginId),
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.PLUGINS_TOGGLE],
+    ({ pluginId, enabled }) => pluginService.toggle(pluginId, enabled),
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.PLUGINS_INSPECT_FROM_URL],
+    ({ url }) => pluginService.inspectFromUrl(url),
     ipcLogger,
   );
 }

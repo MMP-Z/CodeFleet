@@ -22,7 +22,14 @@ import {
   type SettingKey,
 } from '../settings';
 import type { OrchestrationLogEntry, StepCodeVM, StepUiStatus } from '../vm';
+import {
+  PluginManifestSchema,
+  PluginPermissionSchema,
+  type PluginManifest,
+  type PluginVM,
+} from '../plugins/manifest';
 
+export * from '../plugins/manifest';
 export type { OrchestrationLogEntry, StepCodeVM, StepUiStatus };
 
 /**
@@ -71,6 +78,11 @@ export const IPC_CHANNELS = {
   PREVIEW_STOP: 'preview.stop',
   QUOTA_GET_ALL: 'quota.getAll',
   QUOTA_REFRESH: 'quota.refresh',
+  PLUGINS_LIST: 'plugins.list',
+  PLUGINS_INSTALL: 'plugins.install',
+  PLUGINS_UNINSTALL: 'plugins.uninstall',
+  PLUGINS_TOGGLE: 'plugins.toggle',
+  PLUGINS_INSPECT_FROM_URL: 'plugins.inspectFromUrl',
 } as const;
 
 export type IpcChannelName = (typeof IPC_CHANNELS)[keyof typeof IPC_CHANNELS];
@@ -516,6 +528,32 @@ export const QuotaSnapshotSchema = z.object({
 export type QuotaSnapshot = z.infer<typeof QuotaSnapshotSchema>;
 export const QuotaSnapshotListSchema = z.array(QuotaSnapshotSchema);
 
+export const InstallPluginInputSchema = z.object({
+  pluginId: z.string().min(1),
+  grantedPermissions: z.array(PluginPermissionSchema),
+  externalManifest: PluginManifestSchema.optional(),
+});
+export type InstallPluginInput = z.infer<typeof InstallPluginInputSchema>;
+
+export const UninstallPluginInputSchema = z.object({
+  pluginId: z.string().min(1),
+});
+export type UninstallPluginInput = z.infer<typeof UninstallPluginInputSchema>;
+
+export const TogglePluginInputSchema = z.object({
+  pluginId: z.string().min(1),
+  enabled: z.boolean(),
+});
+export type TogglePluginInput = z.infer<typeof TogglePluginInputSchema>;
+
+export const InspectPluginUrlInputSchema = z.object({
+  url: z.string().min(1),
+});
+export type InspectPluginUrlInput = z.infer<typeof InspectPluginUrlInputSchema>;
+
+export const PluginVMListSchema = z.array(z.custom<PluginVM>());
+export const PluginVMSchema = z.custom<PluginVM>();
+
 export interface IpcContract<I extends z.ZodTypeAny, O extends z.ZodTypeAny> {
   readonly channel: IpcChannelName;
   readonly input: I;
@@ -728,6 +766,31 @@ export const IPC_CONTRACTS = {
     input: EmptyInputSchema,
     output: QuotaSnapshotListSchema,
   },
+  [IPC_CHANNELS.PLUGINS_LIST]: {
+    channel: IPC_CHANNELS.PLUGINS_LIST,
+    input: EmptyInputSchema,
+    output: PluginVMListSchema,
+  },
+  [IPC_CHANNELS.PLUGINS_INSTALL]: {
+    channel: IPC_CHANNELS.PLUGINS_INSTALL,
+    input: InstallPluginInputSchema,
+    output: PluginVMSchema,
+  },
+  [IPC_CHANNELS.PLUGINS_UNINSTALL]: {
+    channel: IPC_CHANNELS.PLUGINS_UNINSTALL,
+    input: UninstallPluginInputSchema,
+    output: z.boolean(),
+  },
+  [IPC_CHANNELS.PLUGINS_TOGGLE]: {
+    channel: IPC_CHANNELS.PLUGINS_TOGGLE,
+    input: TogglePluginInputSchema,
+    output: z.boolean(),
+  },
+  [IPC_CHANNELS.PLUGINS_INSPECT_FROM_URL]: {
+    channel: IPC_CHANNELS.PLUGINS_INSPECT_FROM_URL,
+    input: InspectPluginUrlInputSchema,
+    output: PluginManifestSchema,
+  },
 } as const;
 
 export type IpcErrorCode = 'VALIDATION_ERROR' | 'INTERNAL_ERROR';
@@ -829,5 +892,12 @@ export interface CodeFleetBridge {
     getAll(): Promise<IpcResult<QuotaSnapshot[]>>;
     refresh(): Promise<IpcResult<QuotaSnapshot[]>>;
     onUpdate(callback: (snapshots: QuotaSnapshot[]) => void): () => void;
+  };
+  readonly plugins: {
+    list(): Promise<IpcResult<PluginVM[]>>;
+    install(input: InstallPluginInput): Promise<IpcResult<PluginVM>>;
+    uninstall(input: UninstallPluginInput): Promise<IpcResult<boolean>>;
+    toggle(input: TogglePluginInput): Promise<IpcResult<boolean>>;
+    inspectFromUrl(input: InspectPluginUrlInput): Promise<IpcResult<PluginManifest>>;
   };
 }

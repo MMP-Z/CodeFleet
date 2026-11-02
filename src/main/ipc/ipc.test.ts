@@ -354,4 +354,56 @@ describe('Phase 1 Typed IPC + Zod Validation (Luật P3, B2)', () => {
       expect(Array.isArray(refreshRes.data)).toBe(true);
     }
   });
+
+  it('handles Phase 6 plugin IPC channels: list, install, toggle, uninstall, inspectFromUrl (PLAN 6.7, ADR-016)', async () => {
+    const { bus } = setupTestBus();
+
+    // 1. plugins.list
+    const listRes = await bus.invoke<unknown[]>(IPC_CHANNELS.PLUGINS_LIST, undefined);
+    expect(listRes.ok).toBe(true);
+    if (listRes.ok) {
+      expect(listRes.data.length).toBeGreaterThanOrEqual(5);
+    }
+
+    // 2. plugins.install
+    const installRes = await bus.invoke<{ id: string; status: string }>(
+      IPC_CHANNELS.PLUGINS_INSTALL,
+      {
+        pluginId: 'example.template-landing',
+        grantedPermissions: ['project:write'],
+      },
+    );
+    expect(installRes.ok).toBe(true);
+    if (installRes.ok) {
+      expect(installRes.data.status).toBe('installed');
+    }
+
+    // 3. plugins.toggle
+    const toggleRes = await bus.invoke<boolean>(IPC_CHANNELS.PLUGINS_TOGGLE, {
+      pluginId: 'example.template-landing',
+      enabled: false,
+    });
+    expect(toggleRes.ok).toBe(true);
+    if (toggleRes.ok) {
+      expect(toggleRes.data).toBe(true);
+    }
+
+    // 4. plugins.inspectFromUrl
+    const inspectRes = await bus.invoke<{ id: string }>(IPC_CHANNELS.PLUGINS_INSPECT_FROM_URL, {
+      url: 'https://github.com/example/my-custom-pack',
+    });
+    expect(inspectRes.ok).toBe(true);
+    if (inspectRes.ok) {
+      expect(inspectRes.data.id).toContain('external.');
+    }
+
+    // 5. plugins.uninstall
+    const uninstallRes = await bus.invoke<boolean>(IPC_CHANNELS.PLUGINS_UNINSTALL, {
+      pluginId: 'example.template-landing',
+    });
+    expect(uninstallRes.ok).toBe(true);
+    if (uninstallRes.ok) {
+      expect(uninstallRes.data).toBe(true);
+    }
+  });
 });

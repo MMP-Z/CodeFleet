@@ -165,6 +165,14 @@ const bridge: CodeFleetBridge = {
       };
     },
   },
+  plugins: {
+    list: () => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PLUGINS_LIST], undefined),
+    install: (input) => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PLUGINS_INSTALL], input),
+    uninstall: (input) => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PLUGINS_UNINSTALL], input),
+    toggle: (input) => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PLUGINS_TOGGLE], input),
+    inspectFromUrl: (input) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PLUGINS_INSPECT_FROM_URL], input),
+  },
 };
 
 // Luật B1: Preload chỉ lộ ra API đã định nghĩa, không lộ Node/ipcRenderer thô.

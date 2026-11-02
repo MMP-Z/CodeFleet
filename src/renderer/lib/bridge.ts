@@ -221,6 +221,44 @@ export const fallbackBridge: CodeFleetBridge = {
     refresh: async () => ({ ok: true, data: [] }),
     onUpdate: () => () => {},
   },
+  plugins: {
+    list: async () => ({ ok: true, data: [] }),
+    install: async (input) => ({
+      ok: true,
+      data: {
+        id: input.pluginId,
+        name: input.pluginId,
+        version: '1.0.0',
+        kind: 'skill-pack',
+        description: '',
+        permissions: input.grantedPermissions,
+        grantedPermissions: input.grantedPermissions,
+        isCurated: true,
+        icon: '🧩',
+        color: '#55625D',
+        status: 'installed',
+        checksum: 'mock',
+      },
+    }),
+    uninstall: async () => ({ ok: true, data: true }),
+    toggle: async () => ({ ok: true, data: true }),
+    inspectFromUrl: async (input) => ({
+      ok: true,
+      data: {
+        id: 'external.plugin',
+        name: 'Plugin từ link',
+        version: '1.0.0',
+        kind: 'skill-pack',
+        description: input.url,
+        permissions: ['project:read'],
+        entry: 'main.json',
+        checksum: 'mock',
+        isCurated: false,
+        icon: '🔗',
+        color: '#55625D',
+      },
+    }),
+  },
 };
 
 export function getBridge(): CodeFleetBridge {
