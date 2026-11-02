@@ -319,7 +319,7 @@ describe('Adapters: Claude, Codex, Gemini & AgentRegistry (Luật P5, P10, B3, B
       expect(launchedCommand).toBe('claude auth login');
 
       await registry.openLoginTerminal('codex');
-      expect(launchedCommand).toBe('codex login');
+      expect(launchedCommand).toMatch(/(?:codex|codex\.exe"?) login/);
 
       await registry.openLoginTerminal('gemini');
       expect(launchedCommand).toBe('gemini auth login');

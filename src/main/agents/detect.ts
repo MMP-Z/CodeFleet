@@ -1,5 +1,7 @@
 import { spawn } from 'node:child_process';
+import path from 'node:path';
 import { shell } from 'electron';
+import { resolveAgentBinary } from './binary-resolver';
 import { ClaudeAdapter } from './claude';
 import { CodexAdapter } from './codex';
 import { GeminiAdapter } from './gemini';
@@ -120,7 +122,14 @@ export class AgentRegistry {
    */
   public async openLoginTerminal(agentId: AgentId): Promise<void> {
     const adapter = this.getAdapter(agentId);
-    await this.terminalLauncher(adapter.loginCommand);
+    const binary = resolveAgentBinary(agentId);
+    let cmdToRun = adapter.loginCommand;
+    if (binary.includes(path.sep) || binary.includes('/')) {
+      const parts = adapter.loginCommand.split(' ');
+      parts[0] = `"${binary}"`;
+      cmdToRun = parts.join(' ');
+    }
+    await this.terminalLauncher(cmdToRun);
   }
 
   /**

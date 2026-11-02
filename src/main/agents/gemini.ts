@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { assertPathInsideProject } from '../security/path-guard';
+import { getCommandExecutionOptions, resolveAgentBinary } from './binary-resolver';
 import { type CommandRunner, defaultCommandRunner } from './claude';
 import type { ModelTierService } from './models';
 import type { AgentSessionRepository } from './session-repo';
@@ -44,7 +45,8 @@ export class GeminiAdapter implements AgentAdapter {
   }
 
   public async detect(): Promise<DetectResult> {
-    const res = await this.runner('gemini', ['--version']);
+    const binary = resolveAgentBinary(this.id);
+    const res = await this.runner(binary, ['--version']);
     if (res.code !== 0) {
       return {
         agentId: this.id,
@@ -69,7 +71,7 @@ export class GeminiAdapter implements AgentAdapter {
     const version = versionMatch ? versionMatch[1] : res.stdout.trim() || 'unknown';
 
     // Kiểm tra trạng thái auth
-    const authRes = await this.runner('gemini', ['auth', 'status']);
+    const authRes = await this.runner(binary, ['auth', 'status']);
     let loggedIn = false;
     let status: 'ready' | 'not_logged_in' | 'error' = 'not_logged_in';
 
@@ -167,6 +169,7 @@ export class GeminiAdapter implements AgentAdapter {
   }
 
   public async startSession(opts: StartSessionOptions): Promise<AgentSession> {
+    const binary = resolveAgentBinary(this.id);
     const sessionRecord = this.sessionRepo.createSession({
       cwd: opts.cwd,
       projectId: opts.projectId,
@@ -182,6 +185,7 @@ export class GeminiAdapter implements AgentAdapter {
       sessionRecord.externalId,
       this.sessionRepo,
       this,
+      binary,
     );
   }
 }
@@ -192,6 +196,7 @@ class GeminiSessionInstance implements AgentSession {
   public readonly cwd: string;
   public readonly model: string | null;
   private externalSessionId: string | null;
+  private readonly binary: string;
 
   public constructor(
     id: string,
@@ -200,11 +205,13 @@ class GeminiSessionInstance implements AgentSession {
     externalSessionId: string | null,
     private readonly sessionRepo: AgentSessionRepository,
     private readonly adapter: GeminiAdapter,
+    binary = 'gemini',
   ) {
     this.id = id;
     this.cwd = cwd;
     this.model = model;
     this.externalSessionId = externalSessionId;
+    this.binary = binary;
   }
 
   public getExternalSessionId(): string | null {
@@ -230,10 +237,11 @@ class GeminiSessionInstance implements AgentSession {
     }
     args.push(prompt);
 
+    const execOpts = getCommandExecutionOptions(this.binary);
     return new Promise((resolve, reject) => {
-      const child = spawn('gemini', args, {
+      const child = spawn(this.binary, args, {
         cwd: this.cwd,
-        shell: process.platform === 'win32',
+        shell: execOpts.shell,
       });
 
       let buffer = '';

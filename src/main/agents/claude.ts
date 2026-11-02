@@ -2,6 +2,7 @@ import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { z } from 'zod';
 import { assertPathInsideProject, writeProjectFileSafe } from '../security/path-guard';
+import { getCommandExecutionOptions, resolveAgentBinary } from './binary-resolver';
 import type { ModelTierService } from './models';
 import type { AgentSessionRepository } from './session-repo';
 import type {
@@ -43,10 +44,11 @@ export type CommandRunner = (
 export const defaultCommandRunner: CommandRunner = (cmd, args, options) => {
   return new Promise((resolve) => {
     try {
+      const execOpts = getCommandExecutionOptions(cmd);
       const child = spawn(cmd, args, {
         cwd: options?.cwd,
         env: { ...process.env, ...options?.env },
-        shell: process.platform === 'win32',
+        shell: execOpts.shell,
       });
       let stdout = '';
       let stderr = '';
@@ -101,7 +103,8 @@ export class ClaudeAdapter implements AgentAdapter {
   }
 
   public async detect(): Promise<DetectResult> {
-    const res = await this.runner('claude', ['--version']);
+    const binary = resolveAgentBinary(this.id);
+    const res = await this.runner(binary, ['--version']);
     if (res.code !== 0) {
       return {
         agentId: this.id,
@@ -126,7 +129,7 @@ export class ClaudeAdapter implements AgentAdapter {
     const version = versionMatch ? versionMatch[1] : res.stdout.trim() || 'unknown';
 
     // Kiểm tra trạng thái auth
-    const authRes = await this.runner('claude', ['status', '--json']);
+    const authRes = await this.runner(binary, ['status', '--json']);
     let loggedIn = false;
     let status: 'ready' | 'not_logged_in' | 'error' = 'not_logged_in';
 
@@ -237,7 +240,8 @@ export class ClaudeAdapter implements AgentAdapter {
       }
     }
     // Đọc thụ động từ Claude statusline nếu có
-    const res = await this.runner('claude', ['status', '--json']);
+    const binary = resolveAgentBinary(this.id);
+    const res = await this.runner(binary, ['status', '--json']);
     if (res.code === 0 && res.stdout) {
       return [this.parseQuotaTierA(res.stdout)];
     }
@@ -255,6 +259,7 @@ export class ClaudeAdapter implements AgentAdapter {
   }
 
   public async startSession(opts: StartSessionOptions): Promise<AgentSession> {
+    const binary = resolveAgentBinary(this.id);
     const sessionRecord = this.sessionRepo.createSession({
       cwd: opts.cwd,
       projectId: opts.projectId,
@@ -269,6 +274,7 @@ export class ClaudeAdapter implements AgentAdapter {
       opts.model ?? null,
       sessionRecord.externalId,
       this.sessionRepo,
+      binary,
     );
   }
 }
@@ -279,6 +285,7 @@ class ClaudeSessionInstance implements AgentSession {
   public readonly cwd: string;
   public readonly model: string | null;
   private externalSessionId: string | null;
+  private readonly binary: string;
 
   public constructor(
     id: string,
@@ -286,11 +293,13 @@ class ClaudeSessionInstance implements AgentSession {
     model: string | null,
     externalSessionId: string | null,
     private readonly sessionRepo: AgentSessionRepository,
+    binary = 'claude',
   ) {
     this.id = id;
     this.cwd = cwd;
     this.model = model;
     this.externalSessionId = externalSessionId;
+    this.binary = binary;
   }
 
   public getExternalSessionId(): string | null {
@@ -317,10 +326,11 @@ class ClaudeSessionInstance implements AgentSession {
     }
     args.push(prompt);
 
+    const execOpts = getCommandExecutionOptions(this.binary);
     return new Promise((resolve, reject) => {
-      const child = spawn('claude', args, {
+      const child = spawn(this.binary, args, {
         cwd: this.cwd,
-        shell: process.platform === 'win32',
+        shell: execOpts.shell,
       });
 
       let buffer = '';

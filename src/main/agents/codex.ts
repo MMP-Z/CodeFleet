@@ -1,6 +1,9 @@
 import { spawn } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { assertPathInsideProject } from '../security/path-guard';
+import { getCommandExecutionOptions, resolveAgentBinary } from './binary-resolver';
 import { type CommandRunner, defaultCommandRunner } from './claude';
 import type { ModelTierService } from './models';
 import type { AgentSessionRepository } from './session-repo';
@@ -43,7 +46,8 @@ export class CodexAdapter implements AgentAdapter {
   }
 
   public async detect(): Promise<DetectResult> {
-    const res = await this.runner('codex', ['--version']);
+    const binary = resolveAgentBinary(this.id);
+    const res = await this.runner(binary, ['--version']);
     if (res.code !== 0) {
       return {
         agentId: this.id,
@@ -67,22 +71,40 @@ export class CodexAdapter implements AgentAdapter {
     const versionMatch = res.stdout.match(/([0-9]+\.[0-9]+(?:\.[0-9]+)?)/);
     const version = versionMatch ? versionMatch[1] : res.stdout.trim() || 'unknown';
 
-    // Kiểm tra trạng thái auth
-    const authRes = await this.runner('codex', ['auth', 'status']);
+    // Kiểm tra trạng thái auth:
+    // 1. Thử lệnh 'codex login status'
+    // 2. Hoặc kiểm tra file cấu hình auth.json của Codex
     let loggedIn = false;
     let status: 'ready' | 'not_logged_in' | 'error' = 'not_logged_in';
 
-    if (authRes.code === 0) {
+    const authRes = await this.runner(binary, ['login', 'status']);
+    const combinedAuthOutput = `${authRes.stdout} ${authRes.stderr}`.toLowerCase();
+
+    if (
+      authRes.code === 0 &&
+      (combinedAuthOutput.includes('logged in') ||
+        combinedAuthOutput.includes('chatgpt') ||
+        combinedAuthOutput.includes('api key'))
+    ) {
       loggedIn = true;
       status = 'ready';
-    } else if (
-      authRes.stderr.toLowerCase().includes('login') ||
-      authRes.stdout.toLowerCase().includes('login')
-    ) {
-      loggedIn = false;
-      status = 'not_logged_in';
     } else {
-      status = 'not_logged_in';
+      // Fallback: Kiểm tra file ~/.codex/auth.json
+      try {
+        const authPath = path.join(os.homedir(), '.codex', 'auth.json');
+        if (fs.existsSync(authPath)) {
+          const authData = JSON.parse(fs.readFileSync(authPath, 'utf8')) as {
+            tokens?: unknown;
+            OPENAI_API_KEY?: unknown;
+          };
+          if (authData.tokens || authData.OPENAI_API_KEY) {
+            loggedIn = true;
+            status = 'ready';
+          }
+        }
+      } catch {
+        // bỏ qua nếu file auth.json hỏng
+      }
     }
 
     const models = await this.listModels();
@@ -171,6 +193,7 @@ export class CodexAdapter implements AgentAdapter {
   }
 
   public async startSession(opts: StartSessionOptions): Promise<AgentSession> {
+    const binary = resolveAgentBinary(this.id);
     const sessionRecord = this.sessionRepo.createSession({
       cwd: opts.cwd,
       projectId: opts.projectId,
@@ -185,6 +208,7 @@ export class CodexAdapter implements AgentAdapter {
       opts.model ?? null,
       sessionRecord.externalId,
       this.sessionRepo,
+      binary,
     );
   }
 }
@@ -195,6 +219,7 @@ class CodexSessionInstance implements AgentSession {
   public readonly cwd: string;
   public readonly model: string | null;
   private externalSessionId: string | null;
+  private readonly binary: string;
 
   public constructor(
     id: string,
@@ -202,11 +227,13 @@ class CodexSessionInstance implements AgentSession {
     model: string | null,
     externalSessionId: string | null,
     private readonly sessionRepo: AgentSessionRepository,
+    binary = 'codex',
   ) {
     this.id = id;
     this.cwd = cwd;
     this.model = model;
     this.externalSessionId = externalSessionId;
+    this.binary = binary;
   }
 
   public getExternalSessionId(): string | null {
@@ -232,10 +259,11 @@ class CodexSessionInstance implements AgentSession {
     }
     args.push(prompt);
 
+    const execOpts = getCommandExecutionOptions(this.binary);
     return new Promise((resolve, reject) => {
-      const child = spawn('codex', args, {
+      const child = spawn(this.binary, args, {
         cwd: this.cwd,
-        shell: process.platform === 'win32',
+        shell: execOpts.shell,
       });
 
       let buffer = '';
