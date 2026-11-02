@@ -181,6 +181,9 @@ export class ModelTierService {
     } else if (defaultItem) {
       tier = defaultItem.tier;
       tierSource = 'default';
+    } else if ('tier' in discovered && discovered.tier && discovered.tier !== 'unknown') {
+      tier = discovered.tier as ModelTier;
+      tierSource = 'default';
     } else if (agentEntry?.patternTiers) {
       const lowerId = discovered.id.toLowerCase();
       const matchedPattern = agentEntry.patternTiers.find((p) =>

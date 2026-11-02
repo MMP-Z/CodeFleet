@@ -78,6 +78,27 @@ export function assertPathInsideProject(projectRoot: string, candidatePath: stri
   return realCandidate;
 }
 
+export class PathGuard {
+  private readonly projectRoot: string;
+
+  public constructor(options: { readonly projectRoot: string }) {
+    this.projectRoot = options.projectRoot;
+  }
+
+  public isWithinProject(candidatePath: string): boolean {
+    try {
+      assertPathInsideProject(this.projectRoot, candidatePath);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  public assertInside(candidatePath: string): string {
+    return assertPathInsideProject(this.projectRoot, candidatePath);
+  }
+}
+
 /**
  * Ghi file văn bản an toàn vào dự án sau khi kiểm tra Luật B4.
  */

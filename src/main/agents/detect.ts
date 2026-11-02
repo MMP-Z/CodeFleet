@@ -68,6 +68,10 @@ export class AgentRegistry {
     this.adapters.set(adapter.id, adapter);
   }
 
+  public get(agentId: AgentId): AgentAdapter | undefined {
+    return this.adapters.get(agentId);
+  }
+
   public getAdapter(agentId: AgentId): AgentAdapter {
     const adapter = this.adapters.get(agentId);
     if (!adapter) {
