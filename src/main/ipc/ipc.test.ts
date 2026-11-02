@@ -86,6 +86,8 @@ describe('Phase 1 Typed IPC + Zod Validation (Luật P3, B2)', () => {
         'ui.autoPreview': true,
         'agents.enabled': {},
         'onboarding.completed': false,
+        'update.channel': 'stable',
+        'update.autoDownload': true,
       },
     });
 

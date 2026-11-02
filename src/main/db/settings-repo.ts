@@ -59,6 +59,8 @@ export class SettingsRepository {
       'ui.autoPreview': this.get('ui.autoPreview'),
       'agents.enabled': this.get('agents.enabled'),
       'onboarding.completed': this.get('onboarding.completed'),
+      'update.channel': this.get('update.channel'),
+      'update.autoDownload': this.get('update.autoDownload'),
     };
   }
 

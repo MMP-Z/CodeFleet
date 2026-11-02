@@ -17,8 +17,13 @@ export const SettingKeySchema = z.enum([
   'ui.autoPreview',
   'agents.enabled',
   'onboarding.completed',
+  'update.channel',
+  'update.autoDownload',
 ]);
 export type SettingKey = z.infer<typeof SettingKeySchema>;
+
+export const UpdateChannelSchema = z.enum(['stable', 'beta']);
+export type UpdateChannelSetting = z.infer<typeof UpdateChannelSchema>;
 
 export const SettingSchemas = {
   'ui.locale': LocaleSchema,
@@ -27,6 +32,8 @@ export const SettingSchemas = {
   'ui.autoPreview': z.boolean(),
   'agents.enabled': z.record(z.string(), z.boolean()),
   'onboarding.completed': z.boolean(),
+  'update.channel': UpdateChannelSchema,
+  'update.autoDownload': z.boolean(),
 } as const;
 
 export interface AppSettingsMap {
@@ -36,6 +43,8 @@ export interface AppSettingsMap {
   'ui.autoPreview': boolean;
   'agents.enabled': Record<string, boolean>;
   'onboarding.completed': boolean;
+  'update.channel': UpdateChannelSetting;
+  'update.autoDownload': boolean;
 }
 
 export const DEFAULT_SETTINGS: AppSettingsMap = {
@@ -45,6 +54,8 @@ export const DEFAULT_SETTINGS: AppSettingsMap = {
   'ui.autoPreview': true,
   'agents.enabled': {},
   'onboarding.completed': false,
+  'update.channel': 'stable',
+  'update.autoDownload': true,
 };
 
 export const AppSettingsMapSchema = z.object({
@@ -54,4 +65,6 @@ export const AppSettingsMapSchema = z.object({
   'ui.autoPreview': z.boolean(),
   'agents.enabled': z.record(z.string(), z.boolean()),
   'onboarding.completed': z.boolean(),
+  'update.channel': UpdateChannelSchema,
+  'update.autoDownload': z.boolean(),
 });

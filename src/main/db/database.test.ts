@@ -156,6 +156,8 @@ describe('DatabaseService & SettingsRepository (ADR-002, Luật P8, B2)', () => 
       'ui.autoPreview': true,
       'agents.enabled': {},
       'onboarding.completed': false,
+      'update.channel': 'stable',
+      'update.autoDownload': true,
     });
 
     repo.set('ui.showJargon', true);

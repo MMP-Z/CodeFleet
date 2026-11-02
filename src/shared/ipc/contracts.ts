@@ -18,6 +18,7 @@ import {
   CodeLevelSchema,
   LocaleSchema,
   SettingKeySchema,
+  UpdateChannelSchema,
   type AppSettingsMap,
   type SettingKey,
 } from '../settings';
@@ -95,6 +96,7 @@ export type SettingGetInput = z.infer<typeof SettingGetInputSchema>;
 export const SettingValueSchema = z.union([
   LocaleSchema,
   CodeLevelSchema,
+  UpdateChannelSchema,
   z.boolean(),
   z.record(z.string(), z.boolean()),
 ]);
@@ -110,6 +112,8 @@ export const SettingSetInputSchema = z.discriminatedUnion('key', [
     value: z.record(z.string(), z.boolean()),
   }),
   z.object({ key: z.literal('onboarding.completed'), value: z.boolean() }),
+  z.object({ key: z.literal('update.channel'), value: UpdateChannelSchema }),
+  z.object({ key: z.literal('update.autoDownload'), value: z.boolean() }),
 ]);
 export type SettingSetInput = z.infer<typeof SettingSetInputSchema>;
 

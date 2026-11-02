@@ -27,6 +27,7 @@
     "@fontsource/be-vietnam-pro": "^5.2.5",
     "@fontsource/jetbrains-mono": "^5.2.5",
     "better-sqlite3": "^13.0.3",
+    "electron-updater": "^6.8.11",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "zod": "^4.0.0"
@@ -68,4 +69,3 @@
     ]
   }
 }
-
