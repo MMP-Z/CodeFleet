@@ -1,8 +1,8 @@
 # ĐẶC TẢ GIAO DIỆN (UI_SPEC)
 
-> **Phiên bản:** 0.2
+> **Phiên bản:** 0.3
 > **Cập nhật lần cuối:** 2026-11-02
-> **Đi kèm:** `PROJECT_PLAN.md` (v0.5) và bộ mockup `Document/UI_Mockups/`
+> **Đi kèm:** `PROJECT_PLAN.md` (v0.6) và bộ mockup `Document/UI_Mockups/`
 
 ---
 
@@ -386,7 +386,7 @@ Ngưỡng 80% đọc từ cài đặt (MH-11), mặc định 80.
   - `scope = shared/unknown`: các thanh cửa sổ ở đầu, rồi bảng model (Model · Bậc · Trạng thái · Ghi chú) không có %.
   - `scope = model`: bảng model có cột % + nguồn + giờ làm mới **cho từng dòng**.
   - `source = unknown`: không thanh, câu "AI này không cho biết hạn mức… App vẫn dùng bình thường".
-- Thẻ cuối "App dùng hạn mức thế nào khi chọn AI": 4 ý. Câu "Đọc hạn mức không tốn hạn mức của bạn" `[GIỮ CHỖ]`, **chỉ hiện nếu Phase 0 xác minh đúng**.
+- Thẻ cuối "App dùng hạn mức thế nào khi chọn AI": 4 ý. Câu "Đọc hạn mức không tốn hạn mức của bạn" ~~`[GIỮ CHỖ]`, chỉ hiện nếu Phase 0 xác minh đúng~~ **đã xác minh đúng ở Phase 0 theo ADR-018** (`QuotaService` chỉ đọc thụ động từ `statusLine` / log cục bộ / lỗi `429`, cấm gửi prompt LLM để đọc quota → hiển thị cố định câu này).
 - **Giữ chỗ:** tên model, tên gói, %, giờ làm mới đều từ adapter.
 - **Kiểm tra:**
   - [ ] Parser lỗi → thẻ CLI đó hiện `unknown`, các thẻ khác bình thường.
@@ -585,6 +585,7 @@ Mọi kênh: dữ liệu vào/ra có zod schema trong `src/shared/ipc/`. Tên d�
 
 | Ngày | Phiên bản | Người/AI | Thay đổi |
 |---|---|---|---|
+| 2026-11-02 | 0.3 | Antigravity (AI) | Xác nhận câu "Đọc hạn mức không tốn hạn mức của bạn" ở MH-08 là đúng theo kết quả Phase 0 và ADR-018 (đọc thụ động 0 token LLM); đồng bộ tham chiếu `PROJECT_PLAN.md` v0.6 |
 | 2026-11-02 | 0.2 | Antigravity (AI) | Cập nhật tên app **CodeFleet** (G10, ADR-011) và chốt toàn bộ Q1–Q12 theo quyết định của chủ dự án (ADR-012 → ADR-017); gạch các dòng mục 8 và sửa các ô `[CHƯA CHỐT]` liên quan |
 | 2026-11-02 | 0.1 | Antigravity (AI) | Tạo tài liệu: nguyên tắc, tokens, ánh xạ trạng thái, thành phần, đặc tả 12 màn, view model, IPC dự kiến, 12 câu hỏi cần chốt, ánh xạ phase |
 

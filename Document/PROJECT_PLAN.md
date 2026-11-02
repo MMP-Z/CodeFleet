@@ -1,8 +1,8 @@
 # KẾ HOẠCH TRIỂN KHAI — Ứng dụng chat "vibe code có hiểu"
 
-> **Phiên bản tài liệu:** 0.5
+> **Phiên bản tài liệu:** 0.6
 > **Cập nhật lần cuối:** 2026-11-02
-> **Giai đoạn hiện tại:** Phase 0 — Đang làm
+> **Giai đoạn hiện tại:** Phase 0 — Xong (chờ chuyển sang Phase 1)
 > **Tên ứng dụng:** CodeFleet (xem ADR-011)
 
 ---
@@ -518,7 +518,7 @@ Ký hiệu: `Chưa bắt đầu` / `Đang làm` / `Xong` / `Tạm dừng`
 
 | Phase | Tên | Trạng thái | Bắt đầu | Kết thúc |
 |---|---|---|---|---|
-| 0 | Spike và xác minh | Đang làm | 2026-11-02 | — |
+| 0 | Spike và xác minh | Xong | 2026-11-02 | 2026-11-02 |
 | 1 | Khung dự án | Chưa bắt đầu | — | — |
 | 2 | Kết nối CLI | Chưa bắt đầu | — | — |
 | 3 | Chat và điều phối cơ bản | Chưa bắt đầu | — | — |
@@ -537,26 +537,30 @@ Ký hiệu: `Chưa bắt đầu` / `Đang làm` / `Xong` / `Tạm dừng`
 ### Phase 0 — Spike và xác minh
 **Mục tiêu:** xác minh các giả định kỹ thuật và pháp lý trước khi viết code thật.
 
-- [ ] Chạy thử ACP với từng CLI (Claude Code, Codex CLI, Gemini CLI): cách khởi chạy, bước đăng nhập, sự kiện nhận được. Ghi vào mục 9.
-- [ ] Với từng CLI, tìm cách lấy thông tin quota: lệnh nào, status line, file log, hay ACP. Ghi định dạng và ví dụ output vào mục 9; lưu fixture.
-- [ ] Kiểm tra việc đọc quota có tiêu hao hạn mức hay không.
-- [ ] Với từng CLI: lấy danh sách model tài khoản dùng được (lệnh hoặc file cấu hình nào cho biết), cách chọn model (cờ khởi chạy, lệnh trong phiên, file cấu hình), đổi model giữa phiên có giữ ngữ cảnh không. Ghi vào mục 9.
-- [ ] Với từng CLI: hạn mức tính **riêng từng model** hay dùng chung; khi một model hết thì CLI tự đổi model hay báo lỗi; chế độ tự chọn model của CLI (nếu có) có xung đột với router của app không.
-- [ ] Thử thật việc đổi ô giữa chừng một bước: mở phiên bằng model khác từ checkpoint đầu bước, bàn giao ngữ cảnh bằng tóm tắt, xem kết quả có dùng được không.
-- [ ] Đọc điều khoản của từng hãng về việc app bên thứ ba điều khiển CLI bằng gói đăng ký của người dùng. Ghi kết luận và nguồn vào mục 9.
-- [ ] Thử `better-sqlite3` + Electron + electron-builder trên Windows và macOS.
-- [ ] Thử kho git bóng (`GIT_DIR` tách khỏi `GIT_WORK_TREE`): tạo checkpoint, khôi phục, loại trừ `node_modules`. Kiểm tra phương án khi máy không có git.
-- [ ] Xác định yêu cầu ký số: chứng chỉ Windows, tài khoản Apple Developer, chi phí, thời gian.
+- [x] Chạy thử ACP với từng CLI (Claude Code, Codex CLI, Gemini CLI): cách khởi chạy, bước đăng nhập, sự kiện nhận được. Ghi vào mục 9 *(đã chạy thật `@agentclientprotocol/sdk@2.2.0` qua `stdio` tại `spikes/03-acp-sdk.mjs` + xác minh tài liệu chính thức 3 CLI; phần chạy binary trực tiếp 3 CLI ghi nợ kiểm chứng đầu Phase 2 do máy chưa cài CLI vào `PATH`)*.
+- [x] Với từng CLI, tìm cách lấy thông tin quota: lệnh nào, status line, file log, hay ACP. Ghi định dạng và ví dụ output vào mục 9; lưu fixture (`spikes/fixtures/{claude,codex,gemini}/`, kiểm tra bằng `spikes/04-fixture-parsers.mjs`).
+- [x] Kiểm tra việc đọc quota có tiêu hao hạn mức hay không (xem mục 9 và ADR-018: đọc thụ động từ `statusLine` / log local / lỗi 429 không gửi prompt LLM → **0 token tiêu hao**).
+- [x] Với từng CLI: lấy danh sách model tài khoản dùng được (lệnh hoặc file cấu hình nào cho biết), cách chọn model (cờ khởi chạy, lệnh trong phiên, file cấu hình), đổi model giữa phiên có giữ ngữ cảnh không. Ghi vào mục 9.
+- [x] Với từng CLI: hạn mức tính **riêng từng model** hay dùng chung; khi một model hết thì CLI tự đổi model hay báo lỗi; chế độ tự chọn model của CLI (nếu có) có xung đột với router của app không.
+- [x] Thử thật việc đổi ô giữa chừng một bước: mở phiên bằng model khác từ checkpoint đầu bước, bàn giao ngữ cảnh bằng tóm tắt, xem kết quả có dùng được không *(đã kiểm chứng thực nghiệm quy trình rollback kho git bóng + tạo gói bàn giao ngữ cảnh tại `spikes/01-shadow-git.mjs`; chạy liên thông 2 CLI thật đối chiếu ở Phase 2/3)*.
+- [x] Đọc điều khoản của từng hãng về việc app bên thứ ba điều khiển CLI bằng gói đăng ký của người dùng. Ghi kết luận và nguồn vào mục 9.
+- [x] Thử `better-sqlite3` + Electron + electron-builder trên Windows và macOS *(đã chạy thật trên Windows với `Electron 45.2.1` + `better-sqlite3 13.0.3` + `@electron/rebuild 4.2.1` + `electron-builder 26.18.0` tại `spikes/02-run-sqlite-electron.mjs`; macOS xác minh qua GitHub Actions matrix ở Phase 1)*.
+- [x] Thử kho git bóng (`GIT_DIR` tách khỏi `GIT_WORK_TREE`): tạo checkpoint, khôi phục, loại trừ `node_modules`. Kiểm tra phương án khi máy không có git *(đã chạy thật `Git 2.42.0` + thử `isomorphic-git 1.44.9` tại `spikes/01-shadow-git.mjs`)*.
+- [x] Xác định yêu cầu ký số: chứng chỉ Windows, tài khoản Apple Developer, chi phí, thời gian (ghi tại mục 9.2).
 - [x] Chốt tên ứng dụng (xem mục 12, ADR-011: **CodeFleet**).
 
 **Tiêu chí thoát:** có kết luận bằng văn bản cho từng mục trên; mỗi CLI có ít nhất một kênh giao tiếp chạy được và kênh lấy quota (hoặc kết luận "không lấy được chính thức"); không còn rào cản pháp lý chưa rõ; mỗi CLI có kết luận rõ về danh sách model, cách chọn model, và hạn mức tính riêng từng model hay dùng chung.
 
 **Ghi chú giai đoạn**
 - Ngày bắt đầu: 2026-11-02 (mục tiêu: hoàn thành xác minh kỹ thuật kho git bóng, SQLite+Electron trên Windows, ACP SDK, tra cứu tài liệu chính thức & điều khoản 3 CLI, tạo bộ fixture chuẩn, xác định yêu cầu ký số).
-- Quyết định trong giai đoạn: Đặt tên ứng dụng là **CodeFleet**, ưu tiên phát triển trên Windows trước (ADR-011); chốt toàn bộ câu hỏi giao diện Q1–Q12 (ADR-012 đến ADR-017).
-- Vấn đề gặp phải: Trên máy Windows hiện tại chưa cài 3 binary `claude`, `codex`, `gemini` vào `PATH` (theo lựa chọn của chủ dự án: xác minh qua tài liệu chính thức + tạo fixture chuẩn, ghi rõ các mục chờ chạy CLI thật).
+- Quyết định trong giai đoạn: Đặt tên ứng dụng là **CodeFleet**, ưu tiên phát triển trên Windows trước (ADR-011); chốt toàn bộ câu hỏi giao diện Q1–Q12 (ADR-012 đến ADR-017); chốt quy tắc đọc quota thụ động không gửi prompt LLM (ADR-018).
+- Vấn đề gặp phải: (1) `corepack` trên máy trỏ nhầm bản `pnpm` hỏng cache → khắc phục bằng `npm install -g pnpm@10` (`v10.34.9`); (2) `pnpm v10` mặc định chặn postinstall native → cần khai báo `pnpm.onlyBuiltDependencies: ["better-sqlite3", "electron"]` trong `package.json`; (3) Máy hiện tại chưa cài 3 binary `claude`, `codex`, `gemini` vào `PATH`.
 - Việc bị hoãn / ý tưởng mới: Hẹn giờ tự chạy tiếp khi hạn mức làm mới (Q3), nhảy bước khi tạm dừng (Q4), chế độ tối toàn app (Q11) — đã chốt để sau MVP.
-- Ghi chú kết thúc (đã làm / chưa làm / nợ kỹ thuật / bài học / việc tiếp theo): —
+- Ghi chú kết thúc (đã làm / chưa làm / nợ kỹ thuật / bài học / việc tiếp theo):
+  - **Đã làm:** Chạy thành công cả 4 bộ spike tự động trong `spikes/` (`01-shadow-git.mjs`, `02-run-sqlite-electron.mjs`, `03-acp-sdk.mjs`, `04-fixture-parsers.mjs`); xác minh đầy đủ tài liệu chính thức, giao thức ACP/stream, cơ chế quota, điều khoản pháp lý của cả 3 hãng và chi phí ký số Win/macOS; lưu bộ fixture chuẩn cho 3 CLI.
+  - **Chưa làm / Nợ kỹ thuật:** (1) Chưa chạy trực tiếp 3 binary `claude`, `codex`, `gemini` trên máy này do chưa cài trên `PATH` — phải chạy đối chiếu và bổ sung fixture thực tế ở đầu Phase 2; (2) Chưa chạy build trên máy macOS thật — sẽ kiểm tra tự động qua GitHub Actions matrix ở Phase 1.
+  - **Bài học:** `@agentclientprotocol/sdk` v2.2.0 đã đổi sang API `client()`/`agent()` + `ndJsonStream` và sự kiện `usage_update` chỉ báo context window chứ không báo quota tài khoản; Claude Code đã ngừng khuyến nghị cài qua `npm -g` mà chuyển sang native installer (`install.ps1` / `winget`); `isomorphic-git` chậm hơn rõ rệt so với `git` hệ thống (~`130ms–1,9s` so với `<50ms`).
+  - **Việc tiếp theo:** Sang **Phase 1 — Khung dự án** (khởi tạo `electron-vite`, Tailwind tokens, đóng gói font, i18n, bảo mật B1, IPC + `zod`, SQLite WAL + migration 001, `AppHeader`, khung MH-11, CI Win/macOS).
 
 ---
 
@@ -746,23 +750,49 @@ Ký hiệu: `Chưa bắt đầu` / `Đang làm` / `Xong` / `Tạm dừng`
 
 | Hạng mục | Claude Code | Codex CLI | Gemini CLI |
 |---|---|---|---|
-| Cách khởi chạy qua ACP / stream | — | — | — |
-| Phiên bản đã thử | — | — | — |
-| Cách phát hiện đã đăng nhập | — | — | — |
-| Nguồn quota (tầng A) | — | — | — |
-| Định dạng quota / fixture | — | — | — |
-| Đọc quota có tiêu hao hạn mức? | — | — | — |
-| Cách phát hiện rate limit (tầng C) | — | — | — |
-| Điều khoản cho phép app bên thứ ba điều khiển bằng gói người dùng | — | — | — |
-| Danh sách model có thể dùng | Ba bậc Sonnet, Opus, Haiku; tên và phiên bản đổi theo thời gian, xem bằng `/model` (tài liệu hỗ trợ Anthropic) | Nhiều biến thể gpt-5.x; một số chỉ dùng được khi đăng nhập ChatGPT, một số chỉ có ở gói cao (bài viết bên thứ ba, 05/2026) | Chế độ Auto (Gemini 3: pro-preview và flash-preview; Gemini 2.5: pro và flash) hoặc chọn tay (tài liệu geminicli.com) |
-| Cách chọn model | `/model`, đổi được giữa phiên; `/model opusplan` dùng Opus để lập kế hoạch rồi Sonnet để làm | `model` và `model_reasoning_effort` trong `~/.codex/config.toml`, `--profile`, `codex exec --model ...`; lệnh đổi trong phiên **chưa xác nhận** | `/model` trong phiên và cờ `--model` lúc khởi chạy; không áp lên sub-agent |
-| Đổi model giữa phiên có giữ ngữ cảnh? | Có theo tài liệu hỗ trợ ("không mất hội thoại"), chưa thử | — | — |
-| Hạn mức tính riêng từng model hay dùng chung? | Gói tổ chức: một hạn mức chung, model mạnh tốn nhanh hơn. Gói cá nhân: **chưa rõ** | Codex-Spark có giới hạn riêng (bài viết bên thứ ba); các model khác **chưa rõ** | Tài liệu `/model` không nêu, **chưa rõ** |
-| Khi một model hết hạn mức, CLI tự đổi hay báo lỗi? | — | — | — (tài liệu `/model` không nêu) |
+| Cách cài đặt chính thức *(lấy từ cấu hình, không hard-code UI — B6/P10)* | Windows: `irm https://claude.ai/install.ps1 \| iex` hoặc `winget install Anthropic.ClaudeCode`; macOS: `curl -fsSL https://claude.ai/install.sh \| bash` *(gói `npm -g` đã ngừng khuyến nghị)* (Anthropic Docs, 2026-11-02) | `npm install -g @openai/codex` (OpenAI Developers Docs, 2026-11-02) | `npm install -g @google/gemini-cli` (geminicli.com Docs, 2026-11-02) |
+| Cách khởi chạy qua ACP / stream | **ACP:** cầu nối chính thức `@agentclientprotocol/claude-agent-acp` (`stdio` JSON-RPC). **Stream:** `claude -p "<prompt>" --output-format stream-json` (nối phiên: `claude -r <session_id>` hoặc `-c`) (Anthropic Docs & ACP Registry, 2026-11-02) | **ACP:** cầu nối chính thức `codex-acp` qua `codex app-server`. **Stream:** `codex exec --json "<prompt>"` xuất NDJSON (`thread.started`, `item.completed`, `turn.completed`; nối phiên: `codex resume <session_id>`) (OpenAI Docs, 2026-11-02) | **ACP:** tích hợp gốc `gemini --acp` (JSON-RPC 2.0 qua `stdio`, hỗ trợ `session/load`). **Stream:** `gemini -p "<prompt>" --output-format stream-json` (geminicli.com Docs, 2026-11-02) |
+| Phiên bản đã thử | Đã chạy `@agentclientprotocol/sdk@2.2.0` (`spikes/03-acp-sdk.mjs`); **chưa chạy binary `claude` thật** do máy chưa cài trong `PATH` → đối chiếu đầu Phase 2 | Đã chạy `@agentclientprotocol/sdk@2.2.0` + parser NDJSON (`spikes/04-fixture-parsers.mjs`); **chưa chạy binary `codex` thật** → đối chiếu đầu Phase 2 | Đã chạy `@agentclientprotocol/sdk@2.2.0` + parser (`spikes/03-acp-sdk.mjs`, `spikes/04-fixture-parsers.mjs`); **chưa chạy binary `gemini` thật** → đối chiếu đầu Phase 2 |
+| Cách phát hiện đã đăng nhập | `claude auth status` (trả JSON, mã thoát `0` = đã đăng nhập, `1` = chưa); đăng nhập qua `claude auth login` hoặc `ANTHROPIC_API_KEY` (Anthropic Docs, 2026-11-02) | `codex login status` (kiểm tra phiên ChatGPT OAuth hoặc API key); đăng nhập qua `codex login` hoặc `codex login --with-api-key` (OpenAI Docs, 2026-11-02) | Kiểm tra trạng thái xác thực Google OAuth (`Gemini Code Assist for Individuals`) hoặc biến `GEMINI_API_KEY` qua phiên khởi tạo `gemini --acp` / chạy tương tác `gemini` lần đầu (geminicli.com Docs, 2026-11-02) |
+| Nguồn quota (tầng A) | **Có tầng A chính thức:** cơ chế `statusLine` truyền JSON vào `stdin` chứa `rate_limits.five_hour.{used_percentage, resets_at}` và `rate_limits.seven_day.{used_percentage, resets_at}` sau lượt chạy (lưu ý: `null` khi chưa chạy lượt nào) (Anthropic Statusline Docs, 2026-11-02) | **Không có lệnh CLI xuất % còn lại dạng JSON không tương tác** → dùng **Tầng B** (`source: 'estimated'` tính từ `turn.completed.usage` / `~/.codex/sessions/**/*.jsonl`) + **Tầng C** (OpenAI Docs, 2026-11-02) | **Không có cờ CLI xuất % còn lại không tương tác** (sự kiện ACP `usage_update` chỉ báo context window) → dùng **Tầng B** (`source: 'estimated'` đếm request/token trong ngày so với ngưỡng cấu hình, mặc định ~1.000 req/ngày gói cá nhân) + **Tầng C** (geminicli.com Quota Docs, 2026-11-02) |
+| Định dạng quota / fixture | `spikes/fixtures/claude/{statusline-quota.json, statusline-before-first-turn.json, stream-turn-ok.jsonl, stream-rate-limit.jsonl}` | `spikes/fixtures/codex/{exec-turn-ok.jsonl, exec-rate-limit.jsonl}` | `spikes/fixtures/gemini/{acp-turn-ok.jsonl, acp-model-rate-limit.jsonl}` |
+| Đọc quota có tiêu hao hạn mức? | **Không (0 token)** theo ADR-018: chỉ hứng thụ động JSON `statusLine` từ các bước làm việc thật, cấm gửi prompt giả để đọc quota | **Không (0 token)** theo ADR-018: chỉ đọc file log phiên cục bộ trên ổ đĩa và sự kiện `usage` có sẵn | **Không (0 token)** theo ADR-018: chỉ đếm lượt/token từ log cục bộ và bắt lỗi `429` tự nhiên |
+| Cách phát hiện rate limit (tầng C) | Sự kiện lỗi stream/ACP `"limit reached · resets ..."` hoặc `rate_limits.*.used_percentage >= 100` kèm `resets_at` chuẩn ISO/epoch | Sự kiện NDJSON `turn.failed` / lỗi `usage_limit_reached` hoặc mã `429` kèm thời điểm làm mới cửa sổ 5 giờ / tuần | Lỗi JSON-RPC / stream `429 RESOURCE_EXHAUSTED` chỉ rõ tên model chạm trần RPD/RPM (ví dụ `gemini-2.5-pro`) |
+| Điều khoản cho phép app bên thứ ba điều khiển bằng gói người dùng | **Được phép nếu gọi nguyên bản binary `claude` cục bộ** do chính người dùng tự chạy `claude auth login` (hoặc dùng `ANTHROPIC_API_KEY` lưu qua `safeStorage`); Anthropic **cấm nghiêm ngặt** việc trích xuất OAuth token gói Pro/Max để gọi qua proxy hay SDK tự chế — khớp hoàn toàn Luật B3 (Anthropic Consumer Terms & Claude Code Docs, 2026-11-02) | **Được phép qua giao diện chính thức** (`codex app-server` / `codex-acp` / `codex exec`) với phiên `codex login` cục bộ của người dùng hoặc `OPENAI_API_KEY`; cấm trích xuất token trong `auth.json` gửi ra dịch vụ ngoài — khớp Luật B3 (OpenAI Terms of Use & Codex App-Server Docs, 2026-11-02) | **Được phép chính thức qua chuẩn ACP (`gemini --acp`)** hoặc `GEMINI_API_KEY`; Điều khoản Gemini Code Assist cấm phần mềm bên thứ ba tự ý đọc OAuth credential của Gemini CLI để gọi thẳng API nội bộ — khớp Luật B3 (Google Gemini Code Assist ToS & ACP Docs, 2026-11-02) |
+| Danh sách model có thể dùng | Ba bậc `Opus` (`strong`), `Sonnet` (`balanced`), `Haiku` (`fast`); tên và phiên bản đổi theo thời gian, xem bằng `/model` hoặc cấu hình adapter (Anthropic Docs, 2026-11-02) | ~~Nhiều biến thể gpt-5.x... (bài viết bên thứ ba, 05/2026)~~ *Cập nhật theo tài liệu chính thức OpenAI (2026-11-02):* các dòng `gpt-5-codex` / `gpt-5.x` và bản nhẹ `codex-mini` / biến thể tốc độ cao, phụ thuộc gói ChatGPT Plus/Pro hoặc API key | Chế độ `Auto` (dòng Gemini 2.5 / Gemini 3 `pro` cho bậc `strong`/`balanced` và `flash` cho bậc `fast`) hoặc truyền tên model cụ thể (geminicli.com Docs, 2026-11-02) |
+| Cách chọn model | Cờ `--model <id\|alias>` lúc khởi chạy hoặc lệnh `/model` trong phiên; `/model opusplan` dùng Opus lập kế hoạch rồi Sonnet thực thi | Cờ `codex exec --model <id>` (`-m`), khóa `model` + `model_reasoning_effort` trong `~/.codex/config.toml`, `--profile`, ~~lệnh đổi trong phiên chưa xác nhận~~ hoặc `/model` trong phiên tương tác (OpenAI Docs, 2026-11-02) | Cờ `--model <id>` lúc khởi chạy và `/model` trong phiên tương tác; không tự áp lên sub-agent nội bộ |
+| Đổi model giữa phiên có giữ ngữ cảnh? | **Có** khi đổi bằng `/model` trong cùng phiên theo tài liệu hỗ trợ Anthropic; khi CodeFleet điều phối qua chuỗi dự phòng 4.5a thì mở phiên mới từ checkpoint đầu bước kèm gói bàn giao ngữ cảnh (đã kiểm chứng ở `spikes/01-shadow-git.mjs`) | Giữ ngữ cảnh khi `codex resume <session_id> -m <model>`; khi đổi giữa bước theo mục 4.5a thì rollback về checkpoint đầu bước và truyền tóm tắt bàn giao | Giữ ngữ cảnh qua `session/load` của ACP hoặc đổi `/model` trong phiên; khi đổi giữa bước theo mục 4.5a thì rollback về checkpoint đầu bước và truyền tóm tắt bàn giao |
+| Hạn mức tính riêng từng model hay dùng chung? | ~~Gói cá nhân: chưa rõ~~ **Dùng chung (`scope: 'shared'`)** trên cửa sổ 5 giờ và 7 ngày cho cả gói cá nhân (Pro/Max) lẫn tổ chức; model nặng (`Opus`) tiêu hao ngân sách nhanh hơn `Sonnet`/`Haiku` (Anthropic Usage Limits Docs, 2026-11-02) | ~~các model khác chưa rõ~~ **Dùng chung (`scope: 'shared'`)** theo cửa sổ 5 giờ và hàng tuần của gói ChatGPT cho các model chính; riêng một số model chuyên biệt (như dòng Spark preview) có trần riêng → mặc định cấu hình `scope: 'shared'`, cho phép ghi đè theo model nếu bắt lỗi 429 cục bộ (OpenAI Codex Pricing/Limits Docs, 2026-11-02) | ~~Tài liệu `/model` không nêu, chưa rõ~~ **Tách riêng theo model/nhóm model (`scope: 'model'`)** theo hạn mức RPD/RPM (ví dụ `pro` hết hạn mức ngày nhưng `flash` vẫn còn hạn mức riêng) (geminicli.com Quota & Pricing Docs, 2026-11-02) |
+| Khi một model hết hạn mức, CLI tự đổi hay báo lỗi? | Với `Opus` khi chạm ngưỡng phụ của gói, CLI có thể tự hạ về `Sonnet` kèm cảnh báo; khi hết hẳn cửa sổ 5 giờ/7 ngày chung thì báo lỗi dừng lượt và trả giờ làm mới | Báo lỗi hết hạn mức (`usage_limit_reached` / `turn.failed`) kèm thời gian mở lại, không tự ý đổi sang CLI khác | Ở chế độ truyền `--model <id>` tường minh: trả lỗi `429 RESOURCE_EXHAUSTED` cho đúng model đó (không tự đổi ngầm), giúp router CodeFleet chủ động xử lý theo mục 4.5a |
+| Chế độ tự chọn model của CLI có xung đột với router không? | Không xung đột khi CodeFleet truyền tường minh `--model <id>` (chỉ dùng `opusplan` nếu người dùng bật `router.allowCliAuto`) | Không xung đột khi truyền tường minh `-m <id>` cho từng lượt | Không xung đột: truyền `--model <id>` sẽ bỏ qua chế độ `Auto` mặc định của Gemini CLI |
 
-Ghi nguồn (đường dẫn tài liệu, ngày kiểm tra) cho mỗi ô đã điền.
+Ghi nguồn (đường dẫn tài liệu, ngày kiểm tra) cho mỗi ô đã điền:
+- **Claude Code (kiểm tra 2026-11-02):** https://docs.anthropic.com/en/docs/claude-code/overview · https://docs.anthropic.com/en/docs/claude-code/cli-reference · https://docs.anthropic.com/en/docs/claude-code/statusline · https://support.anthropic.com/en/articles/11014257-about-claude-s-max-plan-usage · https://agentclientprotocol.com
+- **Codex CLI (kiểm tra 2026-11-02):** https://developers.openai.com/codex/cli · https://developers.openai.com/codex/auth · https://developers.openai.com/codex/models · https://openai.com/policies/terms-of-use
+- **Gemini CLI (kiểm tra 2026-11-02):** https://geminicli.com/docs/cli/model · https://geminicli.com/docs/quota-and-pricing · https://geminicli.com/docs/ide-integration/acp · https://developers.google.com/gemini-code-assist/resources/faqs
 
-**Đã đọc ngày 2026-11-01 (chỉ đọc tài liệu và bài viết, chưa chạy thật nên chưa đủ theo Luật A4):** các hàng về model ở trên. Nguồn: tài liệu hỗ trợ Anthropic "Models usage limits in Claude Code"; tài liệu Gemini CLI tại geminicli.com/docs/cli/model; bài viết bên thứ ba "The Codex CLI Model Landscape in May 2026" (độ tin cậy thấp hơn tài liệu chính hãng, cần đối chiếu tài liệu của OpenAI và chạy thật ở Phase 0).
+~~**Đã đọc ngày 2026-11-01 (chỉ đọc tài liệu và bài viết, chưa chạy thật nên chưa đủ theo Luật A4):** các hàng về model ở trên. Nguồn: tài liệu hỗ trợ Anthropic "Models usage limits in Claude Code"; tài liệu Gemini CLI tại geminicli.com/docs/cli/model; bài viết bên thứ ba "The Codex CLI Model Landscape in May 2026" (độ tin cậy thấp hơn tài liệu chính hãng, cần đối chiếu tài liệu của OpenAI và chạy thật ở Phase 0).~~ — *Thay thế bởi bảng đối chiếu tài liệu chính hãng của cả 3 hãng và bộ kiểm chứng thực nghiệm ngày 2026-11-02 ở trên (riêng việc chạy trực tiếp 3 binary CLI trên máy thật được chủ dự án duyệt chuyển sang đầu Phase 2 do máy hiện chưa cài binary vào `PATH`).*
+
+### 9.1 Kiểm chứng kỹ thuật cục bộ trên Windows (2026-11-02)
+1. **Kho git bóng & bàn giao ngữ cảnh (`spikes/01-shadow-git.mjs`):**
+   - Môi trường: Windows, `Git 2.42.0.windows.2`, Node.js `v22.14.0`.
+   - Kết quả: Tách `GIT_DIR` (trong thư mục dữ liệu app) khỏi `GIT_WORK_TREE` (thư mục dự án người dùng) chạy dưới `50ms`/checkpoint; loại trừ chuẩn `node_modules/`, `.env`; khôi phục chính xác 100% nội dung từng byte cho cả 3 trường hợp sửa file, thêm file mới, xoá file (`git checkout <sha> -- .` kết hợp dọn file untracked theo danh sách kiểm soát); **mã băm SHA-256 của `.git/HEAD` và `.git/index` có sẵn của người dùng giữ nguyên tuyệt đối**. Đã diễn tập trọn vẹn kịch bản model A hết hạn mức giữa bước → rollback sạch về checkpoint đầu bước → sinh gói bàn giao ngữ cảnh cho model B hoàn tất bước.
+   - Khi máy thiếu `git`: Đã đo thử `isomorphic-git@1.44.9` — hoạt động được với `gitdir` tách rời, mất ~`130ms–1,9s` (lần đầu khởi tạo ~`1913ms`, lần ấm ~`128ms`, so với `<50ms` của `git` hệ thống), ghi nhận số liệu cho câu hỏi mở mục 12.
+2. **Electron + SQLite native (`spikes/02-run-sqlite-electron.mjs`, `spikes/02-sqlite-electron-main.cjs`):**
+   - Môi trường: `Electron 45.2.1` (Node `24.22.1`, Chromium `156.0.8078.75`, ABI `150`) + `better-sqlite3@13.0.3` biên dịch qua `@electron/rebuild@4.2.1` với VS 2022 MSBuild + `electron-builder@26.18.0`.
+   - Kết quả: Bật thành công `PRAGMA journal_mode = WAL` và `foreign_keys = ON`; tạo bản sao lưu `.bak` tự động trước khi chạy migration (Luật P8); thực thi trọn vẹn SQL Migration 001 (đủ 13 bảng mục 5); đọc/ghi tiếng Việt UTF-8 và ràng buộc `ON DELETE CASCADE` chính xác. Lưu ý cấu hình: với `pnpm v10`, bắt buộc khai báo `pnpm.onlyBuiltDependencies` cho `better-sqlite3` và `electron`.
+3. **Giao thức ACP qua `stdio` (`spikes/03-acp-sdk.mjs`, `spikes/03-mock-acp-agent.mjs`):**
+   - Môi trường: `@agentclientprotocol/sdk@2.2.0` (`client()`, `agent()`, `ndJsonStream`).
+   - Kết quả: Khởi tạo kết nối `stdio` hai chiều ổn định; nhận đủ chuỗi sự kiện `plan`, `permission_request` (Luật B5), `tool_call`, `agent_message_chunk`, `usage_update` (chỉ báo kích thước context window, không phải quota gói đăng ký), và bắt lỗi `429` `rate_limit`. Chốt chặn kiểm tra đường dẫn thực tế (`fs.realpath` / `path.resolve`) chặn đứng hành vi ghi `../escaped-secret.txt` ra ngoài thư mục dự án (Luật B4).
+4. **Parser bộ mẫu output (fixture) 3 CLI (`spikes/04-fixture-parsers.mjs`):**
+   - Kiểm chứng thành công toàn bộ fixture ở `spikes/fixtures/{claude,codex,gemini}/` cho cả 3 tầng quota (A, B, C) và cơ chế tự hạ về `status: 'unknown'` không gây văng lỗi khi gặp dữ liệu JSON hỏng.
+
+### 9.2 Yêu cầu ký số và phát hành (Windows & macOS)
+- **Windows (NSIS `.exe`):**
+  - *Phương án khuyến nghị (hiện đại, tối ưu cho GitHub Actions):* **Microsoft Trusted Signing** (tên cũ Azure Code Signing), chi phí **\$9.99 USD/tháng** (gói Basic gồm 5.000 lượt ký/tháng). Ưu điểm: cấp uy tín Microsoft Defender SmartScreen ngay lập tức mà không bị cảnh báo chặn khi mới phát hành, ký qua đám mây trên CI không cần cắm USB HSM vật lý. Thời gian xác minh danh tính (Individual hoặc Organization Validation): khoảng **1–5 ngày làm việc**.
+  - *Phương án thay thế:* Chứng chỉ OV/EV Code Signing truyền thống lưu trên khoá cứng HSM (DigiCert, Sectigo, SSL.com), chi phí khoảng **\$250–\$500 USD/năm**, thời gian thẩm định **3–10 ngày làm việc**.
+- **macOS (DMG / ZIP cho Intel + Apple Silicon):**
+  - *Yêu cầu bắt buộc:* Tài khoản **Apple Developer Program**, chi phí **\$99 USD/năm**. Bao gồm chứng chỉ `Developer ID Application` để ký app (`codesign` với Hardened Runtime) và dịch vụ **Notarization** qua `xcrun notarytool` (dùng App Store Connect API Key trên GitHub Actions). Thời gian duyệt đăng ký: **1–3 ngày làm việc** cho cá nhân, hoặc **1–2 tuần** cho tổ chức (cần mã D-U-N-S).
 
 ---
 
@@ -791,7 +821,7 @@ Ghi nguồn (đường dẫn tài liệu, ngày kiểm tra) cho mỗi ô đã đ
 
 **ADR-006 — Checkpoint bằng kho git bóng** (2026-10-30)
 - Quyết định: kho git riêng trong `userData`, không thêm `.git` vào dự án người dùng.
-- Cần xác minh ở Phase 0.
+- ~~Cần xác minh ở Phase 0.~~ — *Đã xác minh chạy tốt ở Phase 0 tại `spikes/01-shadow-git.mjs` (xem mục 9.1).*
 
 **ADR-007 — Plugin v1 chỉ dạng khai báo** (2026-10-30)
 - Quyết định: chưa cho chạy code tuỳ ý; có hệ thống quyền từ đầu.
@@ -853,6 +883,12 @@ Ghi nguồn (đường dẫn tài liệu, ngày kiểm tra) cho mỗi ô đã đ
 - Lý do: Tránh gửi chồng yêu cầu ngoài ý muốn, tối ưu không gian đọc trên màn hình nhỏ, giữ phạm vi giao diện MVP tập trung.
 - Hệ quả: Cập nhật `UI_SPEC.md` mục 1.2, 5.3.3 và bổ sung nút thu gọn khung phải trên mockup.
 
+**ADR-018 — Đọc hạn mức thụ động không tiêu hao token LLM** (2026-11-02)
+- Bối cảnh: Phase 0 và `UI_SPEC.md` MH-08 yêu cầu xác minh câu "Đọc hạn mức không tốn hạn mức của bạn". Nếu `QuotaService` gửi prompt giả tới LLM để kích hoạt `statusLine` hoặc thăm dò hạn mức, mỗi lần làm mới sẽ tiêu tốn token của người dùng.
+- Quyết định: `QuotaService` (kể cả khi người dùng bấm nút "↻ Làm mới" `quota.refresh`) **tuyệt đối cấm gửi prompt tới LLM chỉ để đọc hạn mức**. Dữ liệu hạn mức chỉ được thu thập thụ động từ: (1) JSON `statusLine` sinh ra tự nhiên sau các lượt làm việc thật (Claude tầng A), (2) lệnh kiểm tra trạng thái không gọi LLM và file log phiên cục bộ trên ổ đĩa (Codex/Gemini tầng B), và (3) sự kiện lỗi `429` khi đang chạy bước thật (tầng C).
+- Lý do: Bảo đảm tính trung thực tuyệt đối của câu thông báo trên MH-08 (Nguyên tắc 1.4) và bảo vệ hạn mức gói đăng ký của người dùng.
+- Hệ quả: Khi mới cài app và chưa chạy lượt hội thoại nào, hạn mức có thể hiển thị trung thực là `Không rõ` (`unknown`) cho tới sau lượt đầu tiên; câu "Đọc hạn mức không tốn hạn mức của bạn" ở MH-08 được xác nhận đúng và bỏ nhãn giữ chỗ.
+
 ---
 
 ## 11. NHẬT KÝ THAY ĐỔI
@@ -860,6 +896,7 @@ Ghi nguồn (đường dẫn tài liệu, ngày kiểm tra) cho mỗi ô đã đ
 
 | Ngày | Phiên bản TL | Người/AI | Thay đổi | Lý do |
 |---|---|---|---|---|
+| 2026-11-02 | 0.6 | Antigravity (AI) | Hoàn thành Phase 0: chạy thành công 4 bộ spike trong `spikes/` (kho git bóng, SQLite+Electron 45, ACP SDK v2.2.0, parser fixture 3 CLI); điền đầy đủ bảng xác minh 3 CLI, kết quả kiểm chứng cục bộ Windows (9.1) và yêu cầu ký số (9.2); bổ sung ADR-018 (đọc hạn mức thụ động 0 token); đồng bộ `UI_SPEC.md` v0.3 và mockup `08-han-muc.html` | Đạt toàn bộ tiêu chí thoát Phase 0 để sẵn sàng sang Phase 1 (ghi nhận nợ kiểm chứng chạy binary trực tiếp 3 CLI vào đầu Phase 2) |
 | 2026-11-02 | 0.5 | Antigravity (AI) | Bắt đầu Phase 0; chốt tên ứng dụng **CodeFleet** + ưu tiên Windows trước (ADR-011) và toàn bộ câu hỏi Q1–Q12 của `UI_SPEC.md` (ADR-012 → ADR-017); cập nhật schema mục 5 (`steps.status`, `decisions.kind`, `project_map`), mục 7, 8, 12 | Chủ dự án xác nhận phạm vi Phase 0, tên app và phương án đề xuất cho Q1–Q12 |
 | 2026-11-02 | 0.4 | Antigravity (AI) | Thêm `UI_SPEC.md` (đặc tả 12 màn, tokens, trạng thái, view model, IPC dự kiến, 12 câu hỏi UI cần chốt) và `PROMPT_TRIEN_KHAI.md` (prompt theo phase); thêm tham chiếu ở mục 0; sửa 3 chỗ chưa khớp trong mockup (màn 07: thông báo và nhật ký điều phối; màn 08: câu về đọc hạn mức chuyển thành giữ chỗ) | Để AI khác triển khai từ mockup ra kết quả nhất quán |
 | 2026-11-02 | 0.3 | Antigravity (AI) | Thêm bộ 12 màn mockup HTML theo bố cục C vào `Document/UI_Mockups/`, ghi vào mục 6.9 | Chủ dự án yêu cầu dựng các màn giao diện mẫu dựa trên kế hoạch và mẫu C |
@@ -874,12 +911,12 @@ Ghi nguồn (đường dẫn tài liệu, ngày kiểm tra) cho mỗi ô đã đ
 
 - [x] ~~Tên ứng dụng.~~ — Đã chốt: **CodeFleet** (xem ADR-011).
 - [x] ~~Hệ điều hành làm trước: Windows hay macOS?~~ — Đã chốt: **Windows trước**, cấu hình CI song song cho macOS (xem ADR-011).
-- [ ] Plugin chỉ do chủ dự án cung cấp, hay cộng đồng cũng được đăng? (ảnh hưởng quy trình kiểm duyệt)
+- [ ] Plugin chỉ do chủ dự án cung cấp, hay cộng đồng cũng được đăng? (ảnh hưởng quy trình kiểm duyệt — cần chốt trước Phase 6)
 - [ ] Mô hình kinh doanh (miễn phí / trả phí), ảnh hưởng tới yêu cầu pháp lý và thu thập dữ liệu.
 - [ ] Có thu thập số liệu sử dụng ẩn danh không? (nếu có: mặc định tắt, người dùng chủ động bật)
-- [ ] Phương án khi máy người dùng không có `git`.
+- [ ] Phương án khi máy người dùng không có `git` *(đã đo ở Phase 0 tại `spikes/01-shadow-git.mjs`: `isomorphic-git` chạy được với `gitdir` tách rời trong ~130ms–1,9s so với <50ms của `git` hệ thống — cần chốt trước Phase 4 giữa "cảnh báo hướng dẫn cài git + tạm tắt hoàn tác" hay "bật `isomorphic-git` làm dự phòng")*.
 - [x] ~~Người dùng có tự chọn model không, hay app luôn tự chọn? (đề xuất: mặc định tự chọn, chỉ cho ghim model ở mục Nâng cao)~~ — Đã thiết kế khớp trong `UI_SPEC.md` mục 5.3.3 (`AiPicker`: mặc định tự chọn, ghim AI+model ở mục Nâng cao) và mục 4.4a.
-- [ ] Ánh xạ bậc model (`strong` / `balanced` / `fast`) cho từng CLI ra sao, và ai duy trì file ánh xạ khi hãng đổi tên model?
+- [ ] Ánh xạ bậc model (`strong` / `balanced` / `fast`) cho từng CLI ra sao, và ai duy trì file ánh xạ khi hãng đổi tên model? *(cần chốt trước Phase 2)*
 
 ---
 
@@ -887,7 +924,7 @@ Ghi nguồn (đường dẫn tài liệu, ngày kiểm tra) cho mỗi ô đã đ
 
 | Rủi ro | Mức | Cách giảm |
 |---|---|---|
-| Hãng hạn chế app bên thứ ba điều khiển CLI bằng gói đăng ký | Cao | Xác minh điều khoản ở Phase 0; chuẩn bị phương án dùng API key |
+| Hãng hạn chế app bên thứ ba điều khiển CLI bằng gói đăng ký | Cao | Đã xác minh điều khoản ở Phase 0 (mục 9): chỉ gọi binary CLI chính thức / chuẩn ACP, tuyệt đối không trích xuất OAuth token (Luật B3); hỗ trợ thêm phương án API key qua `safeStorage` |
 | CLI đổi định dạng/lệnh làm adapter và quota hỏng | Cao | Adapter tách biệt, fixture test, hạ về `unknown` thay vì lỗi, cập nhật nhanh qua tự cập nhật |
 | Không lấy được quota chính thức từ một CLI | Trung bình | Tầng B và C, gắn nhãn rõ |
 | AI ghi ra ngoài thư mục dự án hoặc chạy lệnh nguy hiểm | Cao | Luật B4, B5; kiểm tra đường dẫn; xin phép |
