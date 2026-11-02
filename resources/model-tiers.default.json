@@ -51,6 +51,21 @@
       "loginCommand": "codex login",
       "models": [
         {
+          "id": "gpt-6-astra",
+          "label": "GPT-6 Astra",
+          "tier": "strong"
+        },
+        {
+          "id": "gpt-6.1-sol",
+          "label": "GPT-6.1 Sol",
+          "tier": "balanced"
+        },
+        {
+          "id": "gpt-6-luna",
+          "label": "GPT-6 Luna",
+          "tier": "fast"
+        },
+        {
           "id": "gpt-5-codex",
           "label": "GPT-5 Codex",
           "tier": "strong"
@@ -62,8 +77,13 @@
         }
       ],
       "patternTiers": [
+        { "contains": "astra", "tier": "strong" },
+        { "contains": "sol", "tier": "balanced" },
+        { "contains": "terra", "tier": "balanced" },
+        { "contains": "luna", "tier": "fast" },
         { "contains": "mini", "tier": "fast" },
         { "contains": "spark", "tier": "fast" },
+        { "contains": "gpt-6", "tier": "strong" },
         { "contains": "gpt-5", "tier": "strong" }
       ]
     },

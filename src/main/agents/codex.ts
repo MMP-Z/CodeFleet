@@ -12,6 +12,7 @@ import type {
   AgentEvent,
   AgentSession,
   DetectResult,
+  DiscoveredModel,
   ModelInfo,
   QuotaSnapshot,
   StartSessionOptions,
@@ -128,9 +129,44 @@ export class CodexAdapter implements AgentAdapter {
     };
   }
 
-  public async listModels(): Promise<ModelInfo[]> {
-    const defaults = this.modelsService.getCatalogDefaultModels(this.id);
-    return this.modelsService.syncAgentModels(this.id, defaults);
+  public async listModels(customCachePath?: string): Promise<ModelInfo[]> {
+    const discovered: DiscoveredModel[] = [];
+
+    // 1. Quét động các model thực tế từ ~/.codex/models_cache.json
+    try {
+      const codexHome = process.env.CODEX_HOME || path.join(os.homedir(), '.codex');
+      const cachePath = customCachePath || path.join(codexHome, 'models_cache.json');
+      if (fs.existsSync(cachePath)) {
+        const raw = fs.readFileSync(cachePath, 'utf8');
+        const parsed = JSON.parse(raw) as {
+          models?: Array<{
+            slug?: string;
+            display_name?: string;
+            visibility?: string;
+          }>;
+        };
+        if (Array.isArray(parsed.models)) {
+          for (const m of parsed.models) {
+            if (m.slug && m.visibility !== 'hide') {
+              discovered.push({
+                id: m.slug,
+                label: m.display_name || m.slug,
+              });
+            }
+          }
+        }
+      }
+    } catch {
+      // bỏ qua lỗi đọc file cache
+    }
+
+    // 2. Fallback về catalog cấu hình nếu không tìm thấy cache
+    if (discovered.length === 0) {
+      const defaults = this.modelsService.getCatalogDefaultModels(this.id);
+      return this.modelsService.syncAgentModels(this.id, defaults);
+    }
+
+    return this.modelsService.syncAgentModels(this.id, discovered);
   }
 
   public estimateQuotaTierB(

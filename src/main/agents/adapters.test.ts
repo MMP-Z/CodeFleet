@@ -237,6 +237,36 @@ describe('Adapters: Claude, Codex, Copilot, AGY & AgentRegistry (Luật P5, P10,
       expect(snap.status).toBe('low');
       expect(snap.windows[0]?.usedPercent).toBe(82);
     });
+
+    it('listModels() trích xuất models thực tế từ models_cache.json và phân loại tier chuẩn', async () => {
+      const adapter = new CodexAdapter(modelsService, sessionRepo);
+      const mockCacheFile = path.join(tempDir, 'mock_models_cache.json');
+      fs.writeFileSync(
+        mockCacheFile,
+        JSON.stringify({
+          models: [
+            { slug: 'gpt-6.1-sol', display_name: 'GPT-6.1-Sol', visibility: 'list' },
+            { slug: 'gpt-6-astra', display_name: 'GPT-6-Astra', visibility: 'list' },
+            { slug: 'gpt-6-luna', display_name: 'GPT-6-Luna', visibility: 'list' },
+            { slug: 'gpt-reserve', display_name: 'GPT-Reserve', visibility: 'hide' },
+          ],
+        }),
+        'utf8',
+      );
+
+      const models = await adapter.listModels(mockCacheFile);
+      expect(models.length).toBe(3);
+      expect(models.find((m) => m.id === 'gpt-reserve')).toBeUndefined();
+
+      const astra = models.find((m) => m.id === 'gpt-6-astra');
+      expect(astra?.tier).toBe('strong');
+
+      const sol = models.find((m) => m.id === 'gpt-6.1-sol');
+      expect(sol?.tier).toBe('balanced');
+
+      const luna = models.find((m) => m.id === 'gpt-6-luna');
+      expect(luna?.tier).toBe('fast');
+    });
   });
 
   describe('CopilotAdapter', () => {
