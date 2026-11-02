@@ -36,27 +36,42 @@ export function App(): React.JSX.Element {
   const [onboardingCompleted, setOnboardingCompleted] = useState<boolean | null>(null);
   const [currentProject, setCurrentProject] = useState<ProjectRecord | null>(null);
   const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
-    void bridge.settings.get('onboarding.completed').then((res) => {
-      if (res.ok) {
-        setOnboardingCompleted(res.data);
-        if (res.data && route === 'onboarding') {
-          // Kiểm tra xem đã có dự án nào chưa
-          void bridge.projects.list().then((projRes) => {
-            if (projRes.ok && projRes.data.length > 0) {
-              const latest = projRes.data[0];
-              setCurrentProject(latest);
+    let mounted = true;
+    async function init(): Promise<void> {
+      try {
+        const res = await bridge.settings.get('onboarding.completed');
+        if (!mounted) return;
+        if (res.ok && res.data) {
+          setOnboardingCompleted(true);
+          const projRes = await bridge.projects.list();
+          if (!mounted) return;
+          if (projRes.ok && projRes.data.length > 0) {
+            const latest = projRes.data[0];
+            setCurrentProject((prev) => prev ?? latest);
+            if (route === 'onboarding') {
               setRoute('chat');
-            } else {
-              setRoute('projects');
             }
-          });
+          } else if (route === 'onboarding') {
+            setRoute('projects');
+          }
+        } else {
+          setOnboardingCompleted(false);
         }
-      } else {
-        setOnboardingCompleted(false);
+      } catch (err) {
+        console.error('Failed to initialize app state:', err);
+      } finally {
+        if (mounted) {
+          setIsInitializing(false);
+        }
       }
-    });
+    }
+    void init();
+    return () => {
+      mounted = false;
+    };
   }, [bridge, route]);
 
   useEffect(() => {
@@ -69,13 +84,18 @@ export function App(): React.JSX.Element {
         setRoute('projects');
       } else if (window.location.hash === '#/chat') {
         setRoute('chat');
+        void bridge.projects.list().then((projRes) => {
+          if (projRes.ok && projRes.data.length > 0) {
+            setCurrentProject((prev) => prev ?? projRes.data[0]);
+          }
+        });
       } else if (window.location.hash === '#/onboarding') {
         setRoute('onboarding');
       }
     }
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [bridge.featureFlags.devComponents]);
+  }, [bridge]);
 
   const handleNavigate = (nextRoute: NavRoute): void => {
     setRoute(nextRoute);
@@ -121,6 +141,18 @@ export function App(): React.JSX.Element {
   const headerProject = currentProject
     ? { name: currentProject.name, path: currentProject.path }
     : undefined;
+
+  if (isInitializing && route !== 'dev-components') {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center bg-cf-bg"
+        aria-busy="true"
+        aria-label="Loading"
+      >
+        <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <ToastProvider>
