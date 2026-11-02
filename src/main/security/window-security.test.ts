@@ -36,3 +36,4 @@ describe('window-security (Luật B1)', () => {
     expect(isNavigationAllowed('not-a-valid-url', 'http://localhost:5173')).toBe(false);
   });
 });
+

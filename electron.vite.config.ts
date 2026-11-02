@@ -20,7 +20,8 @@ export default defineConfig({
     },
   },
   preload: {
-    plugins: [externalizeDepsPlugin()],
+    // Với sandbox: true (Luật B1), preload không được phép require gói ngoài từ node_modules,
+    // nên chỉ để 'electron' là external và đóng gói sẵn @shared + zod vào bundle preload.
     resolve: {
       alias: {
         '@shared': resolve('src/shared'),
@@ -28,6 +29,7 @@ export default defineConfig({
     },
     build: {
       rollupOptions: {
+        external: ['electron'],
         output: {
           format: 'cjs',
           entryFileNames: '[name].cjs',
@@ -45,3 +47,4 @@ export default defineConfig({
     plugins: [react()],
   },
 });
+

@@ -130,3 +130,4 @@ CREATE TABLE settings (
 );
 `,
 };
+

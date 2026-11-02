@@ -2,12 +2,103 @@
   "app": {
     "header": {
       "navAria": "Điều hướng ứng dụng",
+      "chat": "Chat",
+      "history": "Lịch sử",
+      "plugins": "Plugin",
       "settings": "Cài đặt",
-      "devComponents": "Thành phần UI (Dev)"
+      "devComponents": "Thành phần UI (Dev)",
+      "switchProjectTitle": "Đổi dự án"
     }
+  },
+  "common": {
+    "close": "Đóng",
+    "cancel": "Huỷ",
+    "retry": "Thử lại",
+    "loading": "Đang tải…",
+    "dismiss": "Ẩn thông báo"
   },
   "mh11": {
     "title": "Cài đặt",
-    "loading": "Đang tải cài đặt…"
+    "navAria": "Mục cài đặt",
+    "tabs": {
+      "general": "Chung",
+      "data": "Dữ liệu"
+    },
+    "general": {
+      "localeLabel": "Ngôn ngữ",
+      "localeAria": "Chọn ngôn ngữ hiển thị",
+      "localeVi": "Tiếng Việt",
+      "localeEnSoon": "English (sắp có)",
+      "codeLevelLabel": "Mức xem code mặc định",
+      "codeLevelHint": "Áp dụng khi bạn bấm “Xem code”.",
+      "codeLevelSummary": "Tóm tắt",
+      "codeLevelDiff": "Đoạn chính",
+      "codeLevelFull": "Toàn bộ",
+      "showJargonLabel": "Hiện thuật ngữ kỹ thuật",
+      "showJargonHint": "Tắt: chỉ dùng lời thường (khuyên dùng cho người mới).",
+      "autoPreviewLabel": "Tự mở “Xem trước” khi dự án web chạy được"
+    },
+    "data": {
+      "userDataLabel": "Dữ liệu của app nằm ở",
+      "openFolder": "Mở thư mục",
+      "openFolderErrorTitle": "Không mở được thư mục dữ liệu",
+      "backupLabel": "Sao lưu dữ liệu app",
+      "backupHint": "Lịch sử chat, nhật ký quyết định, cài đặt. Code dự án vẫn nằm trong thư mục dự án của bạn.",
+      "backupNow": "Sao lưu ngay",
+      "backupRunning": "Đang sao lưu…",
+      "backupSuccessTitle": "Đã tạo bản sao lưu dữ liệu",
+      "backupSuccessBody": "Đã lưu tại: {path}",
+      "backupErrorTitle": "Chưa sao lưu được dữ liệu",
+      "telemetryLabel": "Gửi số liệu sử dụng ẩn danh",
+      "telemetryHint": "Mặc định tắt. Không bao giờ gửi code hay nội dung chat."
+    },
+    "errors": {
+      "loadFailed": "Không đọc được cài đặt của ứng dụng. Bạn có thể bấm Thử lại.",
+      "saveFailed": "Không lưu được thay đổi cài đặt: {message}"
+    }
+  },
+  "dev": {
+    "title": "Trang thử thành phần giao diện (/dev/components)",
+    "subtitle": "Chỉ hiển thị khi bật cờ phát triển (Luật P6). Dùng để kiểm tra trực quan và khả năng truy cập bàn phím.",
+    "sections": {
+      "buttons": "Nút bấm (Button)",
+      "pills": "Nhãn trạng thái (Pill)",
+      "controls": "Bộ chuyển & Chọn mức (Toggle, Segmented, Progress)",
+      "notices": "Thông báo tại chỗ (Notice)",
+      "overlays": "Hộp thoại & Toast (Dialog, Toast)"
+    },
+    "samples": {
+      "btnDefault": "Mặc định",
+      "btnPrimary": "Hành động chính",
+      "btnDanger": "Xoá / Nguy hiểm",
+      "btnGhost": "Nút phụ",
+      "btnSmall": "Nút nhỏ (32px)",
+      "btnLarge": "Nút lớn (44px)",
+      "pillOk": "✓ Sẵn sàng",
+      "pillRun": "Đang làm",
+      "pillWait": "Chờ",
+      "pillWarn": "Ước lượng",
+      "pillDanger": "Đã hết",
+      "pillBrand": "Mạnh",
+      "toggleLabel": "Bật tuỳ chọn mẫu",
+      "segAria": "Chọn mức mẫu",
+      "progressOk": "Hạn mức ổn định (45%)",
+      "progressLow": "Sắp hết (82%)",
+      "progressOut": "Đã hết (100%)",
+      "noticeInfo": "AI chỉ được ghi trong thư mục dự án của bạn.",
+      "noticeWarn": "AI đang dùng đã đạt khoảng 81% hạn mức (ước lượng).",
+      "noticeDanger": "Không kiểm tra được trạng thái. Vui lòng thử lại.",
+      "noticeNeutral": "Dự án này chưa có bước nào chạy.",
+      "openDialog": "Mở hộp thoại thử Focus Trap & Esc",
+      "dialogTitle": "Kiểm tra hộp thoại chặn (Modal)",
+      "dialogBody": "Nhấn phím Tab để kiểm tra giữ focus bên trong hộp thoại, hoặc nhấn phím Esc để đóng.",
+      "dialogConfirm": "Đã hiểu",
+      "triggerToastInfo": "Hiện Toast tự ẩn (8s)",
+      "triggerToastDanger": "Hiện Toast lỗi (không tự ẩn)",
+      "toastInfoTitle": "Đã cập nhật trạng thái",
+      "toastInfoBody": "Thông báo này sẽ tự đóng sau 8 giây.",
+      "toastDangerTitle": "Đã chạm giới hạn hạn mức 5 giờ",
+      "toastDangerBody": "Thông báo lỗi nghiêm trọng không tự ẩn cho tới khi bạn đóng."
+    }
   }
 }

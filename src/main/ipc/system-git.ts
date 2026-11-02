@@ -20,3 +20,4 @@ export function checkSystemGit(binaryName = 'git'): Promise<GitCheckOutput> {
     });
   });
 }
+

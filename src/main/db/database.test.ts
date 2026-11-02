@@ -143,8 +143,8 @@ describe('DatabaseService & SettingsRepository (ADR-002, Luật P8, B2)', () => 
     expect(repoReopened.get('ui.codeLevel')).toBe('full');
 
     // Luật B2: cấm lưu token/khoá
-    expect(() => repoReopened.assertNotSecretKey('claude.oauth_token')).toThrow(/Luật B2/);
-    expect(() => repoReopened.assertNotSecretKey('openai_api_key')).toThrow(/Luật B2/);
+    expect(() => repoReopened.assertNotSecretKey('agent.oauth_token')).toThrow(/Luật B2/);
+    expect(() => repoReopened.assertNotSecretKey('provider_api_key')).toThrow(/Luật B2/);
 
     serviceReopened.close();
   });

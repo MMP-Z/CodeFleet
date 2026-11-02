@@ -14,3 +14,4 @@ pnpm run typecheck
   fs.writeFileSync(preCommitPath, script, { encoding: 'utf8', mode: 0o755 });
   console.log('[setup-hooks] Installed .git/hooks/pre-commit');
 }
+

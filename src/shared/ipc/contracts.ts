@@ -1,9 +1,13 @@
 import { z } from 'zod';
+import { APP_NAME, APP_VERSION } from '../constants';
+import type { FeatureFlags } from '../feature-flags';
 import {
   AppSettingsMapSchema,
   CodeLevelSchema,
   LocaleSchema,
   SettingKeySchema,
+  type AppSettingsMap,
+  type SettingKey,
 } from '../settings';
 
 /**
@@ -121,3 +125,24 @@ export type IpcErrorPayload = z.infer<typeof IpcErrorPayloadSchema>;
 export type IpcResult<T> =
   | { readonly ok: true; readonly data: T }
   | { readonly ok: false; readonly error: IpcErrorPayload };
+
+/**
+ * Kiểu cầu nối Preload lộ ra tại window.codefleet (Luật B1, P3).
+ */
+export interface CodeFleetBridge {
+  readonly appName: typeof APP_NAME;
+  readonly appVersion: typeof APP_VERSION;
+  readonly featureFlags: FeatureFlags;
+  readonly settings: {
+    get<K extends SettingKey>(key: K): Promise<IpcResult<AppSettingsMap[K]>>;
+    getAll(): Promise<IpcResult<AppSettingsMap>>;
+    set(input: SettingSetInput): Promise<IpcResult<AppSettingsMap>>;
+  };
+  readonly system: {
+    checkGit(): Promise<IpcResult<GitCheckOutput>>;
+    getDataInfo(): Promise<IpcResult<DataInfoOutput>>;
+    openDataDir(): Promise<IpcResult<OpenDataDirOutput>>;
+    backupNow(): Promise<IpcResult<BackupNowOutput>>;
+  };
+}
+

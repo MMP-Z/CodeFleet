@@ -88,3 +88,4 @@ export function createLogger(options: LoggerOptions): Logger {
 
   return makeScoped(scope);
 }
+

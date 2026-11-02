@@ -1,4 +1,4 @@
-import type { CodeFleetBridge } from './index';
+import type { CodeFleetBridge } from '@shared/ipc';
 
 declare global {
   interface Window {

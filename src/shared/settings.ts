@@ -45,3 +45,4 @@ export const AppSettingsMapSchema = z.object({
   'ui.showJargon': z.boolean(),
   'ui.autoPreview': z.boolean(),
 });
+

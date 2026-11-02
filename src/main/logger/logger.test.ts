@@ -14,14 +14,14 @@ describe('Logger & Sensitive Redactor (Luật P9, B2)', () => {
     }
   });
 
-  it('redacts Anthropic, OpenAI, Gemini, GitHub, Bearer tokens and .env secrets in text', () => {
+  it('redacts API keys, Bearer tokens, GitHub tokens, and .env secrets in text', () => {
     const raw = [
       'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.secretpayload',
-      'Claude key sk-ant-api03-abcdef1234567890XYZ',
-      'OpenAI key sk-proj-1234567890abcdefghijklmnop',
-      'Gemini key AIzaSyA1234567890abcdefghijklmnopqrstu',
+      'ProviderA key sk-ant-api03-abcdef1234567890XYZ',
+      'ProviderB key sk-proj-1234567890abcdefghijklmnop',
+      'ProviderC key AIzaSyA1234567890abcdefghijklmnopqrstu',
       'GitHub ghp_1234567890abcdefghijklmnopqrstuv',
-      'ANTHROPIC_API_KEY=super-secret-value',
+      'PROVIDER_API_KEY=super-secret-value',
       'password=myPlainPassword123',
     ].join('\n');
 

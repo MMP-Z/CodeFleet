@@ -116,7 +116,7 @@ describe('Phase 1 Typed IPC + Zod Validation (Luật P3, B2)', () => {
 
     // Cố truyền khoá token ngoài hợp đồng (Luật B2/P3)
     const secretAttempt = await bus.invoke(IPC_CHANNELS.SETTINGS_SET, {
-      key: 'claude.access_token',
+      key: 'agent.access_token',
       value: 'sk-ant-secret123456789',
     });
     expect(secretAttempt.ok).toBe(false);

@@ -24,3 +24,4 @@ mac:
   target:
     - dmg
   artifactName: ${name}-${version}-${arch}.${ext}
+

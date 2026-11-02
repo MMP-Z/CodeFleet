@@ -1,18 +1,14 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { z } from 'zod';
 import { APP_NAME, APP_VERSION } from '@shared/constants';
-import { resolveFeatureFlags, type FeatureFlags } from '@shared/feature-flags';
+import { resolveFeatureFlags } from '@shared/feature-flags';
 import {
   IPC_CHANNELS,
   IPC_CONTRACTS,
   IpcErrorPayloadSchema,
-  type BackupNowOutput,
-  type DataInfoOutput,
-  type GitCheckOutput,
+  type CodeFleetBridge,
   type IpcContract,
   type IpcResult,
-  type OpenDataDirOutput,
-  type SettingSetInput,
 } from '@shared/ipc';
 import type { AppSettingsMap, SettingKey } from '@shared/settings';
 
@@ -44,23 +40,6 @@ async function invokeContract<I extends z.ZodTypeAny, O extends z.ZodTypeAny>(
       code: 'INTERNAL_ERROR',
       message: 'Phản hồi IPC không đúng định dạng.',
     },
-  };
-}
-
-export interface CodeFleetBridge {
-  readonly appName: typeof APP_NAME;
-  readonly appVersion: typeof APP_VERSION;
-  readonly featureFlags: FeatureFlags;
-  readonly settings: {
-    get<K extends SettingKey>(key: K): Promise<IpcResult<AppSettingsMap[K]>>;
-    getAll(): Promise<IpcResult<AppSettingsMap>>;
-    set(input: SettingSetInput): Promise<IpcResult<AppSettingsMap>>;
-  };
-  readonly system: {
-    checkGit(): Promise<IpcResult<GitCheckOutput>>;
-    getDataInfo(): Promise<IpcResult<DataInfoOutput>>;
-    openDataDir(): Promise<IpcResult<OpenDataDirOutput>>;
-    backupNow(): Promise<IpcResult<BackupNowOutput>>;
   };
 }
 

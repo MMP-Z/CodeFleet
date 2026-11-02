@@ -1,6 +1,6 @@
 # KẾ HOẠCH TRIỂN KHAI — Ứng dụng chat "vibe code có hiểu"
 
-> **Phiên bản tài liệu:** 0.9
+> **Phiên bản tài liệu:** 0.10
 > **Cập nhật lần cuối:** 2026-11-02
 > **Giai đoạn hiện tại:** Phase 1 — Khung dự án (Đang làm)
 > **Tên ứng dụng:** CodeFleet (xem ADR-011)
@@ -572,9 +572,9 @@ Ký hiệu: `Chưa bắt đầu` / `Đang làm` / `Xong` / `Tạm dừng`
 - [x] Cấu hình bảo mật Electron theo B1 (contextIsolation, sandbox, CSP).
 - [x] IPC có kiểu + zod, một ví dụ hoàn chỉnh từ renderer tới main.
 - [x] SQLite: `better-sqlite3`, WAL, migration 001 (mục 5), cơ chế sao lưu trước migration.
-- [ ] Hệ thống log (có lọc dữ liệu nhạy cảm theo P9), màn hình cài đặt cơ bản.
+- [x] Hệ thống log (có lọc dữ liệu nhạy cảm theo P9), màn hình cài đặt cơ bản.
 - [ ] GitHub Actions: lint, test, build trên Windows và macOS.
-- [ ] Tách chuỗi giao diện ra file riêng (tiếng Việt).
+- [x] Tách chuỗi giao diện ra file riêng (tiếng Việt).
 
 **Tiêu chí thoát:** `pnpm dev` và `pnpm build` chạy trên cả hai hệ điều hành; CI xanh; DB tạo và migrate đúng; test IPC qua.
 
@@ -896,6 +896,7 @@ Ghi nguồn (đường dẫn tài liệu, ngày kiểm tra) cho mỗi ô đã đ
 
 | Ngày | Phiên bản TL | Người/AI | Thay đổi | Lý do |
 |---|---|---|---|---|
+| 2026-11-02 | 0.10 | Antigravity (AI) | Hoàn thiện tầng giao diện Phase 1: file chuỗi `src/renderer/i18n/vi.json`, bộ thành phần cơ bản (`Button`, `Pill`, `Toggle`, `Segmented`, `Progress`, `Notice`, `Dialog`, `Toast`, `ProjectPill`, `AppHeader`), trang thử `/dev/components` sau feature flag (Luật P6), và khung màn `MH-11 Cài đặt` (mục Chung & Dữ liệu) kèm unit test | Hoàn thành toàn bộ hạng mục giao diện của Phase 1 theo `UI_SPEC.md` mục 9 và `Prompt 1` |
 | 2026-11-02 | 0.9 | Antigravity (AI) | Triển khai tầng IPC có kiểu + kiểm tra `zod` hai chiều ở `src/shared/ipc/contracts.ts`, `src/main/ipc/`, `src/preload/index.ts` (`settings.*`, `system.checkGit`, `system.getDataInfo`, `system.openDataDir`, `system.backupNow`) kèm unit test; đồng bộ `UI_SPEC.md` v0.4 mục 7 | Hoàn thành cầu nối IPC an toàn main ↔ preload ↔ renderer theo Luật P3, B1 |
 | 2026-11-02 | 0.8 | Antigravity (AI) | Bổ sung `DatabaseService` (`better-sqlite3`, WAL, `foreign_keys = ON`, bảng `_schema_migrations`, tự sao lưu `.sqlite.bak` trước khi chạy migration theo Luật P8), `Migration 001` (đủ 13 bảng mục 5), `SettingsRepository` (chặn lưu khoá nhạy cảm theo Luật B2) và hệ thống `Logger` lọc dữ liệu nhạy cảm theo Luật P9 kèm bộ unit test | Triển khai tầng lưu trữ SQLite và nhật ký an toàn của Phase 1 |
 | 2026-11-02 | 0.7 | Antigravity (AI) | Bắt đầu Phase 1: khởi tạo workspace `electron-vite` + React 19 + TypeScript `strict` (cấm `any`), Tailwind design tokens mục 2, font đóng gói offline (`Be Vietnam Pro`, `JetBrains Mono`), ESLint + Prettier + Vitest + pre-commit hook, và cấu hình bảo mật cửa sổ Electron theo Luật B1 (`window-security.ts` + test) | Chủ dự án xác nhận triển khai Phase 1 — Khung dự án |
