@@ -14,11 +14,16 @@ import { getBridge } from '../../lib/bridge';
 
 export type SettingsTab = 'ai' | 'general' | 'update' | 'data';
 
+export interface SettingsPageProps {
+  readonly isModal?: boolean;
+  readonly onClose?: () => void;
+}
+
 /**
  * MH-11 · Cài đặt (hỗ trợ mục "AI và model", "Chung" và "Dữ liệu").
  * Khớp đặc tả Document/UI_Mockups/11-cai-dat.html và UI_SPEC.md.
  */
-export function SettingsPage(): React.JSX.Element {
+export function SettingsPage({ isModal = false }: SettingsPageProps = {}): React.JSX.Element {
   const bridge = getBridge();
   const { pushToast } = useToast();
 
@@ -270,8 +275,14 @@ export function SettingsPage(): React.JSX.Element {
   ];
 
   return (
-    <div className="w-full max-w-[1120px] mx-auto px-6 pt-7 pb-12 flex flex-col gap-5 font-sans text-cf-text">
-      <h1 className="text-2xl font-bold">{t('mh11.title')}</h1>
+    <div
+      className={
+        isModal
+          ? 'w-full flex flex-col gap-5 font-sans text-cf-text pb-2'
+          : 'w-full max-w-[1120px] mx-auto px-6 pt-7 pb-12 flex flex-col gap-5 font-sans text-cf-text'
+      }
+    >
+      {!isModal ? <h1 className="text-2xl font-bold">{t('mh11.title')}</h1> : null}
 
       {loadError ? (
         <Notice

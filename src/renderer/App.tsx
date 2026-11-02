@@ -11,6 +11,7 @@ import { ProjectSelectModal } from './features/projects/ProjectSelectModal';
 import { ProjectSelectPage } from './features/projects/ProjectSelectPage';
 import { PluginPage } from './features/plugins/PluginPage';
 import { QuotaDetailsPage } from './features/quota/QuotaDetailsPage';
+import { SettingsModal } from './features/settings/SettingsModal';
 import { SettingsPage } from './features/settings/SettingsPage';
 import { getBridge } from './lib/bridge';
 
@@ -45,6 +46,7 @@ export function App(): React.JSX.Element {
   const [currentProject, setCurrentProject] = useState<ProjectRecord | null>(null);
   const [chatInitialStepId, setChatInitialStepId] = useState<string | null>(null);
   const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
   const [quotaSnapshots, setQuotaSnapshots] = useState<readonly QuotaSnapshot[]>([]);
   const [detectedAgents, setDetectedAgents] = useState<readonly DetectResult[]>([]);
@@ -110,7 +112,7 @@ export function App(): React.JSX.Element {
       if (bridge.featureFlags.devComponents && window.location.hash === '#/dev/components') {
         setRoute('dev-components');
       } else if (window.location.hash === '#/settings') {
-        setRoute('settings');
+        setIsSettingsOpen(true);
       } else if (window.location.hash === '#/quota') {
         setRoute('quota');
       } else if (window.location.hash === '#/plugins') {
@@ -147,22 +149,31 @@ export function App(): React.JSX.Element {
   }, [bridge]);
 
   const handleNavigate = (nextRoute: NavRoute): void => {
+    if (nextRoute === 'settings') {
+      setIsSettingsOpen(true);
+      return;
+    }
     setRoute(nextRoute);
     if (typeof window !== 'undefined') {
       window.location.hash =
         nextRoute === 'dev-components'
           ? '#/dev/components'
-          : nextRoute === 'settings'
-            ? '#/settings'
-            : nextRoute === 'quota'
-              ? '#/quota'
-              : nextRoute === 'plugins'
-                ? '#/plugins'
-                : nextRoute === 'history'
-                  ? '#/history'
-                  : nextRoute === 'chat'
-                    ? '#/chat'
-                    : '#/onboarding';
+          : nextRoute === 'quota'
+            ? '#/quota'
+            : nextRoute === 'plugins'
+              ? '#/plugins'
+              : nextRoute === 'history'
+                ? '#/history'
+                : nextRoute === 'chat'
+                  ? '#/chat'
+                  : '#/onboarding';
+    }
+  };
+
+  const handleCloseSettings = (): void => {
+    setIsSettingsOpen(false);
+    if (typeof window !== 'undefined' && window.location.hash === '#/settings') {
+      window.location.hash = `#/${route === 'settings' ? 'chat' : route}`;
     }
   };
 
@@ -218,7 +229,7 @@ export function App(): React.JSX.Element {
       <div className="min-h-screen flex flex-col bg-cf-bg text-cf-text font-sans">
         <AppHeader
           activeNav={
-            route === 'onboarding' || route === 'projects' || route === 'direct-edit'
+            route === 'onboarding' || route === 'projects' || route === 'direct-edit' || route === 'settings'
               ? 'chat'
               : route
           }
@@ -228,6 +239,8 @@ export function App(): React.JSX.Element {
           featureFlags={bridge.featureFlags}
           quotaSnapshots={quotaSnapshots}
           detectedAgents={detectedAgents}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          isSettingsOpen={isSettingsOpen}
         />
         <main className="flex-1 flex flex-col">
           {route === 'dev-components' && bridge.featureFlags.devComponents ? (
@@ -237,7 +250,7 @@ export function App(): React.JSX.Element {
           ) : route === 'settings' ? (
             <SettingsPage />
           ) : route === 'quota' ? (
-            <QuotaDetailsPage onNavigateToSettings={() => handleNavigate('settings')} />
+            <QuotaDetailsPage onNavigateToSettings={() => setIsSettingsOpen(true)} />
           ) : route === 'plugins' ? (
             <PluginPage />
           ) : route === 'projects' || !currentProject ? (
@@ -270,6 +283,11 @@ export function App(): React.JSX.Element {
           open={isSwitchModalOpen}
           onClose={() => setIsSwitchModalOpen(false)}
           onProjectSelected={handleProjectSelected}
+        />
+
+        <SettingsModal
+          open={isSettingsOpen}
+          onClose={handleCloseSettings}
         />
       </div>
     </ToastProvider>

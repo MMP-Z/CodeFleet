@@ -33,6 +33,25 @@ describe('Phase 1 UI Primitives (UI_SPEC 1.1, 2, 4, Luật U2, P6)', () => {
     expect(screen.getByRole('button', { name: /Dev/i })).toBeInTheDocument();
   });
 
+  it('triggers onOpenSettings when Settings icon button in AppHeader is clicked', () => {
+    const onNavigate = vi.fn();
+    const onOpenSettings = vi.fn();
+    const prodFlags = resolveFeatureFlags(false);
+
+    render(
+      <AppHeader
+        activeNav="chat"
+        onNavigate={onNavigate}
+        onOpenSettings={onOpenSettings}
+        featureFlags={prodFlags}
+      />,
+    );
+
+    const settingsBtn = screen.getByRole('button', { name: 'Cài đặt' });
+    fireEvent.click(settingsBtn);
+    expect(onOpenSettings).toHaveBeenCalledTimes(1);
+  });
+
   it('implements accessible Toggle (role="switch" + aria-checked) and Segmented (aria-pressed)', () => {
     const onToggle = vi.fn();
     const onSeg = vi.fn();

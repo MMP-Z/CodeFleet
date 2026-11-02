@@ -35,6 +35,7 @@ function createMainWindow(): BrowserWindow {
   });
 
   mainWindow.on('ready-to-show', () => {
+    mainWindow.maximize();
     mainWindow.show();
   });
 

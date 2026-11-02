@@ -9,6 +9,8 @@ export interface DialogProps {
   readonly tone?: DialogTone;
   readonly iconSymbol?: string;
   readonly wide?: boolean;
+  readonly extraWide?: boolean;
+  readonly showCloseButton?: boolean;
   readonly onClose: () => void;
   /** Cho phép MH-04 / MH-05 gắn Esc vào hành động an toàn nhất (UI_SPEC 1.1) */
   readonly onEscape?: () => void;
@@ -32,6 +34,8 @@ export function Dialog({
   tone = 'brand',
   iconSymbol,
   wide = false,
+  extraWide = false,
+  showCloseButton = false,
   onClose,
   onEscape,
   footer,
@@ -121,7 +125,7 @@ export function Dialog({
         aria-labelledby={titleId}
         tabIndex={-1}
         className={`${
-          wide ? 'w-[860px]' : 'w-[560px]'
+          extraWide ? 'w-[1020px]' : wide ? 'w-[860px]' : 'w-[560px]'
         } max-w-full max-h-[calc(100vh-48px)] overflow-auto bg-surface rounded-dialog shadow-dialog flex flex-col`}
       >
         <div className="px-5 pt-[18px] pb-3 flex gap-3 items-start">
@@ -139,6 +143,16 @@ export function Dialog({
             </h2>
             {subtitle ? <p className="text-small text-muted">{subtitle}</p> : null}
           </div>
+          {showCloseButton ? (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Đóng"
+              className="shrink-0 w-8 h-8 rounded-btn flex items-center justify-center text-cf-muted hover:text-cf-text hover:bg-surface-2 transition-colors cursor-pointer text-base font-semibold"
+            >
+              ✕
+            </button>
+          ) : null}
         </div>
         <div className="px-5 pb-4 flex flex-col gap-3">{children}</div>
         {footer ? (
