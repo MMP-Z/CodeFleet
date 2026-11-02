@@ -1,9 +1,9 @@
 # KẾ HOẠCH TRIỂN KHAI — Ứng dụng chat "vibe code có hiểu"
 
-> **Phiên bản tài liệu:** 0.4
+> **Phiên bản tài liệu:** 0.5
 > **Cập nhật lần cuối:** 2026-11-02
-> **Giai đoạn hiện tại:** Phase 0 — Chưa bắt đầu
-> **Tên ứng dụng:** (chưa đặt)
+> **Giai đoạn hiện tại:** Phase 0 — Đang làm
+> **Tên ứng dụng:** CodeFleet (xem ADR-011)
 
 ---
 
@@ -287,7 +287,7 @@ CREATE TABLE steps (
   seq              INTEGER NOT NULL,
   agent_id         TEXT NOT NULL,
   model            TEXT,
-  status           TEXT NOT NULL,          -- 'pending' | 'running' | 'done' | 'failed' | 'undone'
+  status           TEXT NOT NULL,          -- 'pending' | 'running' | 'done' | 'failed' | 'undone' | 'waiting_permission' | 'conflict' | 'paused' (ADR-014)
   summary          TEXT,                   -- lời thường
   risk_level       TEXT,                   -- 'low' | 'medium' | 'high'
   checkpoint_before TEXT,
@@ -308,8 +308,18 @@ CREATE TABLE decisions (
   id          TEXT PRIMARY KEY,
   step_id     TEXT REFERENCES steps(id) ON DELETE SET NULL,
   project_id  TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  kind        TEXT NOT NULL DEFAULT 'approach', -- 'approach' | 'pick' | 'switch' (ADR-014)
   text        TEXT NOT NULL,               -- "vì sao chọn cách này", lời thường
   created_at  TEXT NOT NULL
+);
+
+CREATE TABLE project_map (
+  id          TEXT PRIMARY KEY,
+  project_id  TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  feature     TEXT NOT NULL,               -- tên chức năng bằng lời thường (ADR-015)
+  description TEXT,
+  files       TEXT NOT NULL,               -- JSON: [{path, riskTags}]
+  updated_at  TEXT NOT NULL
 );
 
 CREATE TABLE user_edits (
@@ -508,7 +518,7 @@ Ký hiệu: `Chưa bắt đầu` / `Đang làm` / `Xong` / `Tạm dừng`
 
 | Phase | Tên | Trạng thái | Bắt đầu | Kết thúc |
 |---|---|---|---|---|
-| 0 | Spike và xác minh | Chưa bắt đầu | — | — |
+| 0 | Spike và xác minh | Đang làm | 2026-11-02 | — |
 | 1 | Khung dự án | Chưa bắt đầu | — | — |
 | 2 | Kết nối CLI | Chưa bắt đầu | — | — |
 | 3 | Chat và điều phối cơ bản | Chưa bắt đầu | — | — |
@@ -537,15 +547,15 @@ Ký hiệu: `Chưa bắt đầu` / `Đang làm` / `Xong` / `Tạm dừng`
 - [ ] Thử `better-sqlite3` + Electron + electron-builder trên Windows và macOS.
 - [ ] Thử kho git bóng (`GIT_DIR` tách khỏi `GIT_WORK_TREE`): tạo checkpoint, khôi phục, loại trừ `node_modules`. Kiểm tra phương án khi máy không có git.
 - [ ] Xác định yêu cầu ký số: chứng chỉ Windows, tài khoản Apple Developer, chi phí, thời gian.
-- [ ] Chốt tên ứng dụng (xem mục 12).
+- [x] Chốt tên ứng dụng (xem mục 12, ADR-011: **CodeFleet**).
 
 **Tiêu chí thoát:** có kết luận bằng văn bản cho từng mục trên; mỗi CLI có ít nhất một kênh giao tiếp chạy được và kênh lấy quota (hoặc kết luận "không lấy được chính thức"); không còn rào cản pháp lý chưa rõ; mỗi CLI có kết luận rõ về danh sách model, cách chọn model, và hạn mức tính riêng từng model hay dùng chung.
 
 **Ghi chú giai đoạn**
-- Ngày bắt đầu: —
-- Quyết định trong giai đoạn: —
-- Vấn đề gặp phải: —
-- Việc bị hoãn / ý tưởng mới: —
+- Ngày bắt đầu: 2026-11-02 (mục tiêu: hoàn thành xác minh kỹ thuật kho git bóng, SQLite+Electron trên Windows, ACP SDK, tra cứu tài liệu chính thức & điều khoản 3 CLI, tạo bộ fixture chuẩn, xác định yêu cầu ký số).
+- Quyết định trong giai đoạn: Đặt tên ứng dụng là **CodeFleet**, ưu tiên phát triển trên Windows trước (ADR-011); chốt toàn bộ câu hỏi giao diện Q1–Q12 (ADR-012 đến ADR-017).
+- Vấn đề gặp phải: Trên máy Windows hiện tại chưa cài 3 binary `claude`, `codex`, `gemini` vào `PATH` (theo lựa chọn của chủ dự án: xác minh qua tài liệu chính thức + tạo fixture chuẩn, ghi rõ các mục chờ chạy CLI thật).
+- Việc bị hoãn / ý tưởng mới: Hẹn giờ tự chạy tiếp khi hạn mức làm mới (Q3), nhảy bước khi tạm dừng (Q4), chế độ tối toàn app (Q11) — đã chốt để sau MVP.
 - Ghi chú kết thúc (đã làm / chưa làm / nợ kỹ thuật / bài học / việc tiếp theo): —
 
 ---
@@ -801,6 +811,48 @@ Ghi nguồn (đường dẫn tài liệu, ngày kiểm tra) cho mỗi ô đã đ
 - Quyết định: router và quota làm việc trên ô (CLI, model), thêm `scope` cho quota, chuỗi dự phòng ở mục 4.5a, không hard-code tên model (Luật P10). Bổ sung cho ADR-008.
 - Hệ quả: thêm bảng `models`, cột `quota_snapshots.scope`, `agent_sessions.model`. Phase 0 phải xác minh danh sách model, cách chọn model và phạm vi hạn mức. Đổi ô giữa bước cần bàn giao ngữ cảnh.
 
+**ADR-011 — Tên ứng dụng CodeFleet và ưu tiên Windows trước** (2026-11-02)
+- Bối cảnh: Mục 12 cần chốt tên ứng dụng chính thức và hệ điều hành phát triển ưu tiên.
+- Quyết định: Đặt tên ứng dụng là **CodeFleet** (lấy từ một hằng số duy nhất `APP_NAME`). Ưu tiên phát triển và kiểm thử trực tiếp trên **Windows** trước, cấu hình CI GitHub Actions song song cho cả Windows và macOS.
+- Lý do: Đồng bộ với tên dự án và môi trường phát triển thực tế hiện tại (Windows).
+- Hệ quả: Thay thế `[Tên app]` trong tài liệu và mockup bằng `CodeFleet`; các bài kiểm thử trực tiếp trên máy macOS sẽ chạy qua CI cho tới Phase 7.
+
+**ADR-012 — Hộp thoại xin phép (Q1, Q2): hỏi từng lần ở MVP, gộp nút từ chối** (2026-11-02)
+- Bối cảnh: Q1 hỏi có cho "Luôn cho phép cài thư viện / truy cập mạng trong dự án này" không; Q2 hỏi có giữ nút riêng "Hỏi AI cách khác" ở MH-04 không.
+- Quyết định: (Q1) Không có tuỳ chọn "Luôn cho phép" ở MVP — mọi hành động rủi ro đều hỏi từng lần. (Q2) Gộp "Hỏi AI cách khác" vào "Không cho phép" (khi từ chối, gửi phản hồi để AI tự tìm hướng khác hoặc báo dừng).
+- Lý do: Tuân thủ chặt Luật B5 và giảm số nút gây phân vân cho người mới.
+- Hệ quả: MH-04 chỉ còn 2 nút ("Không cho phép", "Cho phép lần này") và không có checkbox ghi nhớ; MH-11 mục An toàn hiển thị "Luôn hỏi" cho cả 4 loại hành động.
+
+**ADR-013 — Hành vi tạm dừng khi hết hạn mức và thông báo hạn mức (Q3, Q4, Q12)** (2026-11-02)
+- Bối cảnh: Q3 hỏi về tự động hẹn giờ chạy tiếp khi làm mới hạn mức; Q4 hỏi về cho phép nhảy bước làm bước sau trước; Q12 hỏi popover hạn mức có tự mở khi một AI vừa hết không.
+- Quyết định: (Q3) Để tính năng hẹn giờ tự chạy tiếp sang sau MVP; MVP hiện giờ làm mới sớm nhất + nút "Thử lại". (Q4) Không làm "làm bước khác trước" ở MVP. (Q12) Khi một AI vừa hết hạn mức, chỉ hiện Toast thông báo, không tự bung `QuotaPopover`.
+- Lý do: Giữ điều phối tuần tự an toàn theo ADR-005, tránh tác vụ tự chạy ngầm ngoài ý muốn và không che khuất vùng chat.
+- Hệ quả: Cập nhật đặc tả và mockup MH-07, MH-11.
+
+**ADR-014 — Lưu trạng thái bước chờ xử lý và phân loại quyết định trong DB (Q5, Q6)** (2026-11-02)
+- Bối cảnh: Q5 hỏi có lưu `waiting_permission`, `conflict`, `paused` vào cột `steps.status` không; Q6 hỏi có thêm cột `decisions.kind` không.
+- Quyết định: (Q5) Lưu trực tiếp 3 trạng thái `waiting_permission`, `conflict`, `paused` vào `steps.status`. (Q6) Thêm cột `kind` (`'approach' | 'pick' | 'switch'`) vào bảng `decisions`. Cập nhật ngay vào schema khởi tạo mục 5 vì chưa phát hành DB cho người dùng; các thay đổi sau Phase 1 sẽ tạo migration đánh số theo Luật P8.
+- Lý do: Đảm bảo khôi phục đúng trạng thái bước sau khi tắt/mở lại app và lọc chính xác loại quyết định ở MH-03, MH-09.
+- Hệ quả: Schema bảng `steps` và `decisions` ở mục 5 cập nhật thêm giá trị/cột tương ứng.
+
+**ADR-015 — Bảng dữ liệu Bản đồ dự án (Q7)** (2026-11-02)
+- Bối cảnh: Q7 hỏi nguồn dữ liệu và nơi lưu Bản đồ dự án (MH-09 tab 3).
+- Quyết định: Sau mỗi bước hoàn thành, dùng model bậc nhanh/rẻ nhất đang khả dụng cập nhật danh sách "chức năng → file" và lưu vào bảng `project_map` trong SQLite.
+- Lý do: Mở MH-09 hiển thị tức thì, hoạt động cả khi ngoại tuyến và không tốn hạn mức lặp lại.
+- Hệ quả: Bổ sung bảng `project_map` vào schema mục 5.
+
+**ADR-016 — Quyền cài đặt Plugin trọn gói ở MVP (Q8)** (2026-11-02)
+- Bối cảnh: Q8 hỏi người dùng có được bỏ chọn từng quyền không bắt buộc khi cài plugin ở MH-10 không.
+- Quyết định: Áp dụng cơ chế "tất cả hoặc không" ở MVP (chấp thuận toàn bộ quyền khai báo trong manifest hoặc huỷ cài đặt), bỏ checkbox từng quyền.
+- Lý do: Plugin v1 chỉ dạng khai báo, tắt bớt quyền khai báo sẽ làm plugin lỗi nửa chừng.
+- Hệ quả: Hộp thoại cài plugin ở MH-10 liệt kê danh sách quyền rõ ràng không có checkbox lẻ.
+
+**ADR-017 — Tương tác gửi tin khi đang chạy, kích thước cửa sổ và chế độ tối (Q9, Q10, Q11)** (2026-11-02)
+- Bối cảnh: Q9 hỏi gửi tin mới khi AI đang chạy thì xếp hàng hay hỏi dừng; Q10 hỏi kích thước cửa sổ tối thiểu và nút thu gọn khung phải; Q11 hỏi chế độ tối toàn app.
+- Quyết định: (Q9) Hỏi xác nhận "Dừng việc đang làm để nhận yêu cầu mới?" khi đang có bước `running`. (Q10) Cửa sổ tối thiểu `1024×680`, có nút thu gọn/mở rộng khung bên phải. (Q11) Chế độ tối toàn app để sau MVP.
+- Lý do: Tránh gửi chồng yêu cầu ngoài ý muốn, tối ưu không gian đọc trên màn hình nhỏ, giữ phạm vi giao diện MVP tập trung.
+- Hệ quả: Cập nhật `UI_SPEC.md` mục 1.2, 5.3.3 và bổ sung nút thu gọn khung phải trên mockup.
+
 ---
 
 ## 11. NHẬT KÝ THAY ĐỔI
@@ -808,6 +860,7 @@ Ghi nguồn (đường dẫn tài liệu, ngày kiểm tra) cho mỗi ô đã đ
 
 | Ngày | Phiên bản TL | Người/AI | Thay đổi | Lý do |
 |---|---|---|---|---|
+| 2026-11-02 | 0.5 | Antigravity (AI) | Bắt đầu Phase 0; chốt tên ứng dụng **CodeFleet** + ưu tiên Windows trước (ADR-011) và toàn bộ câu hỏi Q1–Q12 của `UI_SPEC.md` (ADR-012 → ADR-017); cập nhật schema mục 5 (`steps.status`, `decisions.kind`, `project_map`), mục 7, 8, 12 | Chủ dự án xác nhận phạm vi Phase 0, tên app và phương án đề xuất cho Q1–Q12 |
 | 2026-11-02 | 0.4 | Antigravity (AI) | Thêm `UI_SPEC.md` (đặc tả 12 màn, tokens, trạng thái, view model, IPC dự kiến, 12 câu hỏi UI cần chốt) và `PROMPT_TRIEN_KHAI.md` (prompt theo phase); thêm tham chiếu ở mục 0; sửa 3 chỗ chưa khớp trong mockup (màn 07: thông báo và nhật ký điều phối; màn 08: câu về đọc hạn mức chuyển thành giữ chỗ) | Để AI khác triển khai từ mockup ra kết quả nhất quán |
 | 2026-11-02 | 0.3 | Antigravity (AI) | Thêm bộ 12 màn mockup HTML theo bố cục C vào `Document/UI_Mockups/`, ghi vào mục 6.9 | Chủ dự án yêu cầu dựng các màn giao diện mẫu dựa trên kế hoạch và mẫu C |
 | 2026-11-01 | 0.2 | Claude (AI) | Chốt bố cục giao diện C: chat mặc định, điều phối chi tiết ở tab (mục 6.9, ADR-009) | Chủ dự án xem demo 3 bố cục và trả lời "Oke" |
@@ -819,13 +872,13 @@ Ghi nguồn (đường dẫn tài liệu, ngày kiểm tra) cho mỗi ô đã đ
 ## 12. CÂU HỎI MỞ
 *(Chốt xong thì chuyển thành ADR và ghi Nhật ký.)*
 
-- [ ] Tên ứng dụng.
-- [ ] Hệ điều hành làm trước: Windows hay macOS?
+- [x] ~~Tên ứng dụng.~~ — Đã chốt: **CodeFleet** (xem ADR-011).
+- [x] ~~Hệ điều hành làm trước: Windows hay macOS?~~ — Đã chốt: **Windows trước**, cấu hình CI song song cho macOS (xem ADR-011).
 - [ ] Plugin chỉ do chủ dự án cung cấp, hay cộng đồng cũng được đăng? (ảnh hưởng quy trình kiểm duyệt)
 - [ ] Mô hình kinh doanh (miễn phí / trả phí), ảnh hưởng tới yêu cầu pháp lý và thu thập dữ liệu.
 - [ ] Có thu thập số liệu sử dụng ẩn danh không? (nếu có: mặc định tắt, người dùng chủ động bật)
 - [ ] Phương án khi máy người dùng không có `git`.
-- [ ] Người dùng có tự chọn model không, hay app luôn tự chọn? (đề xuất: mặc định tự chọn, chỉ cho ghim model ở mục Nâng cao)
+- [x] ~~Người dùng có tự chọn model không, hay app luôn tự chọn? (đề xuất: mặc định tự chọn, chỉ cho ghim model ở mục Nâng cao)~~ — Đã thiết kế khớp trong `UI_SPEC.md` mục 5.3.3 (`AiPicker`: mặc định tự chọn, ghim AI+model ở mục Nâng cao) và mục 4.4a.
 - [ ] Ánh xạ bậc model (`strong` / `balanced` / `fast`) cho từng CLI ra sao, và ai duy trì file ánh xạ khi hãng đổi tên model?
 
 ---

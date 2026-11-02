@@ -1,8 +1,8 @@
 # ĐẶC TẢ GIAO DIỆN (UI_SPEC)
 
-> **Phiên bản:** 0.1
+> **Phiên bản:** 0.2
 > **Cập nhật lần cuối:** 2026-11-02
-> **Đi kèm:** `PROJECT_PLAN.md` (v0.4) và bộ mockup `Document/UI_Mockups/`
+> **Đi kèm:** `PROJECT_PLAN.md` (v0.5) và bộ mockup `Document/UI_Mockups/`
 
 ---
 
@@ -42,7 +42,7 @@ Mockup chỉ vẽ **một khoảnh khắc**. Mọi thứ về *khi nào*, *vì s
 | G7 | Renderer **không** gọi Node, không đọc file, không chạy lệnh. Mọi thứ đi qua IPC có kiểu và zod (mục 7). | P2, P3, B1 |
 | G8 | Hành động có thể gây hại phải qua hộp thoại xin phép (MH-04). | B5 |
 | G9 | Mọi thao tác của AI hoàn tác được. Nút hoàn tác hiện ở mọi bước có trạng thái `done`. | 1.4 |
-| G10 | Tên app hiển thị là `[Tên app]` cho tới khi chốt (Câu hỏi mở mục 12 của PLAN). Lấy từ một hằng số duy nhất. | — |
+| G10 | Tên app chính thức là **CodeFleet** (ADR-011), lấy từ một hằng số duy nhất (`APP_NAME`). | ADR-011 |
 
 ### 1.1 Khả năng truy cập (bắt buộc)
 - Mọi nút bấm được bằng bàn phím; viền focus `2px solid primary`, `outline-offset: 2px`.
@@ -51,8 +51,8 @@ Mockup chỉ vẽ **một khoảnh khắc**. Mọi thứ về *khi nào*, *vì s
 - Chấm màu AI luôn đi kèm tên AI bằng chữ (không truyền thông tin chỉ bằng màu).
 
 ### 1.2 Kích thước cửa sổ
-- Tối thiểu `[CHƯA CHỐT]` đề xuất 1024×680.
-- Dưới 1180px chiều rộng: khung phải (aside) xuống dưới khung chat (mockup đã dùng `flex-wrap`). Đề xuất thay bằng nút thu/mở khung phải ở bản thật `[CHƯA CHỐT]`.
+- Tối thiểu `1024×680` (ADR-017).
+- Khung phải (`aside`) có nút thu gọn / mở rộng; dưới `1180px` chiều rộng khung phải có thể thu gọn hoặc xếp xuống dưới khung chat (ADR-017). Chế độ tối toàn app để `[SAU MVP]` (ADR-017).
 
 ---
 
@@ -108,12 +108,12 @@ Lấy nguyên từ mẫu C. Chuyển thành `tailwind.config.ts` → `theme.exte
 | `done` | Xong | `ok` | Hiện nút hoàn tác |
 | `failed` | Chưa làm được | `danger` | Phải kèm nút "Thử lại" / "Nhờ AI sửa" (G2) |
 | `undone` | Đã hoàn tác | `wait` | Hiện nút "Làm lại bước này" |
-| *(suy ra)* có `permission_request` đang chờ | Đang chờ bạn cho phép | `warn` | MH-04 |
-| *(suy ra)* có xung đột file chưa xử lý | Cần bạn xác nhận | `warn` | MH-05 |
-| *(suy ra)* router không còn ô phù hợp | Tạm dừng | `warn` | MH-07 |
+| `waiting_permission` | Đang chờ bạn cho phép | `warn` | MH-04 (lưu DB theo ADR-014) |
+| `conflict` | Cần bạn xác nhận | `warn` | MH-05 (lưu DB theo ADR-014) |
+| `paused` | Tạm dừng | `warn` | MH-07 (lưu DB theo ADR-014) |
 
-> [!WARNING]
-> Schema hiện tại (PLAN mục 5) chỉ có 5 giá trị. Ba trạng thái cuối **đang được suy ra** từ dữ liệu khác. Nếu khi làm thấy cần lưu thẳng (ví dụ để khôi phục sau khi tắt app), phải thêm giá trị vào schema qua migration mới + ghi ADR. `[CHƯA CHỐT]` (mục 8, câu Q5).
+> [!NOTE]
+> Cả 8 trạng thái trên đều được lưu trực tiếp trong `steps.status` theo ADR-014 để khôi phục đúng trạng thái sau khi tắt/mở lại ứng dụng.
 
 ### 3.2 Trạng thái hạn mức (`QuotaSnapshot.status`)
 
@@ -264,7 +264,7 @@ Ngưỡng 80% đọc từ cài đặt (MH-11), mặc định 80.
 #### 5.3.3 Ô chat (`Composer`)
 - Enter gửi, Shift+Enter xuống dòng. Trống thì khoá "Gửi".
 - Khi có bước `running`: hiện nút "■ Dừng" → `orchestrator.cancel` → bước đang chạy quay về checkpoint đầu bước, trạng thái `pending` (hoặc `failed` nếu không khôi phục được, kèm hành động).
-- Gửi tin mới khi đang chạy: `[CHƯA CHỐT]` xếp hàng hay hỏi "Dừng việc đang làm?". Đề xuất: hỏi.
+- Gửi tin mới khi đang chạy: hiện hộp hỏi xác nhận "Dừng việc đang làm để nhận yêu cầu mới?" (ADR-017).
 - `AiPicker`: "Để app tự chọn (khuyên dùng)" mặc định; "Ghim {AI}" cho mỗi AI đang bật; "Ghim AI + model…" chỉ hiện khi bật Nâng cao ở MH-11. Lưu theo hội thoại.
 - Dòng phụ "Mọi thay đổi đều hoàn tác được." cố định.
 
@@ -308,9 +308,8 @@ Ngưỡng 80% đọc từ cài đặt (MH-11), mặc định 80.
 - **Kích hoạt:** sự kiện `permission_request` từ adapter. Executor **dừng chờ**; bước hiện "Đang chờ bạn cho phép".
 - **Dữ liệu (`PermissionRequest`):** `stepId`, `agent`, `model`, `kind` (`delete` / `install` / `run` / `network` / `write_outside`…), `title` lời thường, `explain` lời thường, `effects[]` (`{tag, text}`), `rawCommand` (chỉ hiện khi mở "Xem lệnh chính xác").
 - **Bố cục:** biểu tượng cảnh báo · "{AI} · {model} · Bước N" · tiêu đề · giải thích · thẻ "Việc này sẽ làm gì" (pill `Mạng` / `Chạy lệnh` / `Sửa file` / `Xoá file`) · "Xem lệnh chính xác" thu gọn · ghi chú "đã tạo điểm khôi phục".
-- **Hành động:** "Không cho phép" (gửi từ chối cho AI, AI tự tìm cách khác hoặc báo không làm được) · "Cho phép lần này" (nút chính).
-  - "Hỏi AI cách khác": `[CHƯA CHỐT]` (mục 8, Q2).
-  - Ô "Luôn cho phép … trong dự án này": `[CHƯA CHỐT]`, có thể mâu thuẫn B5 (mục 8, Q1). Ở MVP **không làm**.
+- **Hành động:** "Không cho phép" (gửi từ chối cho AI, AI tự tìm cách khác hoặc báo không làm được; đã gộp chung với ý "Hỏi AI cách khác" theo ADR-012) · "Cho phép lần này" (nút chính).
+  - Không có ô "Luôn cho phép … trong dự án này" ở MVP — mỗi lần đều hỏi theo Luật B5 (ADR-012).
 - `write_outside` (ghi ra ngoài dự án) **không bao giờ** hiện hộp xin phép: bị chặn thẳng và báo như MH-12 (B4).
 - **Kiểm tra:**
   - [ ] AI cố cài gói → luôn hiện hộp thoại; từ chối → không có gì được cài.
@@ -364,13 +363,12 @@ Ngưỡng 80% đọc từ cài đặt (MH-11), mặc định 80.
   3. Thử CLI khác đủ bậc và còn hạn mức.
   4. Còn ô → chạy lại bước, ghi `decisions`, hiện `SystemLine` ("Gemini Pro đã hết hạn mức. Bước 4 nhạy cảm nên không dùng Gemini Flash, app chuyển sang Claude Opus 5.5").
   5. Hết ô → bước "Tạm dừng" + thẻ tạm dừng trong chat.
-- **Thẻ tạm dừng:** tiêu đề "⏸ Tạm dừng: chưa có AI đủ mạnh cho bước N" · câu giải thích (không tự hạ, file đã khôi phục) · danh sách từng ô và giờ làm mới · "Bạn có thể" với các nút:
-  - "Chạy tiếp lúc {giờ sớm nhất}": `[CHƯA CHỐT]` (Q3). Nếu chưa chốt: thay bằng câu "Bạn có thể quay lại sau {giờ}" + nút "Thử lại".
-  - "Làm bước khác trước bằng {AI còn}" (chỉ khi có bước sau không phụ thuộc và rủi ro thấp): `[CHƯA CHỐT]` vì trái với chạy tuần tự (ADR-005) nếu bước sau phụ thuộc bước này (Q4).
+- **Thẻ tạm dừng:** tiêu đề "⏸ Tạm dừng: chưa có AI đủ mạnh cho bước N" · câu giải thích (không tự hạ, file đã khôi phục) · danh sách từng ô và giờ làm mới · câu "Bạn có thể quay lại sau {giờ sớm nhất} để chạy tiếp" · "Bạn có thể" với các nút:
+  - "↻ Thử lại bước này" (hẹn giờ tự chạy tiếp để `[SAU MVP]`, không làm "làm bước khác trước" ở MVP theo ADR-013).
   - "Vẫn dùng {model nhanh} cho bước N" kèm pill "Không khuyên dùng" → hỏi xác nhận thêm một lần; ghi `decisions` "Người dùng chủ động chọn model bậc thấp". Đây là **người dùng chọn**, không phải app tự hạ, nên không trái 4.5a.
   - "Ghim AI khác…" mở `AiPicker`.
 - **Toast:** `low` → toast vàng một lần cho mỗi cửa sổ hạn mức ("Codex đã dùng khoảng 81%… ước lượng"); `exhausted` → toast đỏ ("Claude đã hết hạn mức 5 giờ…"), không tự ẩn. Bật/tắt ở MH-11.
-- **Chip:** đổi màu ngay khi nhận snapshot mới; popover tự mở cho CLI vừa hết (mockup mở sẵn Claude) `[CHƯA CHỐT]`, đề xuất không tự mở, chỉ toast.
+- **Chip:** đổi màu ngay khi nhận snapshot mới; **không** tự mở popover hạn mức khi vừa hết, chỉ hiện toast (ADR-013).
 - **Kiểm tra:**
   - [ ] Giả lập Gemini Pro hết với bước rủi ro cao → không dùng Gemini Flash; chuyển CLI khác.
   - [ ] Giả lập Claude (shared) hết → không thử model khác của Claude.
@@ -402,10 +400,9 @@ Ngưỡng 80% đọc từ cài đặt (MH-11), mặc định 80.
   - Dòng thời gian (mới nhất trên): mỗi bước (`steps`) + mỗi lần người dùng tự sửa (`user_edits`, viền vàng, pill "Bạn sửa") + "Bắt đầu dự án". Bước `undone` gạch ngang, mờ.
   - Hành động: "Xem code" (→ MH-03 tab Code của bước đó) · "↶ Quay về trước bước này" (khôi phục `checkpoint_before`, **tạo checkpoint mới trước khi khôi phục** để quay lại được) · "↶ Bỏ thay đổi này" cho dòng tự sửa · "Làm lại" cho bước đã hoàn tác.
   - Mọi lần quay về đều hỏi xác nhận, liệt kê số file sẽ đổi.
-- **Tab 2, Vì sao làm vậy:** bảng `decisions` của dự án: Lúc · Bước · Quyết định · Loại (`Cách làm` / `Chọn AI` / `Đổi AI`). Tìm kiếm + lọc theo loại.
-  - `[CHƯA CHỐT]` bảng `decisions` chưa có cột loại; đề xuất thêm cột `kind` qua migration (Q6).
+- **Tab 2, Vì sao làm vậy:** bảng `decisions` của dự án: Lúc · Bước · Quyết định · Loại (`Cách làm` / `Chọn AI` / `Đổi AI`, đọc từ cột `decisions.kind`: `'approach' | 'pick' | 'switch'` theo ADR-014). Tìm kiếm + lọc theo loại.
 - **Tab 3, Bản đồ dự án:** lưới thẻ "chức năng → file". Thẻ chứa file có nhãn rủi ro thì viền vàng + pill "Nhạy cảm". Bấm tên file → MH-03 mức "Toàn bộ".
-  - `[CHƯA CHỐT]` nguồn dữ liệu bản đồ: đề xuất AI rẻ cập nhật sau mỗi bước, lưu JSON trong `settings` theo dự án hoặc bảng mới (Q7).
+  - Nguồn dữ liệu: model bậc nhanh/rẻ nhất đang khả dụng cập nhật sau mỗi bước hoàn thành, lưu trong bảng `project_map` (ADR-015).
 - **Kiểm tra:**
   - [ ] Quay về trước bước 2 rồi quay về lại "hiện tại" → dự án y như ban đầu.
   - [ ] Dự án có git của người dùng → `.git` không thay đổi.
@@ -417,8 +414,7 @@ Ngưỡng 80% đọc từ cài đặt (MH-11), mặc định 80.
 - **Bố cục:** bộ chọn Danh mục / Đã cài (N) / Có bản mới (N) · lọc theo loại (`agent-adapter` "Thêm AI", `skill-pack` "Bộ hướng dẫn", `template` "Mẫu dự án", `mcp-server` "Kết nối công cụ (MCP)") · tìm kiếm · lưới thẻ.
 - **Thẻ plugin:** biểu tượng, tên, loại · phiên bản, mô tả, pill "✓ Đã kiểm duyệt" (chỉ danh mục chính thức), pill các quyền (`project:read` "Đọc dự án", `project:write` "Ghi vào dự án", `process:run` "Chạy chương trình", `network` "Internet", `mcp:connect` "Kết nối công cụ"), trạng thái + nút (Cài đặt / Cập nhật / Gỡ / Cài lại).
 - **Plugin hỏng:** manifest không qua zod hoặc checksum sai → tự tắt, thẻ `danger` "Đã tắt tự động", app vẫn chạy.
-- **Hộp thoại cài:** tên, pill kiểm duyệt, phiên bản, nguồn, kết quả kiểm tra checksum · danh sách quyền: mỗi quyền một dòng có lời giải thích + mã quyền (mono) · quyền bắt buộc khoá ô chọn · dòng "Không xin: …" · ghi chú "Plugin không bao giờ đọc được mật khẩu…" · "Huỷ" / "Cài với các quyền đã chọn".
-  - `[CHƯA CHỐT]` bỏ chọn một quyền không bắt buộc có hợp lệ không, hay plugin là "tất cả hoặc không" (Q8). Đề xuất MVP: tất cả hoặc không, bỏ checkbox.
+- **Hộp thoại cài:** tên, pill kiểm duyệt, phiên bản, nguồn, kết quả kiểm tra checksum · danh sách quyền trọn gói ("tất cả hoặc không" ở MVP, không có checkbox chọn lẻ theo ADR-016): mỗi quyền một dòng có lời giải thích + mã quyền (mono) · dòng "Không xin: …" · ghi chú "Plugin không bao giờ đọc được mật khẩu…" · "Huỷ" / "Đồng ý và cài đặt".
 - **Cài từ link:** cảnh báo đỏ, ô "Tôi hiểu rủi ro" phải tick mới bật nút; sau đó vẫn qua hộp thoại quyền.
 - **Kiểm tra:**
   - [ ] Plugin hỏng không làm sập app.
@@ -439,9 +435,8 @@ Ngưỡng 80% đọc từ cài đặt (MH-11), mặc định 80.
 | | Cho phép chế độ tự chọn model của CLI | `router.allowCliAuto` | 3 | PLAN 4.4a |
 | Hạn mức | Ngưỡng cảnh báo (70/80/90%) | `quota.lowThreshold` | 5 | |
 | | Thông báo khi hết / dòng đổi AI trong chat | `quota.notify*` | 5 | |
-| | Tự chạy tiếp khi được làm mới | `quota.autoResume` | — | `[CHƯA CHỐT]` Q3 |
-| An toàn | Hỏi trước khi xoá file / chạy lệnh lạ | — | 3 | Luôn hỏi, không tắt được |
-| | Cài thư viện / truy cập Internet: "Tự cho phép theo dự án" | `safety.*` | — | `[CHƯA CHỐT]` Q1 |
+| | ~~Tự chạy tiếp khi được làm mới~~ | ~~`quota.autoResume`~~ | — | `[SAU MVP]`, đã chốt bỏ ở MVP (ADR-013) |
+| An toàn | Hỏi trước khi xoá file / chạy lệnh lạ / cài thư viện / truy cập Internet | — | 3 | Luôn hỏi mọi lần ở MVP, không tắt được (ADR-012) |
 | | Nhãn rủi ro: tuỳ chỉnh | file cấu hình `risk` | 4 | |
 | Chung | Ngôn ngữ | `ui.locale` | 1 | Chỉ `vi` ở MVP |
 | | Mức xem code mặc định | `ui.codeLevel` | 4 | Mặc định `summary` |
@@ -483,7 +478,7 @@ Renderer chỉ nhận **view model** đã chuẩn bị ở main, không nhận n
 ```ts
 // src/shared/vm.ts (dự kiến; chỉnh khi làm Phase 3, ghi vào Nhật ký)
 type StepUiStatus = 'pending' | 'running' | 'done' | 'failed' | 'undone'
-                  | 'waiting_permission' | 'conflict' | 'paused';   // 3 cái cuối: suy ra, xem 3.1
+                  | 'waiting_permission' | 'conflict' | 'paused';   // lưu thẳng trong steps.status theo ADR-014
 
 interface StepVM {
   id: string; seq: number; title: string;
@@ -554,20 +549,20 @@ Mọi kênh: dữ liệu vào/ra có zod schema trong `src/shared/ipc/`. Tên d�
 
 > AI triển khai **không tự quyết** các mục dưới đây (Luật A3). Chốt xong thì chuyển thành ADR trong PLAN, sửa các ô `[CHƯA CHỐT]` liên quan.
 
-| # | Câu hỏi | Đề xuất | Ảnh hưởng |
+| # | Câu hỏi | Đề xuất / Quyết định | Ảnh hưởng |
 |---|---|---|---|
-| Q1 | Cho phép "Luôn cho phép cài thư viện / truy cập mạng trong dự án này" không? Luật B5 nói *phải* xin phép. | MVP: không có. Mỗi lần đều hỏi. | MH-04, MH-11 |
-| Q2 | Nút "Hỏi AI cách khác" ở hộp xin phép có cần không? | Gộp vào "Không cho phép" (AI tự tìm cách khác). | MH-04 |
-| Q3 | Tính năng "tự chạy tiếp khi hạn mức được làm mới" (cần app đang mở, hẹn giờ). Chưa có trong PLAN. | Để sau MVP; MVP chỉ báo giờ + nút "Thử lại". | MH-07, MH-11 |
-| Q4 | Khi tạm dừng vì hết hạn mức, có cho "làm bước khác trước" không? Có thể trái ADR-005 nếu bước sau phụ thuộc. | Chỉ cho khi planner đánh dấu bước sau độc lập; MVP: không làm. | MH-07 |
-| Q5 | Lưu 3 trạng thái suy ra (`waiting_permission`, `conflict`, `paused`) vào schema? | Có, migration 002 + ADR, để khôi phục đúng sau khi tắt app. | 3.1, DB |
-| Q6 | Thêm cột `decisions.kind` (`approach` / `pick` / `switch`)? | Có. | MH-09, MH-03 |
-| Q7 | Bản đồ dự án lưu ở đâu và cập nhật khi nào? | AI rẻ cập nhật sau mỗi bước; bảng `project_map`. | MH-09 |
-| Q8 | Plugin: cho bỏ chọn quyền không bắt buộc, hay tất cả hoặc không? | Tất cả hoặc không. | MH-10 |
-| Q9 | Gửi tin mới khi AI đang làm: xếp hàng hay hỏi dừng? | Hỏi dừng. | MH-03 |
-| Q10 | Kích thước cửa sổ tối thiểu; khung phải thu gọn được không? | 1024×680; có nút thu gọn. | 1.2 |
-| Q11 | Chế độ tối cho toàn app? | Sau MVP. | Tokens |
-| Q12 | Popover hạn mức tự mở khi một AI vừa hết? | Không tự mở, chỉ toast. | MH-07 |
+| ~~Q1~~ | ~~Cho phép "Luôn cho phép cài thư viện / truy cập mạng trong dự án này" không? Luật B5 nói *phải* xin phép.~~ | **Đã chốt (ADR-012):** MVP không có, mỗi lần đều hỏi. | MH-04, MH-11 |
+| ~~Q2~~ | ~~Nút "Hỏi AI cách khác" ở hộp xin phép có cần không?~~ | **Đã chốt (ADR-012):** Gộp vào "Không cho phép" (AI tự tìm cách khác). | MH-04 |
+| ~~Q3~~ | ~~Tính năng "tự chạy tiếp khi hạn mức được làm mới" (cần app đang mở, hẹn giờ). Chưa có trong PLAN.~~ | **Đã chốt (ADR-013):** Để sau MVP; MVP chỉ báo giờ + nút "Thử lại". | MH-07, MH-11 |
+| ~~Q4~~ | ~~Khi tạm dừng vì hết hạn mức, có cho "làm bước khác trước" không? Có thể trái ADR-005 nếu bước sau phụ thuộc.~~ | **Đã chốt (ADR-013):** MVP không làm. | MH-07 |
+| ~~Q5~~ | ~~Lưu 3 trạng thái suy ra (`waiting_permission`, `conflict`, `paused`) vào schema?~~ | **Đã chốt (ADR-014):** Có, lưu thẳng vào `steps.status`. | 3.1, DB |
+| ~~Q6~~ | ~~Thêm cột `decisions.kind` (`approach` / `pick` / `switch`)?~~ | **Đã chốt (ADR-014):** Có. | MH-09, MH-03 |
+| ~~Q7~~ | ~~Bản đồ dự án lưu ở đâu và cập nhật khi nào?~~ | **Đã chốt (ADR-015):** AI rẻ cập nhật sau mỗi bước; lưu bảng `project_map`. | MH-09 |
+| ~~Q8~~ | ~~Plugin: cho bỏ chọn quyền không bắt buộc, hay tất cả hoặc không?~~ | **Đã chốt (ADR-016):** Tất cả hoặc không ở MVP. | MH-10 |
+| ~~Q9~~ | ~~Gửi tin mới khi AI đang làm: xếp hàng hay hỏi dừng?~~ | **Đã chốt (ADR-017):** Hỏi dừng. | MH-03 |
+| ~~Q10~~ | ~~Kích thước cửa sổ tối thiểu; khung phải thu gọn được không?~~ | **Đã chốt (ADR-017):** `1024×680`; có nút thu gọn khung phải. | 1.2 |
+| ~~Q11~~ | ~~Chế độ tối cho toàn app?~~ | **Đã chốt (ADR-017):** Sau MVP. | Tokens |
+| ~~Q12~~ | ~~Popover hạn mức tự mở khi một AI vừa hết?~~ | **Đã chốt (ADR-013):** Không tự mở, chỉ toast. | MH-07 |
 
 ---
 
@@ -590,5 +585,6 @@ Mọi kênh: dữ liệu vào/ra có zod schema trong `src/shared/ipc/`. Tên d�
 
 | Ngày | Phiên bản | Người/AI | Thay đổi |
 |---|---|---|---|
+| 2026-11-02 | 0.2 | Antigravity (AI) | Cập nhật tên app **CodeFleet** (G10, ADR-011) và chốt toàn bộ Q1–Q12 theo quyết định của chủ dự án (ADR-012 → ADR-017); gạch các dòng mục 8 và sửa các ô `[CHƯA CHỐT]` liên quan |
 | 2026-11-02 | 0.1 | Antigravity (AI) | Tạo tài liệu: nguyên tắc, tokens, ánh xạ trạng thái, thành phần, đặc tả 12 màn, view model, IPC dự kiến, 12 câu hỏi cần chốt, ánh xạ phase |
 

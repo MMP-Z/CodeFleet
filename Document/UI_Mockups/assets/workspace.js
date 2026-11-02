@@ -17,7 +17,7 @@
     stepsOverride: null
   }, window.MOCK_WS || {});
 
-  const S = { tab: O.tab, step: O.step, level: O.level, undone: {}, cart: { 1: 1, 2: 0, 3: 2 } };
+  const S = { tab: O.tab, step: O.step, level: O.level, collapsed: false, undone: {}, cart: { 1: 1, 2: 0, 3: 2 } };
 
   const STEPS = O.stepsOverride || [
     { id: 1, text: 'Dựng khung trang chủ: tiêu đề, banner và menu', ai: 'Claude', model: 'Sonnet 5.5', status: 'done' },
@@ -232,7 +232,10 @@
   function sideHtml() {
     const tabs = [['preview', 'Xem trước'], ['code', 'Code của bước'], ['detail', 'Điều phối chi tiết']];
     return `
-      <div class="tabs" role="tablist" aria-label="Khung bên phải">${tabs.map((t) => `<button role="tab" data-tab="${t[0]}" aria-selected="${S.tab === t[0]}">${t[1]}</button>`).join('')}</div>
+      <div class="row" style="gap:8px;flex-wrap:nowrap">
+        <div class="tabs grow" role="tablist" aria-label="Khung bên phải">${tabs.map((t) => `<button role="tab" data-tab="${t[0]}" aria-selected="${S.tab === t[0]}">${t[1]}</button>`).join('')}</div>
+        <button class="btn sm" type="button" data-collapse="1" title="Thu gọn khung bên phải" aria-label="Thu gọn khung bên phải">⇥ Thu gọn</button>
+      </div>
       ${S.tab === 'preview' ? previewHtml() : S.tab === 'code' ? codeHtml() : detailHtml()}`;
   }
 
@@ -240,8 +243,12 @@
     const root = document.querySelector('[data-workspace]');
     if (!root) return;
     root.classList.add('workspace');
-    root.innerHTML = `<main class="chat">${chatHtml()}</main><aside class="side">${sideHtml()}</aside>`;
-    root.querySelectorAll('[data-view]').forEach((b) => (b.onclick = () => { S.tab = 'code'; S.step = +b.dataset.view; render(); }));
+    const reopenBar = S.collapsed
+      ? `<div style="padding:12px;border-left:1px solid var(--border);background:var(--surface-2);display:flex;align-items:flex-start"><button class="btn sm" type="button" data-collapse="0" aria-label="Mở khung bên phải">⇤ Mở khung phải</button></div>`
+      : `<aside class="side">${sideHtml()}</aside>`;
+    root.innerHTML = `<main class="chat">${chatHtml()}</main>${reopenBar}`;
+    root.querySelectorAll('[data-view]').forEach((b) => (b.onclick = () => { S.collapsed = false; S.tab = 'code'; S.step = +b.dataset.view; render(); }));
+    root.querySelectorAll('[data-collapse]').forEach((b) => (b.onclick = () => { S.collapsed = b.dataset.collapse === '1'; render(); }));
     root.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => { S.tab = b.dataset.tab; render(); }));
     root.querySelectorAll('[data-level]').forEach((b) => (b.onclick = () => { S.level = b.dataset.level; render(); }));
     root.querySelectorAll('[data-undo]').forEach((b) => (b.onclick = () => { S.undone[b.dataset.undo] = !S.undone[b.dataset.undo]; render(); }));

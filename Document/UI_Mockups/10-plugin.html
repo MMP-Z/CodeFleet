@@ -96,14 +96,14 @@
       </div>
     </div>
     <div class="dialog-body">
-      <p>Plugin này xin các quyền sau. Bạn có thể đổi lại trong Cài đặt bất kỳ lúc nào.</p>
-      <div class="perm"><input type="checkbox" checked disabled><div class="grow"><strong>Đọc file trong dự án</strong><div class="small muted">Để biết dự án đang dùng cơ sở dữ liệu nào.</div></div><span class="tag">project:read</span></div>
-      <div class="perm"><input type="checkbox" checked><div class="grow"><strong>Chạy một chương trình trên máy</strong><div class="small muted">Khởi động bộ kết nối cơ sở dữ liệu khi AI cần.</div></div><span class="tag">process:run</span></div>
-      <div class="perm"><input type="checkbox" checked><div class="grow"><strong>Cho AI dùng công cụ này</strong><div class="small muted">AI được hỏi cấu trúc bảng, không được xoá dữ liệu.</div></div><span class="tag">mcp:connect</span></div>
-      <div class="perm" style="opacity:.6"><input type="checkbox" disabled><div class="grow"><strong>Không xin:</strong> ghi file dự án, truy cập Internet</div></div>
+      <p>Plugin này cần toàn bộ các quyền dưới đây để hoạt động (cấp trọn gói hoặc huỷ):</p>
+      <div class="perm"><span class="pill warn">Cần cấp</span><div class="grow"><strong>Đọc file trong dự án</strong><div class="small muted">Để biết dự án đang dùng cơ sở dữ liệu nào.</div></div><span class="tag">project:read</span></div>
+      <div class="perm"><span class="pill warn">Cần cấp</span><div class="grow"><strong>Chạy một chương trình trên máy</strong><div class="small muted">Khởi động bộ kết nối cơ sở dữ liệu khi AI cần.</div></div><span class="tag">process:run</span></div>
+      <div class="perm"><span class="pill warn">Cần cấp</span><div class="grow"><strong>Cho AI dùng công cụ này</strong><div class="small muted">AI được hỏi cấu trúc bảng, không được xoá dữ liệu.</div></div><span class="tag">mcp:connect</span></div>
+      <div class="perm" style="opacity:.6"><span class="pill wait">—</span><div class="grow"><strong>Không xin:</strong> ghi file dự án, truy cập Internet</div></div>
       <div class="notice neutral small"><span class="icon">i</span><div>Plugin không bao giờ đọc được mật khẩu hay mã đăng nhập của bạn.</div></div>
     </div>
-    <div class="dialog-foot"><button class="btn" data-close>Huỷ</button><button class="btn primary" data-close>Cài với các quyền đã chọn</button></div>
+    <div class="dialog-foot"><button class="btn" data-close>Huỷ</button><button class="btn primary" data-close>Đồng ý và cài đặt</button></div>
   </div>
 </div>
 

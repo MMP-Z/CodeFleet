@@ -88,7 +88,7 @@
     ];
     el.classList.add('app-header');
     el.innerHTML = `
-      <div class="logo"><div class="logo-mark" aria-hidden="true"></div><strong>[Tên app]</strong></div>
+      <div class="logo"><div class="logo-mark" aria-hidden="true"></div><strong>CodeFleet</strong></div>
       ${project ? `<a class="project-pill" href="02-chon-du-an.html" style="text-decoration:none" title="Đổi dự án">${esc(project)} ▾</a>` : ''}
       <span class="demo-badge">Dữ liệu minh hoạ</span>
       <nav class="header-tools" aria-label="Điều hướng app">
