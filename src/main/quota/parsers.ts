@@ -206,9 +206,9 @@ export function parseCodexUsageLog(
 }
 
 /**
- * TẦNG C: Parser phát hiện lỗi rate limit 429 cho Gemini hoặc các CLI khác.
+ * TẦNG C: Parser phát hiện lỗi rate limit 429 cho Copilot CLI hoặc các CLI khác.
  */
-export function parseGeminiRateLimit(rawInput: string | object): Omit<QuotaSnapshot, 'id'> | null {
+export function parseCopilotRateLimit(rawInput: string | object): Omit<QuotaSnapshot, 'id'> | null {
   try {
     const data = typeof rawInput === 'string' ? JSON.parse(rawInput) : rawInput;
     const msg: string = data.error?.message ?? data.message ?? '';
@@ -218,22 +218,23 @@ export function parseGeminiRateLimit(rawInput: string | object): Omit<QuotaSnaps
       statusStr === 'RESOURCE_EXHAUSTED' ||
       msg.includes('429') ||
       msg.includes('RESOURCE_EXHAUSTED') ||
-      msg.includes('Quota exceeded');
+      msg.includes('Quota exceeded') ||
+      msg.toLowerCase().includes('rate limit');
 
     if (!isExhausted) return null;
 
     // Trích xuất model nếu có
-    const model = data.error?.data?.model ?? msg.match(/model '([^']+)'/)?.[1] ?? 'gemini-2.5-pro';
+    const model = data.error?.data?.model ?? msg.match(/model '([^']+)'/)?.[1] ?? 'claude-3.5-sonnet';
 
     // Giờ reset mặc định: nửa đêm 00:00 ngày hôm sau
     const midnight = new Date();
     midnight.setHours(24, 0, 0, 0);
 
     return {
-      agentId: 'gemini',
+      agentId: 'copilot',
       model,
       scope: 'model',
-      plan: 'Gói cá nhân',
+      plan: 'GitHub Copilot',
       windows: [
         {
           label: 'Hôm nay',
@@ -249,3 +250,6 @@ export function parseGeminiRateLimit(rawInput: string | object): Omit<QuotaSnaps
     return null;
   }
 }
+
+/** Tương thích ngược với các test / code cũ */
+export const parseGeminiRateLimit = parseCopilotRateLimit;

@@ -88,11 +88,11 @@ describe('formatQuotaChipSummary (UI_SPEC 3.2, PLAN 6.6)', () => {
     });
   });
 
-  it('formats model-scope summaries (Gemini: Pro hết · Flash 23%)', () => {
+  it('formats model-scope summaries (Copilot: Sonnet hết · GPT-4o 23%)', () => {
     const snapPro: QuotaSnapshot = {
       id: '1',
-      agentId: 'gemini',
-      model: 'gemini-2.5-pro',
+      agentId: 'copilot',
+      model: 'claude-3.5-sonnet',
       scope: 'model',
       plan: null,
       windows: [{ label: 'Hôm nay', usedPercent: 100, resetsAt: null }],
@@ -102,8 +102,8 @@ describe('formatQuotaChipSummary (UI_SPEC 3.2, PLAN 6.6)', () => {
     };
     const snapFlash: QuotaSnapshot = {
       id: '2',
-      agentId: 'gemini',
-      model: 'gemini-2.5-flash',
+      agentId: 'copilot',
+      model: 'gpt-4o',
       scope: 'model',
       plan: null,
       windows: [{ label: 'Hôm nay', usedPercent: 23, resetsAt: null }],
@@ -112,8 +112,8 @@ describe('formatQuotaChipSummary (UI_SPEC 3.2, PLAN 6.6)', () => {
       capturedAt: '2026-11-02T10:00:00Z',
     };
 
-    expect(formatQuotaChipSummary('gemini', [snapPro, snapFlash])).toEqual({
-      text: '2.5-pro hết · 2.5-flash 23%',
+    expect(formatQuotaChipSummary('copilot', [snapPro, snapFlash])).toEqual({
+      text: '3.5-sonnet hết · 4o 23%',
       tone: 'low',
     });
   });
@@ -121,8 +121,8 @@ describe('formatQuotaChipSummary (UI_SPEC 3.2, PLAN 6.6)', () => {
   it('returns "Đã hết" (tone exhausted) when all models in model-scope are exhausted', () => {
     const snapPro: QuotaSnapshot = {
       id: '1',
-      agentId: 'gemini',
-      model: 'gemini-2.5-pro',
+      agentId: 'copilot',
+      model: 'claude-3.5-sonnet',
       scope: 'model',
       plan: null,
       windows: [{ label: 'Hôm nay', usedPercent: 100, resetsAt: null }],
@@ -133,10 +133,10 @@ describe('formatQuotaChipSummary (UI_SPEC 3.2, PLAN 6.6)', () => {
     const snapFlash: QuotaSnapshot = {
       ...snapPro,
       id: '2',
-      model: 'gemini-2.5-flash',
+      model: 'gpt-4o',
     };
 
-    expect(formatQuotaChipSummary('gemini', [snapPro, snapFlash])).toEqual({
+    expect(formatQuotaChipSummary('copilot', [snapPro, snapFlash])).toEqual({
       text: 'Đã hết',
       tone: 'exhausted',
     });

@@ -4,7 +4,7 @@ import { shell } from 'electron';
 import { resolveAgentBinary } from './binary-resolver';
 import { ClaudeAdapter } from './claude';
 import { CodexAdapter } from './codex';
-import { GeminiAdapter } from './gemini';
+import { CopilotAdapter } from './copilot';
 import { AgyAdapter } from './agy';
 import type { ModelTierService } from './models';
 import type { AgentSessionRepository } from './session-repo';
@@ -60,11 +60,11 @@ export class AgentRegistry {
     } else {
       const claude = new ClaudeAdapter(options.modelsService, options.sessionRepo);
       const codex = new CodexAdapter(options.modelsService, options.sessionRepo);
-      const gemini = new GeminiAdapter(options.modelsService, options.sessionRepo);
+      const copilot = new CopilotAdapter(options.modelsService, options.sessionRepo);
       const agy = new AgyAdapter(options.modelsService, options.sessionRepo);
       this.adapters.set(claude.id, claude);
       this.adapters.set(codex.id, codex);
-      this.adapters.set(gemini.id, gemini);
+      this.adapters.set(copilot.id, copilot);
       this.adapters.set(agy.id, agy);
     }
   }

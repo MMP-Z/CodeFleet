@@ -1,4 +1,6 @@
 import { spawn } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { assertPathInsideProject } from '../security/path-guard';
 import { getCommandExecutionOptions, resolveAgentBinary } from './binary-resolver';
@@ -15,8 +17,11 @@ import type {
   StartSessionOptions,
 } from './types';
 
-export class GeminiAdapter implements AgentAdapter {
-  public readonly id = 'gemini' as const;
+/**
+ * Adapter cho GitHub Copilot CLI (hoặc gh copilot)
+ */
+export class CopilotAdapter implements AgentAdapter {
+  public readonly id = 'copilot' as const;
   public readonly displayName: string;
   public readonly shortName: string;
   public readonly logoLetter: string;
@@ -33,14 +38,14 @@ export class GeminiAdapter implements AgentAdapter {
     private readonly runner: CommandRunner = defaultCommandRunner,
     private readonly customQuotaResolver?: () => Promise<string | null>,
   ) {
-    const config = this.modelsService.getAgentCatalogConfig('gemini');
+    const config = this.modelsService.getAgentCatalogConfig('copilot');
     this.displayName = config.displayName;
-    this.shortName = this.modelsService.getAgentShortName('gemini');
+    this.shortName = this.modelsService.getAgentShortName('copilot');
     this.logoLetter = config.logoLetter;
     this.color = config.color;
     this.darkColor = config.darkColor;
     this.docsUrl = config.docsUrl;
-    this.installCommand = this.modelsService.getInstallCommand('gemini');
+    this.installCommand = this.modelsService.getInstallCommand('copilot');
     this.loginCommand = config.loginCommand;
   }
 
@@ -71,21 +76,41 @@ export class GeminiAdapter implements AgentAdapter {
     const version = versionMatch ? versionMatch[1] : res.stdout.trim() || 'unknown';
 
     // Kiểm tra trạng thái auth
-    const authRes = await this.runner(binary, ['auth', 'status']);
     let loggedIn = false;
     let status: 'ready' | 'not_logged_in' | 'error' = 'not_logged_in';
 
-    if (authRes.code === 0) {
+    const authRes = await this.runner(binary, ['auth', 'status']);
+    const combinedOutput = `${authRes.stdout} ${authRes.stderr}`.toLowerCase();
+
+    if (
+      authRes.code === 0 ||
+      combinedOutput.includes('logged in to') ||
+      combinedOutput.includes('active account: true')
+    ) {
       loggedIn = true;
       status = 'ready';
-    } else if (
-      authRes.stderr.toLowerCase().includes('login') ||
-      authRes.stdout.toLowerCase().includes('login')
-    ) {
-      loggedIn = false;
-      status = 'not_logged_in';
     } else {
-      status = 'not_logged_in';
+      // Fallback: Kiểm tra file ~/.config/gh/hosts.yml hoặc %APPDATA%\GitHub CLI\hosts.yml
+      try {
+        const home = os.homedir();
+        const appData = process.env.APPDATA || path.join(home, 'AppData', 'Roaming');
+        const candidatePaths = [
+          path.join(appData, 'GitHub CLI', 'hosts.yml'),
+          path.join(home, '.config', 'gh', 'hosts.yml'),
+        ];
+        for (const p of candidatePaths) {
+          if (fs.existsSync(p)) {
+            const content = fs.readFileSync(p, 'utf8');
+            if (content.includes('github.com') && (content.includes('oauth_token') || content.includes('user:'))) {
+              loggedIn = true;
+              status = 'ready';
+              break;
+            }
+          }
+        }
+      } catch {
+        // bỏ qua lỗi đọc file
+      }
     }
 
     const models = await this.listModels();
@@ -124,7 +149,7 @@ export class GeminiAdapter implements AgentAdapter {
       const snap: QuotaSnapshot = {
         agentId: this.id,
         model,
-        scope: model ? 'model' : 'unknown',
+        scope: model ? 'model' : 'shared',
         windows: [{ label: 'Phút', usedPercent: 100, resetsAt: null }],
         status: 'exhausted',
         source: 'detected',
@@ -159,7 +184,7 @@ export class GeminiAdapter implements AgentAdapter {
       {
         agentId: this.id,
         model: null,
-        scope: 'unknown',
+        scope: 'shared',
         windows: [],
         status: 'unknown',
         source: 'unknown',
@@ -178,7 +203,7 @@ export class GeminiAdapter implements AgentAdapter {
       externalId: opts.resumeId,
     });
 
-    return new GeminiSessionInstance(
+    return new CopilotSessionInstance(
       sessionRecord.id,
       opts.cwd,
       opts.model ?? null,
@@ -190,9 +215,9 @@ export class GeminiAdapter implements AgentAdapter {
   }
 }
 
-class GeminiSessionInstance implements AgentSession {
+export class CopilotSessionInstance implements AgentSession {
   public readonly id: string;
-  public readonly agentId = 'gemini' as const;
+  public readonly agentId = 'copilot' as const;
   public readonly cwd: string;
   public readonly model: string | null;
   private externalSessionId: string | null;
@@ -204,8 +229,8 @@ class GeminiSessionInstance implements AgentSession {
     model: string | null,
     externalSessionId: string | null,
     private readonly sessionRepo: AgentSessionRepository,
-    private readonly adapter: GeminiAdapter,
-    binary = 'gemini',
+    public readonly adapter: CopilotAdapter,
+    binary = 'copilot',
   ) {
     this.id = id;
     this.cwd = cwd;
@@ -228,14 +253,16 @@ class GeminiSessionInstance implements AgentSession {
       return;
     }
 
-    const args = ['--stream'];
-    if (this.model) {
+    const args = this.binary.endsWith('gh') || this.binary.endsWith('gh.exe')
+      ? ['copilot', 'explain', prompt]
+      : ['--stream'];
+
+    if (this.model && !this.binary.includes('gh')) {
       args.push('--model', this.model);
     }
-    if (this.externalSessionId) {
+    if (this.externalSessionId && !this.binary.includes('gh')) {
       args.push('--session', this.externalSessionId);
     }
-    args.push(prompt);
 
     const execOpts = getCommandExecutionOptions(this.binary);
     return new Promise((resolve, reject) => {
@@ -267,7 +294,7 @@ class GeminiSessionInstance implements AgentSession {
         if (code === 0) {
           resolve();
         } else {
-          reject(new Error(`Gemini process exited with code ${code}`));
+          reject(new Error(`Copilot process exited with code ${code}`));
         }
       });
 
@@ -282,10 +309,10 @@ class GeminiSessionInstance implements AgentSession {
       try {
         evt = JSON.parse(line) as Record<string, unknown>;
       } catch {
+        onEvent({ type: 'message', text: line });
         continue;
       }
 
-      // Trường hợp 1: Gemini stream-turn format (init -> message -> result)
       if (evt.type === 'init' && typeof evt.session_id === 'string') {
         this.externalSessionId = evt.session_id;
         this.sessionRepo.updateExternalId(this.id, evt.session_id);
@@ -303,10 +330,7 @@ class GeminiSessionInstance implements AgentSession {
               }
             : undefined,
         });
-      }
-
-      // Trường hợp 2: JSON-RPC 2.0 ACP session updates (plan, tool_call, chunk, usage)
-      else if (evt.jsonrpc === '2.0' && evt.method === 'session/update') {
+      } else if (evt.jsonrpc === '2.0' && evt.method === 'session/update') {
         const params = evt.params as
           { sessionId?: string; update?: Record<string, unknown> } | undefined;
         const u = params?.update as
@@ -350,13 +374,8 @@ class GeminiSessionInstance implements AgentSession {
           }
         } else if (u?.sessionUpdate === 'agent_message_chunk' && u.content?.text) {
           onEvent({ type: 'message', text: u.content.text });
-        } else if (u?.sessionUpdate === 'usage_update') {
-          // usage notification
         }
-      }
-
-      // Bắt lỗi rate_limit
-      else if (
+      } else if (
         evt.error &&
         typeof evt.error === 'object' &&
         (String((evt.error as { code?: unknown }).code) === '429' ||

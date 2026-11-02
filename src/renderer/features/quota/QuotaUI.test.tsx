@@ -34,22 +34,22 @@ describe('MH-08: QuotaDetailsPage (UI_SPEC 5.8, PLAN 6.6, ADR-018)', () => {
       capturedAt: '2026-11-02T20:41:00Z',
     },
     {
-      id: 'snap-gemini-pro',
-      agentId: 'gemini',
-      model: 'gemini-2.5-pro',
+      id: 'snap-copilot-sonnet',
+      agentId: 'copilot',
+      model: 'claude-3.5-sonnet',
       scope: 'model',
-      plan: 'Gói cá nhân',
+      plan: 'GitHub Copilot',
       windows: [{ label: 'Hôm nay', usedPercent: 100, resetsAt: '2026-11-03T00:00:00Z' }],
       status: 'exhausted',
       source: 'detected',
       capturedAt: '2026-11-02T20:41:00Z',
     },
     {
-      id: 'snap-gemini-flash',
-      agentId: 'gemini',
-      model: 'gemini-2.5-flash',
+      id: 'snap-copilot-gpt4o',
+      agentId: 'copilot',
+      model: 'gpt-4o',
       scope: 'model',
-      plan: 'Gói cá nhân',
+      plan: 'GitHub Copilot',
       windows: [{ label: 'Hôm nay', usedPercent: 23, resetsAt: '2026-11-03T00:00:00Z' }],
       status: 'ok',
       source: 'estimated',
@@ -93,19 +93,19 @@ describe('MH-08: QuotaDetailsPage (UI_SPEC 5.8, PLAN 6.6, ADR-018)', () => {
       modelsCount: 1,
     },
     {
-      agentId: 'gemini',
-      displayName: 'Gemini',
-      shortName: 'Gemini',
-      logoLetter: 'G',
+      agentId: 'copilot',
+      displayName: 'Copilot',
+      shortName: 'Copilot',
+      logoLetter: 'P',
       color: '#2563EB',
       darkColor: '#1D4ED8',
-      docsUrl: 'https://ai.google.dev',
+      docsUrl: 'https://docs.github.com',
       installed: true,
       loggedIn: true,
       status: 'ready',
       version: '1.0.0',
-      installCommand: 'npm i -g @google/gemini-cli',
-      loginCommand: 'gemini auth',
+      installCommand: 'winget install GitHub.cli',
+      loginCommand: 'gh auth login',
       errorDetail: null,
       modelsCount: 2,
     },
@@ -132,20 +132,20 @@ describe('MH-08: QuotaDetailsPage (UI_SPEC 5.8, PLAN 6.6, ADR-018)', () => {
         tierSource: 'default',
       },
     ],
-    gemini: [
+    copilot: [
       {
-        id: 'gemini-2.5-pro',
-        agentId: 'gemini',
-        agentDisplayName: 'Gemini',
-        label: 'Gemini 2.5 Pro',
+        id: 'claude-3.5-sonnet',
+        agentId: 'copilot',
+        agentDisplayName: 'Copilot',
+        label: 'Claude 3.5 Sonnet',
         tier: 'strong',
         tierSource: 'default',
       },
       {
-        id: 'gemini-2.5-flash',
-        agentId: 'gemini',
-        agentDisplayName: 'Gemini',
-        label: 'Gemini 2.5 Flash',
+        id: 'gpt-4o',
+        agentId: 'copilot',
+        agentDisplayName: 'Copilot',
+        label: 'GPT-4o',
         tier: 'fast',
         tierSource: 'default',
       },
@@ -181,7 +181,7 @@ describe('MH-08: QuotaDetailsPage (UI_SPEC 5.8, PLAN 6.6, ADR-018)', () => {
     await waitFor(() => {
       expect(screen.getByText('Claude')).toBeInTheDocument();
       expect(screen.getByText('Codex')).toBeInTheDocument();
-      expect(screen.getByText('Gemini')).toBeInTheDocument();
+      expect(screen.getByText('Copilot')).toBeInTheDocument();
     });
 
     // Kiểm tra thông tin 4 ý nguyên tắc chọn AI

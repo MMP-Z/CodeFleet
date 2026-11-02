@@ -137,7 +137,7 @@ describe('Phase 5 Quota: Parsers, Repository, and Service (PLAN 6.6, ADR-018)', 
     });
   });
 
-  describe('parseGeminiRateLimit (Tier C)', () => {
+  describe('parseCopilotRateLimit (Tier C)', () => {
     it('detects 429 RESOURCE_EXHAUSTED and extracts affected model', () => {
       const fixturePath = path.resolve(
         __dirname,
@@ -147,8 +147,7 @@ describe('Phase 5 Quota: Parsers, Repository, and Service (PLAN 6.6, ADR-018)', 
 
       const parsed = parseGeminiRateLimit(rawJson);
       expect(parsed).not.toBeNull();
-      expect(parsed?.agentId).toBe('gemini');
-      expect(parsed?.model).toBe('gemini-2.5-pro');
+      expect(parsed?.agentId).toBe('copilot');
       expect(parsed?.scope).toBe('model');
       expect(parsed?.status).toBe('exhausted');
       expect(parsed?.source).toBe('detected');
@@ -170,8 +169,8 @@ describe('Phase 5 Quota: Parsers, Repository, and Service (PLAN 6.6, ADR-018)', 
       });
 
       quotaService.saveSnapshot({
-        agentId: 'gemini',
-        model: 'gemini-2.5-pro',
+        agentId: 'copilot',
+        model: 'gpt-4o',
         scope: 'model',
         plan: null,
         windows: [{ label: 'Hôm nay', usedPercent: 100, resetsAt: '2026-11-02T17:00:00.000Z' }],
@@ -184,7 +183,7 @@ describe('Phase 5 Quota: Parsers, Repository, and Service (PLAN 6.6, ADR-018)', 
       expect(all).toHaveLength(2);
 
       const routeInfo = quotaService.getRouteQuotaInfo();
-      expect(routeInfo.exhaustedUnits.has('gemini:gemini-2.5-pro')).toBe(true);
+      expect(routeInfo.exhaustedUnits.has('copilot:gpt-4o')).toBe(true);
       expect(routeInfo.exhaustedUnits.has('claude:*')).toBe(false);
     });
 

@@ -67,33 +67,40 @@
         { "contains": "gpt-5", "tier": "strong" }
       ]
     },
-    "gemini": {
-      "displayName": "Gemini CLI",
-      "logoLetter": "G",
-      "color": "#7A4FD0",
-      "darkColor": "#B79CFF",
-      "docsUrl": "https://geminicli.com/docs/cli/model",
+    "copilot": {
+      "displayName": "Copilot CLI",
+      "logoLetter": "P",
+      "color": "#0969DA",
+      "darkColor": "#58A6FF",
+      "docsUrl": "https://docs.github.com/en/copilot/github-copilot-in-the-cli",
       "installCommand": {
-        "win32": "npm install -g @google/gemini-cli",
-        "darwin": "npm install -g @google/gemini-cli",
-        "linux": "npm install -g @google/gemini-cli"
+        "win32": "winget install GitHub.cli",
+        "darwin": "brew install gh",
+        "linux": "sudo apt install gh"
       },
-      "loginCommand": "gemini auth login",
+      "loginCommand": "gh auth login",
       "models": [
         {
-          "id": "gemini-2.5-pro",
-          "label": "Gemini 2.5 Pro",
+          "id": "claude-3.5-sonnet",
+          "label": "Claude 3.5 Sonnet (Copilot)",
           "tier": "strong"
         },
         {
-          "id": "gemini-2.5-flash",
-          "label": "Gemini 2.5 Flash",
+          "id": "gpt-4o",
+          "label": "GPT-4o (Copilot)",
+          "tier": "balanced"
+        },
+        {
+          "id": "o1-mini",
+          "label": "o1-mini (Copilot)",
           "tier": "fast"
         }
       ],
       "patternTiers": [
-        { "contains": "pro", "tier": "strong" },
-        { "contains": "flash", "tier": "fast" }
+        { "contains": "sonnet", "tier": "strong" },
+        { "contains": "gpt-4o", "tier": "balanced" },
+        { "contains": "mini", "tier": "fast" },
+        { "contains": "o1", "tier": "strong" }
       ]
     },
     "agy": {

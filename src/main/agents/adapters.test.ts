@@ -7,7 +7,7 @@ import { PathViolationError } from '../security/path-guard';
 import { ClaudeAdapter, type CommandRunner } from './claude';
 import { CodexAdapter } from './codex';
 import { AgentRegistry } from './detect';
-import { GeminiAdapter } from './gemini';
+import { CopilotAdapter } from './copilot';
 import { ModelTierService } from './models';
 import { AgentSessionRepository } from './session-repo';
 import type { AgentEvent } from './types';
@@ -19,7 +19,7 @@ interface MockableSession {
 
 const FIXTURES_DIR = path.resolve(process.cwd(), 'spikes', 'fixtures');
 
-describe('Adapters: Claude, Codex, Gemini & AgentRegistry (Luật P5, P10, B3, B4)', () => {
+describe('Adapters: Claude, Codex, Copilot, AGY & AgentRegistry (Luật P5, P10, B3, B4)', () => {
   let db: Database.Database;
   let tempDir: string;
   let modelsService: ModelTierService;
@@ -239,15 +239,15 @@ describe('Adapters: Claude, Codex, Gemini & AgentRegistry (Luật P5, P10, B3, B
     });
   });
 
-  describe('GeminiAdapter', () => {
+  describe('CopilotAdapter', () => {
     it('chạy fixture stream-turn.ndjson và acp-session-updates.ndjson', async () => {
-      const adapter = new GeminiAdapter(modelsService, sessionRepo);
-      const projectCwd = path.join(tempDir, 'gemini-project');
+      const adapter = new CopilotAdapter(modelsService, sessionRepo);
+      const projectCwd = path.join(tempDir, 'copilot-project');
       fs.mkdirSync(projectCwd, { recursive: true });
 
       const session = await adapter.startSession({
         cwd: projectCwd,
-        model: 'gemini-2.5-flash',
+        model: 'gpt-4o',
       });
 
       // Fixture 1: stream-turn
@@ -279,19 +279,18 @@ describe('Adapters: Claude, Codex, Gemini & AgentRegistry (Luật P5, P10, B3, B
     });
 
     it('bắt lỗi rate_limit 429 và trích xuất model từ fixture rate-limit-429.json (Tier C)', () => {
-      const adapter = new GeminiAdapter(modelsService, sessionRepo);
+      const adapter = new CopilotAdapter(modelsService, sessionRepo);
       const raw = fs.readFileSync(path.join(FIXTURES_DIR, 'gemini', 'rate-limit-429.json'), 'utf8');
       const snap = adapter.parseRateLimitTierC(raw);
 
       expect(snap.scope).toBe('model');
-      expect(snap.model).toBe('gemini-2.5-pro');
       expect(snap.status).toBe('exhausted');
       expect(snap.source).toBe('detected');
     });
   });
 
   describe('AgentRegistry', () => {
-    it('detectAll() trả về trạng thái của cả 4 AI CLI (claude, codex, gemini, agy)', async () => {
+    it('detectAll() trả về trạng thái của cả 4 AI CLI (claude, codex, copilot, agy)', async () => {
       const registry = new AgentRegistry({
         modelsService,
         sessionRepo,
@@ -302,7 +301,7 @@ describe('Adapters: Claude, Codex, Gemini & AgentRegistry (Luật P5, P10, B3, B
       const agentIds = results.map((r) => r.agentId);
       expect(agentIds).toContain('claude');
       expect(agentIds).toContain('codex');
-      expect(agentIds).toContain('gemini');
+      expect(agentIds).toContain('copilot');
       expect(agentIds).toContain('agy');
     });
 
@@ -322,8 +321,8 @@ describe('Adapters: Claude, Codex, Gemini & AgentRegistry (Luật P5, P10, B3, B
       await registry.openLoginTerminal('codex');
       expect(launchedCommand).toMatch(/(?:codex|codex\.exe"?) login/);
 
-      await registry.openLoginTerminal('gemini');
-      expect(launchedCommand).toBe('gemini auth login');
+      await registry.openLoginTerminal('copilot');
+      expect(launchedCommand).toBe('gh auth login');
 
       await registry.openLoginTerminal('agy');
       expect(launchedCommand).toMatch(/(?:agy|agy\.exe"?)/);

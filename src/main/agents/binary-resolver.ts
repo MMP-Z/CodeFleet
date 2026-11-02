@@ -46,17 +46,22 @@ export function getAgentBinaryCandidates(agentId: AgentId): string[] {
         'claude',
       ];
 
-    case 'gemini':
+    case 'copilot': {
+      const progFiles = process.env.ProgramFiles || 'C:\\Program Files';
       return [
-        // 1. npm global install
-        path.join(appData, 'npm', `gemini${cmdSuffix}`),
-        // 2. Gemini user bin
-        path.join(home, '.gemini', 'bin', `gemini${exeSuffix}`),
-        path.join(home, '.local', 'bin', `gemini${exeSuffix}`),
-        path.join(localAppData, 'Programs', 'Gemini', `gemini${exeSuffix}`),
+        // 1. GitHub CLI standard install location (winget / MSI)
+        path.join(progFiles, 'GitHub CLI', `gh${exeSuffix}`),
+        path.join(localAppData, 'Programs', 'GitHub CLI', `gh${exeSuffix}`),
+        // 2. Copilot CLI standalone
+        path.join(localAppData, 'Programs', 'Copilot', `copilot${exeSuffix}`),
+        path.join(appData, 'npm', `copilot${cmdSuffix}`),
+        path.join(home, '.local', 'bin', `copilot${exeSuffix}`),
+        path.join(home, '.local', 'bin', `gh${exeSuffix}`),
         // 3. Bare command on system PATH
-        'gemini',
+        'copilot',
+        'gh',
       ];
+    }
 
     case 'agy':
       return [

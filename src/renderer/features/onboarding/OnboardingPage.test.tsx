@@ -45,15 +45,15 @@ const mockDetectedAgents: DetectResult[] = [
     modelsCount: 2,
   },
   {
-    agentId: 'gemini',
-    displayName: 'Gemini CLI',
-    shortName: 'Gemini',
-    logoLetter: 'G',
-    color: '#7A4FD0',
-    darkColor: '#B79CFF',
-    docsUrl: 'https://geminicli.com/docs/cli/model',
-    installCommand: 'npm install -g @google/gemini-cli',
-    loginCommand: 'gemini auth login',
+    agentId: 'copilot',
+    displayName: 'Copilot CLI',
+    shortName: 'Copilot',
+    logoLetter: 'P',
+    color: '#0969DA',
+    darkColor: '#58A6FF',
+    docsUrl: 'https://docs.github.com/en/copilot/github-copilot-in-the-cli',
+    installCommand: 'winget install GitHub.cli',
+    loginCommand: 'gh auth login',
     installed: false,
     version: null,
     loggedIn: false,
@@ -161,7 +161,7 @@ describe('MH-01 OnboardingPage (Khởi động lần đầu)', () => {
     await waitFor(() => {
       expect(screen.getByText('Claude Code')).toBeInTheDocument();
       expect(screen.getByText('Codex CLI')).toBeInTheDocument();
-      expect(screen.getByText('Gemini CLI')).toBeInTheDocument();
+      expect(screen.getByText('Copilot CLI')).toBeInTheDocument();
     });
 
     // Pill trạng thái
@@ -218,12 +218,12 @@ describe('MH-01 OnboardingPage (Khởi động lần đầu)', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Gemini CLI')).toBeInTheDocument();
+      expect(screen.getByText('Copilot CLI')).toBeInTheDocument();
     });
 
     const openDocsBtn = screen.getByRole('button', { name: 'Mở trang hướng dẫn ↗' });
     fireEvent.click(openDocsBtn);
 
-    expect(bridge.agents.openDocs).toHaveBeenCalledWith('gemini');
+    expect(bridge.agents.openDocs).toHaveBeenCalledWith('copilot');
   });
 });

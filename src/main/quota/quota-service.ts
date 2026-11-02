@@ -2,7 +2,7 @@ import type { QuotaSnapshot } from '../../shared/ipc/contracts';
 import type { AgentRegistry } from '../agents/detect';
 import type { QuotaRepository } from '../db/quota-repo';
 import type { SettingsRepository } from '../db/settings-repo';
-import { parseGeminiRateLimit } from './parsers';
+import { parseCopilotRateLimit } from './parsers';
 
 export interface RouteQuotaInfo {
   readonly exhaustedUnits: ReadonlySet<string>;
@@ -104,8 +104,8 @@ export class QuotaService {
   ): QuotaSnapshot {
     let parsed: Omit<QuotaSnapshot, 'id'> | null = null;
 
-    if (agentId === 'gemini' && rawError) {
-      parsed = parseGeminiRateLimit(rawError as object);
+    if ((agentId === 'copilot' || agentId === 'gemini') && rawError) {
+      parsed = parseCopilotRateLimit(rawError as object);
     }
 
     if (!parsed) {
@@ -187,23 +187,23 @@ export class QuotaService {
             source: 'estimated',
             capturedAt: new Date().toISOString(),
           });
-        } else if (agent.agentId === 'gemini') {
-          // Gemini tính riêng từng model
+        } else if (agent.agentId === 'copilot') {
+          // Copilot tính chung hoặc theo model
           this.quotaRepo.save({
-            agentId: 'gemini',
-            model: 'gemini-2.5-pro',
+            agentId: 'copilot',
+            model: 'claude-3.5-sonnet',
             scope: 'model',
-            plan: 'Gói cá nhân',
-            windows: [{ label: 'Hôm nay', usedPercent: 20, resetsAt: null }],
+            plan: 'GitHub Copilot',
+            windows: [{ label: 'Hôm nay', usedPercent: 15, resetsAt: null }],
             status: 'ok',
             source: 'estimated',
             capturedAt: new Date().toISOString(),
           });
           this.quotaRepo.save({
-            agentId: 'gemini',
-            model: 'gemini-2.5-flash',
+            agentId: 'copilot',
+            model: 'gpt-4o',
             scope: 'model',
-            plan: 'Gói cá nhân',
+            plan: 'GitHub Copilot',
             windows: [{ label: 'Hôm nay', usedPercent: 5, resetsAt: null }],
             status: 'ok',
             source: 'estimated',
