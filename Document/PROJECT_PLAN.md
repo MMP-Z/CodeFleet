@@ -1,8 +1,8 @@
 # KẾ HOẠCH TRIỂN KHAI — Ứng dụng chat "vibe code có hiểu"
 
-> **Phiên bản tài liệu:** 0.11
+> **Phiên bản tài liệu:** 0.12
 > **Cập nhật lần cuối:** 2026-11-02
-> **Giai đoạn hiện tại:** Phase 1 — Xong (chờ chuyển sang Phase 2)
+> **Giai đoạn hiện tại:** Phase 2 — Kết nối CLI (Đang làm)
 > **Tên ứng dụng:** CodeFleet (xem ADR-011)
 
 ---
@@ -520,7 +520,7 @@ Ký hiệu: `Chưa bắt đầu` / `Đang làm` / `Xong` / `Tạm dừng`
 |---|---|---|---|---|
 | 0 | Spike và xác minh | Xong | 2026-11-02 | 2026-11-02 |
 | 1 | Khung dự án | Xong | 2026-11-02 | 2026-11-02 |
-| 2 | Kết nối CLI | Chưa bắt đầu | — | — |
+| 2 | Kết nối CLI | Đang làm | 2026-11-02 | — |
 | 3 | Chat và điều phối cơ bản | Chưa bắt đầu | — | — |
 | 4 | Xem code và lưới an toàn | Chưa bắt đầu | — | — |
 | 5 | Hiển thị quota | Chưa bắt đầu | — | — |
@@ -604,13 +604,13 @@ Ký hiệu: `Chưa bắt đầu` / `Đang làm` / `Xong` / `Tạm dừng`
 - [ ] `listModels()` và chọn model khi mở phiên cho từng adapter (lưu bảng `models`, ánh xạ bậc theo file cấu hình); sự kiện `rate_limit` kèm model.
 - [ ] Phát hiện rate limit (quota tầng C) trong từng adapter.
 - [ ] Fixture test cho cả ba adapter (P5).
-- [ ] Kiểm soát đường dẫn ghi (B4): thử AI cố ghi ra ngoài thư mục dự án.
+- [x] Kiểm soát đường dẫn ghi (B4): thử AI cố ghi ra ngoài thư mục dự án.
 
 **Tiêu chí thoát:** gửi một yêu cầu đơn giản và nhận phản hồi + thay đổi file đúng trong thư mục dự án với cả 3 CLI; phát hiện được trường hợp CLI chưa cài/chưa đăng nhập; test adapter qua.
 
 **Ghi chú giai đoạn**
-- Ngày bắt đầu: —
-- Quyết định trong giai đoạn: —
+- Ngày bắt đầu: 2026-11-02 (mục tiêu: hoàn thiện `AgentAdapter`, `detect()`, `listModels()`, máy khách ACP dùng chung, 3 adapter Claude/Codex/Gemini kèm fixture test + kiểm soát đường dẫn B4, màn `MH-01` bản đơn giản, và `MH-11` mục "AI và model").
+- Quyết định trong giai đoạn: Lưu cấu hình ánh xạ bậc model mặc định tại `resources/model-tiers.default.json` kết hợp file ghi đè của người dùng tại `<userData>/model-tiers.user.json` (ADR-019) để không hard-code tên model hay lệnh cài CLI trong mã nguồn TypeScript (Luật P10, G6).
 - Vấn đề gặp phải: —
 - Việc bị hoãn / ý tưởng mới: —
 - Ghi chú kết thúc: —
@@ -893,6 +893,12 @@ Ghi nguồn (đường dẫn tài liệu, ngày kiểm tra) cho mỗi ô đã đ
 - Lý do: Bảo đảm tính trung thực tuyệt đối của câu thông báo trên MH-08 (Nguyên tắc 1.4) và bảo vệ hạn mức gói đăng ký của người dùng.
 - Hệ quả: Khi mới cài app và chưa chạy lượt hội thoại nào, hạn mức có thể hiển thị trung thực là `Không rõ` (`unknown`) cho tới sau lượt đầu tiên; câu "Đọc hạn mức không tốn hạn mức của bạn" ở MH-08 được xác nhận đúng và bỏ nhãn giữ chỗ.
 
+**ADR-019 — Cấu hình ánh xạ bậc model và siêu dữ liệu CLI tách rời (`resources` + `userData`)** (2026-11-02)
+- Bối cảnh: Luật P10 và `UI_SPEC.md` G6 quy định không được hard-code tên model hay lệnh cài CLI trong logic ứng dụng, đồng thời mục 12 đặt câu hỏi cách duy trì file ánh xạ bậc model (`strong` / `balanced` / `fast`) khi hãng đổi tên model.
+- Quyết định: Đóng gói file cấu hình mặc định `resources/model-tiers.default.json` do nhóm phát triển duy trì (cập nhật qua các bản phát hành ứng dụng), kết hợp với file ghi đè của người dùng tại `<userData>/model-tiers.user.json` khi chỉnh trên bảng **MH-11 → Nâng cao**. Mọi model mới do CLI báo mà chưa có trong cả 2 file sẽ nhận `tier: 'unknown'` (`"Chưa xếp bậc"`) kèm cảnh báo trên MH-11.
+- Lý do: Tách hoàn toàn danh mục model/lệnh cài khỏi mã nguồn `.ts`/`.tsx`, cho phép cả bản cập nhật app lẫn người dùng tự chỉnh bậc mà không phải sửa code.
+- Hệ quả: `ModelTierService` đọc kết hợp 2 file cấu hình và đồng bộ vào bảng `models` trong SQLite.
+
 ---
 
 ## 11. NHẬT KÝ THAY ĐỔI
@@ -900,6 +906,7 @@ Ghi nguồn (đường dẫn tài liệu, ngày kiểm tra) cho mỗi ô đã đ
 
 | Ngày | Phiên bản TL | Người/AI | Thay đổi | Lý do |
 |---|---|---|---|---|
+| 2026-11-02 | 0.12 | Antigravity (AI) | Bắt đầu Phase 2: chốt ADR-019 (cấu hình ánh xạ bậc model tách rời tại `resources/model-tiers.default.json` + `<userData>/model-tiers.user.json`), triển khai bộ kiểm soát đường dẫn `src/main/security/path-guard.ts` chặn `..` và symlink thoát khỏi thư mục dự án (Luật B4) kèm unit test | Khởi động Phase 2 — Kết nối CLI theo xác nhận của chủ dự án |
 | 2026-11-02 | 0.11 | Antigravity (AI) | Bổ sung GitHub Actions CI ma trận `windows-latest` + `macos-latest` (`.github/workflows/ci.yml`); sửa cấu hình đóng gói `preload` tự thân cho `sandbox: true`; kiểm thử mở cửa sổ Electron 45 thật đối chiếu mockup `11-cai-dat.html` và đóng gói thử `CodeFleet.exe`; hoàn tất và đóng Phase 1 | Đạt toàn bộ tiêu chí thoát của Phase 1 — Khung dự án |
 | 2026-11-02 | 0.10 | Antigravity (AI) | Hoàn thiện tầng giao diện Phase 1: file chuỗi `src/renderer/i18n/vi.json`, bộ thành phần cơ bản (`Button`, `Pill`, `Toggle`, `Segmented`, `Progress`, `Notice`, `Dialog`, `Toast`, `ProjectPill`, `AppHeader`), trang thử `/dev/components` sau feature flag (Luật P6), và khung màn `MH-11 Cài đặt` (mục Chung & Dữ liệu) kèm unit test | Hoàn thành toàn bộ hạng mục giao diện của Phase 1 theo `UI_SPEC.md` mục 9 và `Prompt 1` |
 | 2026-11-02 | 0.9 | Antigravity (AI) | Triển khai tầng IPC có kiểu + kiểm tra `zod` hai chiều ở `src/shared/ipc/contracts.ts`, `src/main/ipc/`, `src/preload/index.ts` (`settings.*`, `system.checkGit`, `system.getDataInfo`, `system.openDataDir`, `system.backupNow`) kèm unit test; đồng bộ `UI_SPEC.md` v0.4 mục 7 | Hoàn thành cầu nối IPC an toàn main ↔ preload ↔ renderer theo Luật P3, B1 |
@@ -925,7 +932,7 @@ Ghi nguồn (đường dẫn tài liệu, ngày kiểm tra) cho mỗi ô đã đ
 - [ ] Có thu thập số liệu sử dụng ẩn danh không? (nếu có: mặc định tắt, người dùng chủ động bật)
 - [ ] Phương án khi máy người dùng không có `git` *(đã đo ở Phase 0 tại `spikes/01-shadow-git.mjs`: `isomorphic-git` chạy được với `gitdir` tách rời trong ~130ms–1,9s so với <50ms của `git` hệ thống — cần chốt trước Phase 4 giữa "cảnh báo hướng dẫn cài git + tạm tắt hoàn tác" hay "bật `isomorphic-git` làm dự phòng")*.
 - [x] ~~Người dùng có tự chọn model không, hay app luôn tự chọn? (đề xuất: mặc định tự chọn, chỉ cho ghim model ở mục Nâng cao)~~ — Đã thiết kế khớp trong `UI_SPEC.md` mục 5.3.3 (`AiPicker`: mặc định tự chọn, ghim AI+model ở mục Nâng cao) và mục 4.4a.
-- [ ] Ánh xạ bậc model (`strong` / `balanced` / `fast`) cho từng CLI ra sao, và ai duy trì file ánh xạ khi hãng đổi tên model? *(cần chốt trước Phase 2)*
+- [x] ~~Ánh xạ bậc model (`strong` / `balanced` / `fast`) cho từng CLI ra sao, và ai duy trì file ánh xạ khi hãng đổi tên model? *(cần chốt trước Phase 2)*~~ — Đã chốt: dùng `resources/model-tiers.default.json` kết hợp `<userData>/model-tiers.user.json` (xem ADR-019).
 
 ---
 

@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-02",
+  "agents": {
+    "claude": {
+      "displayName": "Claude Code",
+      "logoLetter": "C",
+      "color": "#C2603A",
+      "darkColor": "#E08A64",
+      "docsUrl": "https://docs.anthropic.com/en/docs/claude-code/overview",
+      "installCommand": {
+        "win32": "irm https://claude.ai/install.ps1 | iex",
+        "darwin": "curl -fsSL https://claude.ai/install.sh | bash",
+        "linux": "curl -fsSL https://claude.ai/install.sh | bash"
+      },
+      "loginCommand": "claude auth login",
+      "models": [
+        {
+          "id": "claude-opus-4-1",
+          "label": "Claude Opus",
+          "tier": "strong"
+        },
+        {
+          "id": "claude-sonnet-4-5",
+          "label": "Claude Sonnet",
+          "tier": "balanced"
+        },
+        {
+          "id": "claude-haiku-3-5",
+          "label": "Claude Haiku",
+          "tier": "fast"
+        }
+      ],
+      "patternTiers": [
+        { "contains": "opus", "tier": "strong" },
+        { "contains": "sonnet", "tier": "balanced" },
+        { "contains": "haiku", "tier": "fast" }
+      ]
+    },
+    "codex": {
+      "displayName": "Codex CLI",
+      "logoLetter": "X",
+      "color": "#2F5FD0",
+      "darkColor": "#6F9BFF",
+      "docsUrl": "https://developers.openai.com/codex/cli",
+      "installCommand": {
+        "win32": "npm install -g @openai/codex",
+        "darwin": "npm install -g @openai/codex",
+        "linux": "npm install -g @openai/codex"
+      },
+      "loginCommand": "codex login",
+      "models": [
+        {
+          "id": "gpt-5-codex",
+          "label": "GPT-5 Codex",
+          "tier": "strong"
+        },
+        {
+          "id": "codex-mini-latest",
+          "label": "Codex Mini",
+          "tier": "fast"
+        }
+      ],
+      "patternTiers": [
+        { "contains": "mini", "tier": "fast" },
+        { "contains": "spark", "tier": "fast" },
+        { "contains": "gpt-5", "tier": "strong" }
+      ]
+    },
+    "gemini": {
+      "displayName": "Gemini CLI",
+      "logoLetter": "G",
+      "color": "#7A4FD0",
+      "darkColor": "#B79CFF",
+      "docsUrl": "https://geminicli.com/docs/cli/model",
+      "installCommand": {
+        "win32": "npm install -g @google/gemini-cli",
+        "darwin": "npm install -g @google/gemini-cli",
+        "linux": "npm install -g @google/gemini-cli"
+      },
+      "loginCommand": "gemini",
+      "models": [
+        {
+          "id": "gemini-2.5-pro",
+          "label": "Gemini 2.5 Pro",
+          "tier": "strong"
+        },
+        {
+          "id": "gemini-2.5-flash",
+          "label": "Gemini 2.5 Flash",
+          "tier": "fast"
+        }
+      ],
+      "patternTiers": [
+        { "contains": "pro", "tier": "strong" },
+        { "contains": "flash", "tier": "fast" }
+      ]
+    }
+  }
+}
