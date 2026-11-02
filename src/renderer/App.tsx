@@ -9,6 +9,7 @@ import { ProjectHistoryPage } from './features/history/ProjectHistoryPage';
 import { OnboardingPage } from './features/onboarding/OnboardingPage';
 import { ProjectSelectModal } from './features/projects/ProjectSelectModal';
 import { ProjectSelectPage } from './features/projects/ProjectSelectPage';
+import { PluginPage } from './features/plugins/PluginPage';
 import { QuotaDetailsPage } from './features/quota/QuotaDetailsPage';
 import { SettingsPage } from './features/settings/SettingsPage';
 import { getBridge } from './lib/bridge';
@@ -26,6 +27,7 @@ function readInitialRoute(allowDevComponents: boolean): AppRoute {
   if (typeof window !== 'undefined') {
     if (window.location.hash === '#/settings') return 'settings';
     if (window.location.hash === '#/quota') return 'quota';
+    if (window.location.hash === '#/plugins') return 'plugins';
     if (window.location.hash === '#/projects') return 'projects';
     if (window.location.hash === '#/history') return 'history';
     if (window.location.hash === '#/direct-edit') return 'direct-edit';
@@ -111,6 +113,8 @@ export function App(): React.JSX.Element {
         setRoute('settings');
       } else if (window.location.hash === '#/quota') {
         setRoute('quota');
+      } else if (window.location.hash === '#/plugins') {
+        setRoute('plugins');
       } else if (window.location.hash === '#/projects') {
         setRoute('projects');
       } else if (window.location.hash === '#/history') {
@@ -152,11 +156,13 @@ export function App(): React.JSX.Element {
             ? '#/settings'
             : nextRoute === 'quota'
               ? '#/quota'
-              : nextRoute === 'history'
-                ? '#/history'
-                : nextRoute === 'chat'
-                  ? '#/chat'
-                  : '#/onboarding';
+              : nextRoute === 'plugins'
+                ? '#/plugins'
+                : nextRoute === 'history'
+                  ? '#/history'
+                  : nextRoute === 'chat'
+                    ? '#/chat'
+                    : '#/onboarding';
     }
   };
 
@@ -231,6 +237,8 @@ export function App(): React.JSX.Element {
             <SettingsPage />
           ) : route === 'quota' ? (
             <QuotaDetailsPage onNavigateToSettings={() => handleNavigate('settings')} />
+          ) : route === 'plugins' ? (
+            <PluginPage />
           ) : route === 'projects' || !currentProject ? (
             <ProjectSelectPage onProjectSelected={handleProjectSelected} />
           ) : route === 'history' ? (

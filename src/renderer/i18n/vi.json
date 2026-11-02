@@ -421,6 +421,74 @@
       "linkSettings": "Đổi ngưỡng cảnh báo và thông báo trong Cài đặt →"
     }
   },
+  "mh10": {
+    "title": "Plugin",
+    "subtitle": "Thêm AI mới, mẫu dự án, bộ hướng dẫn cho AI, hoặc kết nối công cụ. Plugin chỉ là khai báo, không chạy code tuỳ ý.",
+    "installFromLink": "＋ Cài từ đường link",
+    "tabs": {
+      "catalog": "Danh mục",
+      "installed": "Đã cài ({count})",
+      "updates": "Có bản mới ({count})"
+    },
+    "kinds": {
+      "all": "Mọi loại",
+      "agentAdapter": "Thêm AI",
+      "skillPack": "Bộ hướng dẫn",
+      "template": "Mẫu dự án",
+      "mcpServer": "Kết nối công cụ (MCP)"
+    },
+    "permissions": {
+      "projectRead": "Đọc dự án",
+      "projectWrite": "Ghi vào dự án",
+      "processRun": "Chạy chương trình",
+      "network": "Internet",
+      "mcpConnect": "Kết nối công cụ",
+      "needGrant": "Cần cấp",
+      "notRequested": "Không xin: {perms}",
+      "descriptions": {
+        "projectRead": "Đọc file trong dự án để hiểu cấu trúc code.",
+        "projectWrite": "Ghi hoặc sửa file trong thư mục dự án của bạn.",
+        "processRun": "Chạy chương trình hoặc tiến trình lệnh trên máy bạn.",
+        "network": "Truy cập Internet để tải thư viện hoặc kết nối mạng.",
+        "mcpConnect": "Cho AI dùng công cụ này qua giao thức kết nối công cụ MCP."
+      }
+    },
+    "status": {
+      "curated": "✓ Đã kiểm duyệt",
+      "installed": "Đã cài",
+      "updateAvailable": "Có bản {version}",
+      "corrupted": "Đã tắt tự động",
+      "disabled": "Đã tắt"
+    },
+    "actions": {
+      "install": "Cài đặt",
+      "update": "Cập nhật",
+      "uninstall": "Gỡ",
+      "reinstall": "Cài lại",
+      "filterAria": "Lọc loại plugin",
+      "searchPlaceholder": "Tìm plugin…",
+      "emptyList": "Không tìm thấy plugin nào phù hợp."
+    },
+    "dialogInstall": {
+      "title": "Cài “{name}”?",
+      "meta": "v{version} · từ {source} · kiểm tra toàn vẹn: ✓ khớp",
+      "officialSource": "danh mục chính thức",
+      "externalSource": "liên kết bên ngoài",
+      "intro": "Plugin này cần toàn bộ các quyền dưới đây để hoạt động (cấp trọn gói hoặc huỷ):",
+      "safeNotice": "Plugin không bao giờ đọc được mật khẩu hay mã đăng nhập của bạn.",
+      "cancel": "Huỷ",
+      "confirm": "Đồng ý và cài đặt"
+    },
+    "dialogLink": {
+      "title": "Cài plugin từ đường link",
+      "subtitle": "Plugin ngoài danh mục chưa được ai kiểm duyệt.",
+      "urlLabel": "Đường link plugin",
+      "dangerNotice": "Chỉ cài nếu bạn tin người tạo ra plugin này. App vẫn hỏi quyền trước khi cài, nhưng không đảm bảo nội dung của plugin.",
+      "understandRisk": "Tôi hiểu rủi ro và muốn tiếp tục",
+      "cancel": "Huỷ",
+      "submit": "Tải và xem quyền"
+    }
+  },
   "dev": {
     "title": "Trang thử thành phần giao diện (/dev/components)",
     "subtitle": "Chỉ hiển thị khi bật cờ phát triển (Luật P6). Dùng để kiểm tra trực quan và khả năng truy cập bàn phím.",
