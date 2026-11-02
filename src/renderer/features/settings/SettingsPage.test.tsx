@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { DetectResult } from '@shared/agents';
 import { APP_NAME, APP_VERSION } from '@shared/constants';
 import { resolveFeatureFlags } from '@shared/feature-flags';
 import type { CodeFleetBridge, SettingSetInput } from '@shared/ipc';
@@ -92,6 +93,12 @@ describe('MH-11 SettingsPage (Chung & Dữ liệu)', () => {
     );
 
     await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Chung' })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Chung' }));
+
+    await waitFor(() => {
       expect(screen.getByText('Mức xem code mặc định')).toBeInTheDocument();
     });
 
@@ -113,6 +120,96 @@ describe('MH-11 SettingsPage (Chung & Dữ liệu)', () => {
         key: 'ui.showJargon',
         value: true,
       });
+    });
+  });
+
+  it('renders AI and Models tab, allows recheck, and updates model tier', async () => {
+    const mockAgents: DetectResult[] = [
+      {
+        agentId: 'claude',
+        displayName: 'Claude Code',
+        shortName: 'Claude',
+        logoLetter: 'C',
+        color: '#C2603A',
+        darkColor: '#E08A64',
+        docsUrl: 'https://docs.anthropic.com',
+        installCommand: 'irm https://claude.ai/install.ps1 | iex',
+        loginCommand: 'claude auth login',
+        installed: true,
+        version: '1.2.0',
+        loggedIn: true,
+        status: 'ready',
+        errorDetail: null,
+        modelsCount: 2,
+      },
+    ];
+
+    const mockModels = [
+      {
+        id: 'claude-sonnet-4-5',
+        agentId: 'claude',
+        agentDisplayName: 'Claude Code',
+        label: 'Claude Sonnet',
+        tier: 'balanced' as const,
+        tierSource: 'default' as const,
+      },
+    ];
+
+    const bridge = installMockBridge({
+      agents: {
+        detectAll: vi.fn(async () => ({ ok: true as const, data: mockAgents })),
+        openLogin: vi.fn(async () => ({ ok: true as const, data: undefined })),
+        openDocs: vi.fn(async () => ({ ok: true as const, data: undefined })),
+      },
+      models: {
+        list: vi.fn(async () => ({ ok: true as const, data: mockModels })),
+        setTier: vi.fn(async (_agentId, modelId, tier) => ({
+          ok: true as const,
+          data: {
+            id: modelId,
+            agentId: 'claude',
+            agentDisplayName: 'Claude Code',
+            label: modelId,
+            tier,
+            tierSource: 'user' as const,
+          },
+        })),
+      },
+    });
+
+    render(
+      <ToastProvider>
+        <SettingsPage />
+      </ToastProvider>,
+    );
+
+    // Kiểm tra render bảng AI trên máy
+    await waitFor(() => {
+      expect(screen.getByText('AI trên máy')).toBeInTheDocument();
+      expect(screen.getAllByText('Claude Code').length).toBeGreaterThanOrEqual(1);
+    });
+
+    // Bấm nút "↻ Kiểm tra lại"
+    const recheckBtn = screen.getByRole('button', { name: /Kiểm tra lại/i });
+    fireEvent.click(recheckBtn);
+    expect(bridge.agents.detectAll).toHaveBeenCalled();
+
+    // Bấm toggle tắt AI
+    const toggleBtn = screen.getByRole('switch', { name: /Sử dụng Claude Code/i });
+    fireEvent.click(toggleBtn);
+    await waitFor(() => {
+      expect(bridge.settings.set).toHaveBeenCalledWith({
+        key: 'agents.enabled',
+        value: { claude: false },
+      });
+    });
+
+    // Đổi bậc model
+    const tierSelect = screen.getByRole('combobox');
+    expect(tierSelect).toHaveValue('balanced');
+    fireEvent.change(tierSelect, { target: { value: 'strong' } });
+    await waitFor(() => {
+      expect(bridge.models.setTier).toHaveBeenCalledWith('claude', 'claude-sonnet-4-5', 'strong');
     });
   });
 
@@ -179,6 +276,11 @@ describe('MH-11 SettingsPage (Chung & Dữ liệu)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Thử lại' }));
     await waitFor(() => {
       expect(getAllMock).toHaveBeenCalledTimes(2);
+      expect(screen.getByRole('button', { name: 'Chung' })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Chung' }));
+    await waitFor(() => {
       expect(screen.getByText('Mức xem code mặc định')).toBeInTheDocument();
     });
   });

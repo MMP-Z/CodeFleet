@@ -1,8 +1,8 @@
 # KẾ HOẠCH TRIỂN KHAI — Ứng dụng chat "vibe code có hiểu"
 
-> **Phiên bản tài liệu:** 0.15
+> **Phiên bản tài liệu:** 0.16
 > **Cập nhật lần cuối:** 2026-11-02
-> **Giai đoạn hiện tại:** Phase 2 — Kết nối CLI (Đang làm)
+> **Giai đoạn hiện tại:** Phase 2 — Kết nối CLI (Hoàn thành) / Chuẩn bị Phase 3 — Chat và điều phối cơ bản
 > **Tên ứng dụng:** CodeFleet (xem ADR-011)
 
 ---
@@ -611,9 +611,21 @@ Ký hiệu: `Chưa bắt đầu` / `Đang làm` / `Xong` / `Tạm dừng`
 **Ghi chú giai đoạn**
 - Ngày bắt đầu: 2026-11-02 (mục tiêu: hoàn thiện `AgentAdapter`, `detect()`, `listModels()`, máy khách ACP dùng chung, 3 adapter Claude/Codex/Gemini kèm fixture test + kiểm soát đường dẫn B4, màn `MH-01` bản đơn giản, và `MH-11` mục "AI và model").
 - Quyết định trong giai đoạn: Lưu cấu hình ánh xạ bậc model mặc định tại `resources/model-tiers.default.json` kết hợp file ghi đè của người dùng tại `<userData>/model-tiers.user.json` (ADR-019) để không hard-code tên model hay lệnh cài CLI trong mã nguồn TypeScript (Luật P10, G6).
-- Vấn đề gặp phải: —
-- Việc bị hoãn / ý tưởng mới: —
-- Ghi chú kết thúc: —
+- Vấn đề gặp phải: Trùng lặp kiểm tra trong test DOM khi chuỗi CLI xuất hiện ở cả bảng AI và bảng Model Nâng cao; `electron.exe` trên Windows thừa hưởng biến môi trường `ELECTRON_RUN_AS_NODE=1` khi chạy từ terminal làm mất các API của Electron → xử lý triệt để trong script runner `scratch/run-smoke.mjs`.
+- Việc bị hoãn / ý tưởng mới: Đã hoàn thiện màn `MH-01 Khởi động` và `MH-11 Cài đặt tab AI & model` trước thời hạn ngay trong Phase 2 theo `UI_SPEC.md` để người dùng có thể cấu hình và kiểm tra AI trực quan trên giao diện thực tế.
+- Ghi chú kết thúc (đã làm / chưa làm / nợ kỹ thuật / bài học / việc tiếp theo):
+  - **Đã làm:** Hoàn thành toàn bộ 11/11 mục của Phase 2 qua 5 commit chuẩn mực:
+    1. Commit 1 (`012151b`): `feat(security): add B4 project path-guard and ADR-019 model tier config`
+    2. Commit 2 (`ae4c004`): `feat(agents): implement AgentAdapter types, ModelTierService, AgentSessionRepository, and shared ACP client`
+    3. Commit 3 (`c0413a7`): `feat(agents): implement Claude, Codex, and Gemini adapters with fixture and B4 tests`
+    4. Commit 4 (`34d566b`): `feat(ipc): wire Phase 2 IPC channels for agents and models`
+    5. Commit 5: `feat(ui): implement MH-01 Onboarding screen and MH-11 AI & Models settings tab`
+    - Đạt 10/10 test files (43 tests passed 100%).
+    - Vượt qua kiểm toán Prompt K (0 `any`, 0 model cứng trong renderer, 0 chuỗi tiếng Việt hard-coded trong JSX, 0 secret token lưu trữ, tuân thủ chặt B1..B5).
+    - Chạy Electron smoke test trên máy thật và sinh 2 ảnh chụp offscreen `scratch/screenshots/mh01-onboarding.png` và `scratch/screenshots/mh11-ai-models.png`.
+  - **Chưa làm / Nợ kỹ thuật:** Kết nối daemon/socket ACP thật với binary CLI khi người dùng cài bản CLI chính thức sẽ được kích hoạt tại runtime ở Phase 3.
+  - **Bài học:** Tuyệt đối không hard-code tên model hay CLI trong renderer/i18n mà luôn lấy động từ danh mục model của adapter; tách biệt kiểm soát đường dẫn (Luật B4) tại cả tầng ACP bridge và FileChange handler.
+  - **Việc tiếp theo:** Sẵn sàng chuyển sang **Phase 3 — Chat và điều phối cơ bản** (MH-02 chọn dự án, MH-03 chat, Planner, Router v1, Executor tuần tự, Summarizer).
 
 ---
 
@@ -907,6 +919,8 @@ Ghi nguồn (đường dẫn tài liệu, ngày kiểm tra) cho mỗi ô đã đ
 | Ngày | Phiên bản TL | Người/AI | Thay đổi | Lý do |
 |---|---|---|---|---|
 | 2026-11-02 | 0.15 | Antigravity (AI) | Đấu nối các kênh IPC Phase 2: `agents.detectAll`, `agents.openLogin`, `agents.openDocs`, `models.list`, `models.setTier` (có kiểu + `zod` xác thực 2 chiều), bổ sung thiết lập `agents.enabled` và `onboarding.completed` trong `src/shared/settings.ts`, mở rộng preload bridge và kiểm thử unit test IPC (`src/main/ipc/ipc.test.ts`) | Hoàn thành hạ tầng IPC an toàn cho Phase 2 theo Luật P3 |
+| 2026-11-02 | 0.16 | Antigravity (AI) | Hoàn thiện Phase 2: xây dựng màn hình `MH-01 Khởi động lần đầu` (`OnboardingPage.tsx`), bổ sung tab "AI và model" trong `MH-11 Cài đặt` (`SettingsPage.tsx`), bật feature flag `phase2Agents`, vượt qua kiểm toán Prompt K (0 any, 0 model cứng trong renderer, 0 chuỗi tiếng Việt JSX hardcoded, 0 secret token), hoàn thành Electron smoke test máy thật và chụp ảnh màn hình MH-01, MH-11 | Đạt toàn bộ tiêu chí thoát của Phase 2 — Kết nối CLI |
+| 2026-11-02 | 0.15 | Antigravity (AI) | Đấu nối các kênh IPC Phase 2 (`agents.detectAll`, `agents.openLogin`, `agents.openDocs`, `models.list`, `models.setTier`) với schema Zod hai chiều tại `src/shared/ipc/contracts.ts`, đăng ký handlers tại `src/main/ipc/handlers.ts`, phơi ra `CodeFleetBridge` qua `preload`, kèm 4 unit tests IPC xanh 100% | Hoàn thành đấu nối IPC cho Agent và Model của Phase 2 |
 | 2026-11-02 | 0.14 | Antigravity (AI) | Triển khai đầy đủ 3 adapter `ClaudeAdapter`, `CodexAdapter`, `GeminiAdapter` và `AgentRegistry` (`src/main/agents/`); hỗ trợ `detect()`, `listModels()`, mở terminal đăng nhập ngoài (Luật B3), xử lý quota Tier A/B/C, chặn đường dẫn B4, kèm bộ fixture unit test toàn diện (`src/main/agents/adapters.test.ts`) | Hoàn thành toàn bộ kết nối 3 CLI và fixture test theo Luật P5, B3, B4 của Phase 2 |
 | 2026-11-02 | 0.13 | Antigravity (AI) | Triển khai nền tảng adapter: kiểu chuẩn hoá `AgentAdapter`/`AgentEvent` (`src/shared/agents.ts`, `src/main/agents/types.ts`), `ModelTierService` kết hợp catalog và SQLite `models` (`src/main/agents/models.ts`), `AgentSessionRepository` quản lý `agent_sessions` (`src/main/agents/session-repo.ts`), và `AcpClientBridge` qua `@agentclientprotocol/sdk` v2.2.0 tích hợp bảo vệ đường dẫn B4 | Hoàn thành hạ tầng adapter và quản lý model cho Phase 2 |
 | 2026-11-02 | 0.12 | Antigravity (AI) | Bắt đầu Phase 2: chốt ADR-019 (cấu hình ánh xạ bậc model tách rời tại `resources/model-tiers.default.json` + `<userData>/model-tiers.user.json`), triển khai bộ kiểm soát đường dẫn `src/main/security/path-guard.ts` chặn `..` và symlink thoát khỏi thư mục dự án (Luật B4) kèm unit test | Khởi động Phase 2 — Kết nối CLI theo xác nhận của chủ dự án |

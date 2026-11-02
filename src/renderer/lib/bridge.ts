@@ -1,3 +1,4 @@
+import type { AgentId } from '@shared/agents';
 import { APP_NAME, APP_VERSION } from '@shared/constants';
 import { resolveFeatureFlags } from '@shared/feature-flags';
 import type { CodeFleetBridge } from '@shared/ipc';
@@ -65,21 +66,21 @@ const fallbackBridge: CodeFleetBridge = {
       ok: true,
       data: [
         {
-          agentId: 'claude',
-          displayName: 'Claude Code',
-          shortName: 'Claude',
-          logoLetter: 'C',
-          color: '#C2603A',
-          darkColor: '#E08A64',
-          docsUrl: 'https://docs.anthropic.com/en/docs/claude-code/overview',
-          installCommand: 'irm https://claude.ai/install.ps1 | iex',
-          loginCommand: 'claude auth login',
+          agentId: 'mock-agent' as AgentId,
+          displayName: 'AI CLI Assistant',
+          shortName: 'AI',
+          logoLetter: 'A',
+          color: '#2563EB',
+          darkColor: '#3B82F6',
+          docsUrl: 'https://example.com/docs',
+          installCommand: 'echo "install"',
+          loginCommand: 'echo "login"',
           installed: true,
-          version: '1.2.0',
+          version: '1.0.0',
           loggedIn: true,
           status: 'ready',
           errorDetail: null,
-          modelsCount: 3,
+          modelsCount: 1,
         },
       ],
     }),
@@ -88,12 +89,12 @@ const fallbackBridge: CodeFleetBridge = {
   },
   models: {
     list: async () => ({ ok: true, data: [] }),
-    setTier: async (_agentId, modelId, tier) => ({
+    setTier: async (agentId, modelId, tier) => ({
       ok: true,
       data: {
         id: modelId,
-        agentId: 'claude',
-        agentDisplayName: 'Claude Code',
+        agentId,
+        agentDisplayName: 'AI CLI Assistant',
         label: modelId,
         tier,
         tierSource: 'user',

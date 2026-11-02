@@ -15,6 +15,7 @@ export default tseslint.config(
       'spikes/**',
       'Document/**',
       'scripts/**',
+      'scratch/**',
       'postcss.config.cjs',
     ],
   },

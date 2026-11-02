@@ -20,7 +20,7 @@ export function resolveFeatureFlags(isDev: boolean): FeatureFlags {
   return {
     devComponents: isDev,
     telemetrySetting: false,
-    phase2Agents: false,
+    phase2Agents: true,
     phase3Workspace: false,
     phase5Quota: false,
     phase6Plugins: false,
