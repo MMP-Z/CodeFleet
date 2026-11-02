@@ -10,7 +10,7 @@ const inMemoryFallbackState: AppSettingsMap = { ...DEFAULT_SETTINGS };
  * Truy cập cầu nối Preload một cách an toàn.
  * Khi chạy trong môi trường test đơn vị jsdom chưa tiêm preload, trả về cầu nối bộ nhớ tạm có cùng kiểu.
  */
-const fallbackBridge: CodeFleetBridge = {
+export const fallbackBridge: CodeFleetBridge = {
   appName: APP_NAME,
   appVersion: APP_VERSION,
   featureFlags: resolveFeatureFlags(true),
@@ -100,6 +100,68 @@ const fallbackBridge: CodeFleetBridge = {
         tierSource: 'user',
       },
     }),
+  },
+  projects: {
+    list: async () => ({ ok: true, data: [] }),
+    get: async () => ({ ok: true, data: null }),
+    create: async (input) => ({
+      ok: true,
+      data: {
+        id: 'proj-fallback',
+        name: input.name,
+        path: input.path,
+        createdAt: new Date().toISOString(),
+        lastOpened: new Date().toISOString(),
+      },
+    }),
+    open: async (id) => ({
+      ok: true,
+      data: {
+        id,
+        name: 'Dự án mẫu',
+        path: '/workspace/project',
+        createdAt: new Date().toISOString(),
+        lastOpened: new Date().toISOString(),
+      },
+    }),
+    validatePath: async () => ({
+      ok: true,
+      data: {
+        exists: true,
+        isEmpty: true,
+        isWritable: true,
+        hasUserGit: false,
+        errorDetail: null,
+      },
+    }),
+    pickFolder: async () => ({
+      ok: true,
+      data: { canceled: false, folderPath: '/workspace/project' },
+    }),
+  },
+  conversations: {
+    list: async () => ({ ok: true, data: [] }),
+    get: async () => ({ ok: true, data: null }),
+    create: async (input) => ({
+      ok: true,
+      data: {
+        id: 'conv-fallback',
+        projectId: input.projectId,
+        title: input.title ?? 'Hội thoại ban đầu',
+        createdAt: new Date().toISOString(),
+      },
+    }),
+    messages: async () => ({ ok: true, data: [] }),
+    steps: async () => ({ ok: true, data: [] }),
+  },
+  orchestrator: {
+    send: async () => ({ ok: true, data: { started: true } }),
+    cancel: async () => ({ ok: true, data: undefined }),
+    setAiPick: async () => ({ ok: true, data: undefined }),
+    onEvent: () => () => {},
+  },
+  permission: {
+    respond: async () => ({ ok: true, data: undefined }),
   },
 };
 

@@ -6,6 +6,7 @@ import { resolveFeatureFlags } from '@shared/feature-flags';
 import type { CodeFleetBridge } from '@shared/ipc';
 import { DEFAULT_SETTINGS, type AppSettingsMap, type SettingKey } from '@shared/settings';
 import { ToastProvider } from '../../components/Toast';
+import { fallbackBridge } from '../../lib/bridge';
 import { OnboardingPage } from './OnboardingPage';
 
 const mockDetectedAgents: DetectResult[] = [
@@ -71,6 +72,7 @@ describe('MH-01 OnboardingPage (Khởi động lần đầu)', () => {
     let state: AppSettingsMap = { ...DEFAULT_SETTINGS };
 
     const mockBridge: CodeFleetBridge = {
+      ...fallbackBridge,
       appName: APP_NAME,
       appVersion: APP_VERSION,
       featureFlags: resolveFeatureFlags(false),

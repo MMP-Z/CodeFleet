@@ -9,6 +9,7 @@ import {
   type CodeFleetBridge,
   type IpcContract,
   type IpcResult,
+  type OrchestrationEventPayload,
 } from '@shared/ipc';
 import type { AppSettingsMap, SettingKey } from '@shared/settings';
 
@@ -77,6 +78,47 @@ const bridge: CodeFleetBridge = {
     list: (agentId) => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.MODELS_LIST], { agentId }),
     setTier: (agentId, modelId, tier) =>
       invokeContract(IPC_CONTRACTS[IPC_CHANNELS.MODELS_SET_TIER], { agentId, modelId, tier }),
+  },
+  projects: {
+    list: () => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PROJECTS_LIST], undefined),
+    get: (id) => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PROJECTS_GET], { id }),
+    create: (input) => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PROJECTS_CREATE], input),
+    open: (id) => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PROJECTS_OPEN], { id }),
+    validatePath: (projPath) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PROJECTS_VALIDATE_PATH], { path: projPath }),
+    pickFolder: () => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PROJECTS_PICK_FOLDER], undefined),
+  },
+  conversations: {
+    list: (projectId) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.CONVERSATIONS_LIST], { projectId }),
+    get: (id) => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.CONVERSATIONS_GET], { id }),
+    create: (input) => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.CONVERSATIONS_CREATE], input),
+    messages: (conversationId) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.CONVERSATIONS_MESSAGES], { conversationId }),
+    steps: (conversationId) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.CONVERSATIONS_STEPS], { conversationId }),
+  },
+  orchestrator: {
+    send: (input) => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.ORCHESTRATOR_SEND], input),
+    cancel: (conversationId) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.ORCHESTRATOR_CANCEL], { conversationId }),
+    setAiPick: (conversationId, aiPick) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.ORCHESTRATOR_SET_AI_PICK], {
+        conversationId,
+        aiPick,
+      }),
+    onEvent: (callback) => {
+      const handler = (_event: Electron.IpcRendererEvent, payload: unknown) => {
+        callback(payload as OrchestrationEventPayload);
+      };
+      ipcRenderer.on('codefleet:orchestrator:event', handler);
+      return () => {
+        ipcRenderer.removeListener('codefleet:orchestrator:event', handler);
+      };
+    },
+  },
+  permission: {
+    respond: (input) => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PERMISSION_RESPOND], input),
   },
 };
 

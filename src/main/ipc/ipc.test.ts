@@ -204,4 +204,81 @@ describe('Phase 1 Typed IPC + Zod Validation (Luật P3, B2)', () => {
       expect(badTierRes.error.code).toBe('VALIDATION_ERROR');
     }
   });
+
+  it('handles Phase 3 IPC channels: projects, conversations, and orchestrator', async () => {
+    const { bus, userDataDir } = setupTestBus();
+    const projectDir = path.join(userDataDir, 'test-project');
+    fs.mkdirSync(projectDir, { recursive: true });
+
+    // 1. projects.validatePath
+    const valRes = await bus.invoke<{ exists: boolean; isEmpty: boolean; isWritable: boolean }>(
+      IPC_CHANNELS.PROJECTS_VALIDATE_PATH,
+      { path: projectDir },
+    );
+    expect(valRes.ok).toBe(true);
+    if (valRes.ok) {
+      expect(valRes.data.exists).toBe(true);
+      expect(valRes.data.isWritable).toBe(true);
+    }
+
+    // 2. projects.create
+    const createProjRes = await bus.invoke<{ id: string; name: string; path: string }>(
+      IPC_CHANNELS.PROJECTS_CREATE,
+      { name: 'My Landing App', path: projectDir },
+    );
+    expect(createProjRes.ok).toBe(true);
+    let projectId = '';
+    if (createProjRes.ok) {
+      projectId = createProjRes.data.id;
+      expect(createProjRes.data.name).toBe('My Landing App');
+    }
+
+    // 3. projects.list & projects.open
+    const listProjRes = await bus.invoke<Array<{ id: string }>>(IPC_CHANNELS.PROJECTS_LIST);
+    expect(listProjRes.ok).toBe(true);
+    if (listProjRes.ok) {
+      expect(listProjRes.data.length).toBeGreaterThanOrEqual(1);
+    }
+
+    const openProjRes = await bus.invoke<{ id: string }>(IPC_CHANNELS.PROJECTS_OPEN, {
+      id: projectId,
+    });
+    expect(openProjRes.ok).toBe(true);
+
+    // 4. conversations.list (đã tự tạo 1 conv khi tạo project)
+    const listConvRes = await bus.invoke<Array<{ id: string; projectId: string }>>(
+      IPC_CHANNELS.CONVERSATIONS_LIST,
+      { projectId },
+    );
+    expect(listConvRes.ok).toBe(true);
+    let convId = '';
+    if (listConvRes.ok) {
+      expect(listConvRes.data.length).toBeGreaterThanOrEqual(1);
+      convId = listConvRes.data[0]!.id;
+    }
+
+    // 5. orchestrator.send (kích hoạt chạy)
+    const sendRes = await bus.invoke<{ started: boolean }>(IPC_CHANNELS.ORCHESTRATOR_SEND, {
+      conversationId: convId,
+      prompt: 'Làm trang chủ đơn giản',
+    });
+    expect(sendRes.ok).toBe(true);
+
+    // 6. conversations.messages
+    const msgsRes = await bus.invoke<Array<{ role: string; content: string }>>(
+      IPC_CHANNELS.CONVERSATIONS_MESSAGES,
+      { conversationId: convId },
+    );
+    expect(msgsRes.ok).toBe(true);
+    if (msgsRes.ok) {
+      expect(msgsRes.data.some((m) => m.role === 'user')).toBe(true);
+      expect(msgsRes.data.some((m) => m.role === 'assistant')).toBe(true);
+    }
+
+    // 7. orchestrator.cancel
+    const cancelRes = await bus.invoke(IPC_CHANNELS.ORCHESTRATOR_CANCEL, {
+      conversationId: convId,
+    });
+    expect(cancelRes.ok).toBe(true);
+  });
 });
