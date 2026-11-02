@@ -271,8 +271,8 @@ Ngưỡng 80% đọc từ cài đặt (MH-11), mặc định 80.
 #### 5.3.4 Tab "Xem trước"
 - Chỉ bật khi main nhận diện dự án web (có `package.json` + script dev) (PLAN 6.5). Không thì hiện trạng thái MH-12 "Không phải dự án web".
 - Trạng thái: đang khởi động server (thanh chờ) · đang chạy (chấm xanh + địa chỉ + "↻ Làm mới" + "Mở trong trình duyệt") · lỗi build (MH-12) · server dừng ("Chạy lại").
-- Nhúng bằng `[CHƯA CHỐT]` `<webview>` hay `BrowserView`/`WebContentsView`: quyết ở Phase 4, ghi ADR. Trang xem trước **không** có quyền gọi preload của app.
-- Dòng dưới: "Đây là bản chạy thử ngay trong app…" chỉ hiện khi app phát hiện dữ liệu chỉ nằm trong bộ nhớ: `[CHƯA CHỐT]`, đề xuất bỏ ở MVP, thay bằng câu chung.
+- Nhúng bằng `<iframe>` sandbox cách ly an toàn theo ADR-021 (`sandbox="allow-scripts allow-forms allow-same-origin"`). Trang xem trước **không** có quyền gọi preload của app.
+- Dòng dưới: "Đây là bản chạy thử ngay trong app…" chỉ hiện câu cảnh báo chung: "Mọi thay đổi trong trang này chỉ là bản chạy thử nghiệm trên máy bạn."
 
 #### 5.3.5 Tab "Code của bước"
 - Đầu thẻ: "Bước N: tiêu đề", pill trạng thái, pill rủi ro, "{AI} · {model} viết bước này".
@@ -280,7 +280,7 @@ Ngưỡng 80% đọc từ cài đặt (MH-11), mặc định 80.
 - `CodeLevelSwitch` 3 mức (PLAN 6.2). Mức mặc định đọc từ MH-11 (mặc định "Tóm tắt"; mockup đang để "Đoạn chính" chỉ để minh hoạ).
   - **Tóm tắt:** 1–3 câu lời thường (từ summarizer).
   - **Đoạn chính:** "Chỉ phần thay đổi chính · {file}" + `DiffBlock` rút gọn (tối đa ~15 dòng, chọn bởi summarizer hoặc các hunk lớn nhất) + "GIẢI THÍCH NGẮN" (1–3 câu, chú thích cho từng khối).
-  - **Toàn bộ:** tên file + trình soạn thảo chỉ đọc (Monaco hoặc CodeMirror, ADR ở Phase 4) với diff đầy đủ. Chọn đoạn → nổi gợi ý "Hỏi “đoạn này làm gì?”" → gửi câu hỏi vào chat kèm đoạn đã chọn (dùng AI rẻ nhất). Nút "✎ Tự sửa chữ / màu / số" → MH-06.
+  - **Toàn bộ:** tên file + trình soạn thảo chỉ đọc với CodeMirror 6 (ADR-020) hiển thị diff đầy đủ. Chọn đoạn → nổi gợi ý "Hỏi “đoạn này làm gì?”" → gửi câu hỏi vào chat kèm đoạn đã chọn (dùng AI rẻ nhất). Nút "✎ Tự sửa chữ / màu / số" → MH-06.
 - `WhyBox` "VÌ SAO CHỌN CÁCH NÀY": `decisions` loại cách làm của bước. Không có thì ẩn.
 - `UndoButton` khi `status=done`: "↶ Hoàn tác bước này" + "Khôi phục file về lúc trước bước N." Bấm → hộp xác nhận nếu có bước sau phụ thuộc (bước sau đã sửa cùng file): "Hoàn tác bước 2 sẽ hoàn tác cả bước 3 và 4. Tiếp tục?". Khi `undone`: "Làm lại bước này".
 - Bước chưa chạy: "Bước này chưa chạy. Khi AI làm xong, phần code sẽ hiện ở đây."
@@ -340,7 +340,7 @@ Ngưỡng 80% đọc từ cài đặt (MH-11), mặc định 80.
 - **Phase:** 4.
 - **Vào từ đâu:** MH-03 tab Code mức "Toàn bộ" → "✎ Tự sửa…".
 - **Dữ liệu:** `project.editables` → danh sách `{id, kind: 'text'|'color'|'number', label, value, file, locator}`.
-  - `[CHƯA CHỐT]` cách tìm "chỗ sửa được": đề xuất MVP chỉ nhận diện chuỗi chữ trong HTML/JSX, mã màu hex trong CSS, và số trong mảng dữ liệu đơn giản; nhãn do AI rẻ đặt **một lần** khi bước xong rồi lưu lại. Ghi ADR ở Phase 4.
+  - Cách tìm "chỗ sửa được" theo ADR-022: MVP nhận diện chuỗi chữ trong HTML/JSX, mã màu hex/rgb trong CSS, và số trong mảng dữ liệu đơn giản; định vị bằng byte locator đảm bảo phần còn lại của file giữ nguyên 100%. Nhãn do AI rẻ đặt hoặc trích xuất tự động từ ngữ cảnh xung quanh.
 - **Bố cục:** trái: tiêu đề, pill "Không cần gọi AI · không tốn hạn mức", bộ lọc (Tất cả / Chữ / Màu / Số), danh sách ô sửa có dòng vị trí (`file · dòng`); dưới: "N chỗ đã đổi, chưa lưu" + "Bỏ thay đổi" + "Lưu vào file". Phải: xem trước trực tiếp + gợi ý "Muốn đổi thứ phức tạp hơn? Hãy nhắn trong chat".
 - **Hành vi:**
   - Gõ → xem trước cập nhật ngay (bơm giá trị vào trang xem trước, chưa ghi file). Ô đã đổi tô `primary-row`.

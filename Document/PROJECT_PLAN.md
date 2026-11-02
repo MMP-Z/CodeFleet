@@ -1,8 +1,8 @@
 # KẾ HOẠCH TRIỂN KHAI — Ứng dụng chat "vibe code có hiểu"
 
-> **Phiên bản tài liệu:** 0.16
+> **Phiên bản tài liệu:** 0.18
 > **Cập nhật lần cuối:** 2026-11-02
-> **Giai đoạn hiện tại:** Phase 2 — Kết nối CLI (Hoàn thành) / Chuẩn bị Phase 3 — Chat và điều phối cơ bản
+> **Giai đoạn hiện tại:** Phase 4 — Xem code và lưới an toàn (Đang làm)
 > **Tên ứng dụng:** CodeFleet (xem ADR-011)
 
 ---
@@ -927,6 +927,30 @@ Ghi nguồn (đường dẫn tài liệu, ngày kiểm tra) cho mỗi ô đã đ
 - Lý do: Tách hoàn toàn danh mục model/lệnh cài khỏi mã nguồn `.ts`/`.tsx`, cho phép cả bản cập nhật app lẫn người dùng tự chỉnh bậc mà không phải sửa code.
 - Hệ quả: `ModelTierService` đọc kết hợp 2 file cấu hình và đồng bộ vào bảng `models` trong SQLite.
 
+**ADR-020 — Chọn CodeMirror 6 cho trình xem code 3 mức và diff** (2026-11-02)
+- Bối cảnh: Phase 4 và `UI_SPEC.md` mục 5.3.5 yêu cầu hiển thị code 3 mức và diff trực quan. Cần chọn giữa Monaco Editor và CodeMirror 6.
+- Quyết định: Chọn **CodeMirror 6** (kết hợp các module nhẹ và `@codemirror/merge` cho diff).
+- Lý do: CodeMirror 6 cực kỳ nhẹ (~350–500 KB so với 4–6 MB của Monaco), không phụ thuộc web worker ngoài nên tương thích hoàn hảo với chính sách bảo mật CSP khắt khe (`sandbox: true`, Luật B1), tải tức thì trong tab bên phải và tương thích tốt với bộ gõ tiếng Việt.
+- Hệ quả: Đóng gói CodeMirror 6 vào renderer bundle mà không làm chậm thời gian khởi động app.
+
+**ADR-021 — Nhúng tab Xem trước bằng `iframe` sandbox cách ly** (2026-11-02)
+- Bối cảnh: Phase 4 và `UI_SPEC.md` mục 5.3.4 cần nhúng trang web dự án chạy thử trong tab Xem trước của MH-03 mà không tạo lỗ hổng bảo mật.
+- Quyết định: Dùng thẻ `<iframe>` với thuộc tính `sandbox="allow-scripts allow-forms allow-same-origin"` kết nối tới local dev server nội bộ. Tuyệt đối không dùng `<webview>` đã lỗi thời hoặc cấp quyền truy cập preload.
+- Lý do: `iframe` sandbox an toàn tuyệt đối, bị cách ly hoàn toàn khỏi `window.codefleet` và IPC của app Electron, đồng thời co giãn mượt mà theo layout CSS của React.
+- Hệ quả: Người dùng xem trước ứng dụng web an toàn trong app mà không lo mã độc chiếm quyền kiểm soát máy tính.
+
+**ADR-022 — Cơ chế trích xuất và định vị "chỗ sửa được" cho MH-06** (2026-11-02)
+- Bối cảnh: MH-06 cho phép người dùng tự sửa chữ/màu/số trực tiếp mà không cần gọi LLM (PLAN 6.4). Cần xác định phạm vi nhận diện và cơ chế ghi an toàn.
+- Quyết định: Parser ở main nhận diện 3 loại dữ liệu: (1) `text` trong các thẻ HTML/JSX đơn giản, (2) `color` hex/rgb trong CSS, (3) `number` trong khai báo dữ liệu đơn giản. Định vị bằng dòng và offset (`locator`). Khi lưu, kiểm tra so khớp từng byte để đảm bảo toàn bộ phần còn lại của file giữ nguyên 100%.
+- Lý do: Đảm bảo người dùng sửa nhanh chữ, màu, giá tiền mà không tốn token, không phát sinh lỗi cú pháp hay ghi đè sai vị trí.
+- Hệ quả: Triển khai `EditableScanner` ở backend main và trang MH-06 ở renderer.
+
+**ADR-023 — Bản đồ dự án trong bảng `project_map` (MH-09 Tab 3)** (2026-11-02)
+- Bối cảnh: UI_SPEC MH-09 tab 3 cần hiển thị lưới thẻ "chức năng → file" kèm nhãn nhạy cảm (ADR-015).
+- Quyết định: Lưu dữ liệu phân nhóm chức năng vào bảng `project_map` trong SQLite (gồm `id`, `project_id`, `feature_label`, `file_path`, `is_sensitive`, `updated_at`). Cập nhật tự động sau mỗi bước hoàn thành.
+- Lý do: Mở màn hình lịch sử hiển thị tức thì, hoạt động ngoại tuyến, không tốn thêm token khi xem lại.
+- Hệ quả: Bổ sung bảng `project_map` trong Migration 002 và hiển thị trên giao diện MH-09.
+
 ---
 
 ## 11. NHẬT KÝ THAY ĐỔI
@@ -934,6 +958,7 @@ Ghi nguồn (đường dẫn tài liệu, ngày kiểm tra) cho mỗi ô đã đ
 
 | Ngày | Phiên bản TL | Người/AI | Thay đổi | Lý do |
 |---|---|---|---|---|
+| 2026-11-02 | 0.18 | Antigravity (AI) | Khởi động Phase 4 — Xem code và lưới an toàn: chốt ADR-020 (chọn CodeMirror 6 cho diff 3 mức), ADR-021 (`iframe` sandbox an toàn cho tab Xem trước), ADR-022 (cơ chế trích xuất byte-level cho tự sửa MH-06), ADR-023 (lưu Bản đồ dự án trong bảng `project_map` theo ADR-015) | Bắt đầu Phase 4 theo yêu cầu và phê duyệt của chủ dự án |
 | 2026-11-02 | 0.17 | Antigravity (AI) | Hoàn thành trọn vẹn Phase 3 — Chat và điều phối cơ bản: triển khai Project/Conversation/Decision Repositories, Planner, Router v1 (tuân thủ chuỗi dự phòng PLAN 4.5a, cấm hạ bậc với bước rủi ro cao), Sequential Executor, Summarizer, đấu nối 14 kênh IPC Phase 3 hai chiều Zod, xây dựng màn hình MH-02 Chọn / tạo dự án, MH-03 Chat + PlanCard + StepRow + Composer + AiPicker + tab Điều phối chi tiết, MH-04 Hộp thoại xin phép rủi ro B5 (không có "Luôn cho phép" theo ADR-012), MH-07 Thẻ tạm dừng vì rate limit, đạt 100% kiểm toán Prompt K (0 any, 0 model cứng trong renderer, 0 secret token, 0 chuỗi tiếng Việt hardcoded JSX), 14/14 test files (60 tests passed 100%) và Electron smoke test offscreen chụp 4 màn hình thật | Đạt toàn bộ tiêu chí thoát của Phase 3 — Chat và điều phối cơ bản |
 | 2026-11-02 | 0.16 | Antigravity (AI) | Hoàn thiện Phase 2: xây dựng màn hình `MH-01 Khởi động lần đầu` (`OnboardingPage.tsx`), bổ sung tab "AI và model" trong `MH-11 Cài đặt` (`SettingsPage.tsx`), bật feature flag `phase2Agents`, vượt qua kiểm toán Prompt K (0 any, 0 model cứng trong renderer, 0 chuỗi tiếng Việt JSX hardcoded, 0 secret token), hoàn thành Electron smoke test máy thật và chụp ảnh màn hình MH-01, MH-11 | Đạt toàn bộ tiêu chí thoát của Phase 2 — Kết nối CLI |
 | 2026-11-02 | 0.15 | Antigravity (AI) | Đấu nối các kênh IPC Phase 2 (`agents.detectAll`, `agents.openLogin`, `agents.openDocs`, `models.list`, `models.setTier`) với schema Zod hai chiều tại `src/shared/ipc/contracts.ts`, đăng ký handlers tại `src/main/ipc/handlers.ts`, phơi ra `CodeFleetBridge` qua `preload`, kèm 4 unit tests IPC xanh 100% | Hoàn thành đấu nối IPC cho Agent và Model của Phase 2 |
