@@ -1,0 +1,13 @@
+{
+  "jsonrpc": "2.0",
+  "id": 4,
+  "error": {
+    "code": -32000,
+    "message": "429 RESOURCE_EXHAUSTED: Quota exceeded for quota metric 'Generate Content API requests per day' and model 'gemini-2.5-pro'.",
+    "data": {
+      "status": "RESOURCE_EXHAUSTED",
+      "model": "gemini-2.5-pro",
+      "retryDelay": "14400s"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "codefleet-phase0-spikes",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Phase 0 verification spikes for CodeFleet (not production code)",
+  "scripts": {
+    "spike:git": "node 01-shadow-git.mjs",
+    "spike:sqlite": "node 02-run-sqlite-electron.mjs",
+    "spike:acp": "node 03-acp-sdk.mjs",
+    "spike:fixtures": "node 04-fixture-parsers.mjs",
+    "spike:all": "node 01-shadow-git.mjs && node 02-run-sqlite-electron.mjs && node 03-acp-sdk.mjs && node 04-fixture-parsers.mjs"
+  },
+  "dependencies": {
+    "@agentclientprotocol/sdk": "latest",
+    "better-sqlite3": "latest",
+    "isomorphic-git": "latest",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "latest",
+    "electron": "latest",
+    "electron-builder": "latest"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "electron",
+      "electron-winstaller",
+      "7zip-bin"
+    ]
+  }
+}

@@ -1,0 +1,4 @@
+{"type":"system","subtype":"init","session_id":"sess_claude_001","model":"claude-sonnet-4-5","tools":["Read","Edit","Write","Bash"]}
+{"type":"assistant","session_id":"sess_claude_001","message":{"id":"msg_01","model":"claude-sonnet-4-5","role":"assistant","content":[{"type":"text","text":"Mình sẽ tạo trang chủ cho tiệm bánh."},{"type":"tool_use","id":"toolu_01","name":"Write","input":{"file_path":"index.html","content":"<!doctype html><h1>Tiệm Bánh Nhỏ</h1>"}}]}}
+{"type":"user","session_id":"sess_claude_001","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"toolu_01","content":"File created successfully at: index.html"}]}}
+{"type":"result","subtype":"success","is_error":false,"session_id":"sess_claude_001","result":"Đã tạo xong file index.html cho trang chủ.","usage":{"input_tokens":1240,"cache_read_input_tokens":800,"output_tokens":310}}

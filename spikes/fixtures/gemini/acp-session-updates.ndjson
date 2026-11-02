@@ -1,0 +1,4 @@
+{"jsonrpc":"2.0","method":"session/update","params":{"sessionId":"sess_gem_001","update":{"sessionUpdate":"plan","entries":[{"content":"Tạo giỏ hàng cart.js","priority":"medium","status":"in_progress"}]}}}
+{"jsonrpc":"2.0","method":"session/update","params":{"sessionId":"sess_gem_001","update":{"sessionUpdate":"tool_call","toolCallId":"tc_gem_1","title":"Write cart.js","kind":"edit","status":"completed"}}}
+{"jsonrpc":"2.0","method":"session/update","params":{"sessionId":"sess_gem_001","update":{"sessionUpdate":"agent_message_chunk","content":{"type":"text","text":"Đã tạo xong giỏ hàng."}}}}
+{"jsonrpc":"2.0","method":"session/update","params":{"sessionId":"sess_gem_001","update":{"sessionUpdate":"usage_update","used":1890,"size":1000000}}}
