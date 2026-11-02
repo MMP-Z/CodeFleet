@@ -20,6 +20,7 @@ const EXPECTED_TABLES = [
   'quota_snapshots',
   'plugins',
   'settings',
+  'checkpoints',
 ];
 
 describe('DatabaseService & SettingsRepository (ADR-002, Luật P8, B2)', () => {
@@ -104,6 +105,7 @@ describe('DatabaseService & SettingsRepository (ADR-002, Luật P8, B2)', () => 
     // Lần mở 1: Migration 001 + dữ liệu người dùng
     const serviceV1 = createTrackedService({
       userDataDir,
+      migrations: [migration001Initial],
     });
     const dbV1 = serviceV1.openAndMigrate();
     dbV1
