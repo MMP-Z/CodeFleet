@@ -49,15 +49,20 @@ export function getAgentBinaryCandidates(agentId: AgentId): string[] {
     case 'copilot': {
       const progFiles = process.env.ProgramFiles || 'C:\\Program Files';
       return [
-        // 1. GitHub CLI standard install location (winget / MSI)
+        // 1. GitHub Copilot CLI official MSI installer location (winget install GitHub.Copilot)
+        path.join(progFiles, 'GitHub Copilot', `copilot${exeSuffix}`),
+        path.join(progFiles, 'GitHub Copilot CLI', `copilot${exeSuffix}`),
+        path.join(localAppData, 'Programs', 'GitHub Copilot', `copilot${exeSuffix}`),
+        path.join(localAppData, 'Programs', 'GitHub Copilot CLI', `copilot${exeSuffix}`),
+        path.join(localAppData, 'Programs', 'Copilot', `copilot${exeSuffix}`),
+        // 2. npm global install
+        path.join(appData, 'npm', `copilot${cmdSuffix}`),
+        // 3. GitHub CLI standard install location (winget install GitHub.cli / gh copilot)
         path.join(progFiles, 'GitHub CLI', `gh${exeSuffix}`),
         path.join(localAppData, 'Programs', 'GitHub CLI', `gh${exeSuffix}`),
-        // 2. Copilot CLI standalone
-        path.join(localAppData, 'Programs', 'Copilot', `copilot${exeSuffix}`),
-        path.join(appData, 'npm', `copilot${cmdSuffix}`),
         path.join(home, '.local', 'bin', `copilot${exeSuffix}`),
         path.join(home, '.local', 'bin', `gh${exeSuffix}`),
-        // 3. Bare command on system PATH
+        // 4. Bare command on system PATH
         'copilot',
         'gh',
       ];

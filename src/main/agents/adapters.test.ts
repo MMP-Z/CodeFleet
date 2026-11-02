@@ -322,7 +322,7 @@ describe('Adapters: Claude, Codex, Copilot, AGY & AgentRegistry (Luật P5, P10,
       expect(launchedCommand).toMatch(/(?:codex|codex\.exe"?) login/);
 
       await registry.openLoginTerminal('copilot');
-      expect(launchedCommand).toBe('gh auth login');
+      expect(launchedCommand).toBe('copilot auth login');
 
       await registry.openLoginTerminal('agy');
       expect(launchedCommand).toMatch(/(?:agy|agy\.exe"?)/);

@@ -72,13 +72,13 @@
       "logoLetter": "P",
       "color": "#0969DA",
       "darkColor": "#58A6FF",
-      "docsUrl": "https://docs.github.com/en/copilot/github-copilot-in-the-cli",
+      "docsUrl": "https://docs.github.com/en/copilot/concepts/copilot-surfaces/copilot-cli",
       "installCommand": {
-        "win32": "winget install GitHub.cli",
-        "darwin": "brew install gh",
-        "linux": "sudo apt install gh"
+        "win32": "winget install GitHub.Copilot",
+        "darwin": "brew install copilot-cli",
+        "linux": "curl -fsSL https://raw.githubusercontent.com/github/copilot-cli/main/install.sh | bash"
       },
-      "loginCommand": "gh auth login",
+      "loginCommand": "copilot auth login",
       "models": [
         {
           "id": "claude-3.5-sonnet",
