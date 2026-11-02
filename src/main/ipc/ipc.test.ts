@@ -186,7 +186,7 @@ describe('Phase 1 Typed IPC + Zod Validation (Luật P3, B2)', () => {
     // 3. models.setTier
     const setTierRes = await bus.invoke<ModelInfo>(IPC_CHANNELS.MODELS_SET_TIER, {
       agentId: 'codex',
-      modelId: 'gpt-5-codex',
+      modelId: 'gpt-6-astra',
       tier: 'strong',
     });
     expect(setTierRes.ok).toBe(true);
@@ -198,7 +198,7 @@ describe('Phase 1 Typed IPC + Zod Validation (Luật P3, B2)', () => {
     // 4. models.setTier với tier sai -> VALIDATION_ERROR
     const badTierRes = await bus.invoke(IPC_CHANNELS.MODELS_SET_TIER, {
       agentId: 'codex',
-      modelId: 'gpt-5-codex',
+      modelId: 'gpt-6-astra',
       tier: 'super-genius-unsupported',
     });
     expect(badTierRes.ok).toBe(false);

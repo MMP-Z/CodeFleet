@@ -225,6 +225,12 @@ export class ModelTierService {
     `);
 
     const tx = this.db.transaction((items: ModelInfo[]) => {
+      if (items.length > 0) {
+        const placeholders = items.map(() => '?').join(',');
+        this.db
+          .prepare(`DELETE FROM models WHERE agent_id = ? AND model_id NOT IN (${placeholders})`)
+          .run(agentId, ...items.map((i) => i.id));
+      }
       for (const item of items) {
         upsertStmt.run({
           agent_id: item.agentId,
@@ -244,15 +250,21 @@ export class ModelTierService {
    * Đảm bảo các model mặc định trong cấu hình đã có mặt trong bảng `models` nếu chưa từng quét.
    */
   public ensureCatalogSeeded(): void {
-    const countRow = this.db.prepare('SELECT COUNT(*) AS cnt FROM models').get() as {
-      cnt: number;
-    };
-    if (countRow.cnt > 0) {
-      return;
-    }
+    // Dọn dẹp triệt để các model giả cũ nếu còn tồn tại trong DB
+    this.db.prepare(`
+      DELETE FROM models 
+      WHERE agent_id = 'codex' 
+        AND model_id IN ('gpt-5-codex', 'codex-mini-latest')
+    `).run();
+
     for (const agentId of this.getKnownAgentIds()) {
-      const defaults = this.getCatalogDefaultModels(agentId);
-      this.syncAgentModels(agentId, defaults);
+      const agentCount = this.db.prepare('SELECT COUNT(*) AS cnt FROM models WHERE agent_id = ?').get(agentId) as {
+        cnt: number;
+      };
+      if (agentCount.cnt === 0) {
+        const defaults = this.getCatalogDefaultModels(agentId);
+        this.syncAgentModels(agentId, defaults);
+      }
     }
   }
 
@@ -266,12 +278,12 @@ export class ModelTierService {
       agentId
         ? this.db
             .prepare(
-              'SELECT agent_id, model_id, label, tier, available, detected_at FROM models WHERE agent_id = ? ORDER BY rowid ASC',
+              'SELECT agent_id, model_id, label, tier, available, detected_at FROM models WHERE agent_id = ? AND available = 1 ORDER BY rowid ASC',
             )
             .all(agentId)
         : this.db
             .prepare(
-              'SELECT agent_id, model_id, label, tier, available, detected_at FROM models ORDER BY rowid ASC',
+              'SELECT agent_id, model_id, label, tier, available, detected_at FROM models WHERE available = 1 ORDER BY rowid ASC',
             )
             .all()
     ) as ModelRow[];

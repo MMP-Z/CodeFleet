@@ -200,7 +200,7 @@ describe('Adapters: Claude, Codex, Copilot, AGY & AgentRegistry (Luật P5, P10,
 
       const session = await adapter.startSession({
         cwd: projectCwd,
-        model: 'gpt-5-codex',
+        model: 'gpt-6.1-sol',
       });
 
       const fixtureContent = fs.readFileSync(
