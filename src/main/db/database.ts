@@ -46,6 +46,13 @@ export class DatabaseService {
     return this.backupDir;
   }
 
+  public getDb(): Database.Database {
+    if (!this.db) {
+      return this.openAndMigrate();
+    }
+    return this.db;
+  }
+
   public openAndMigrate(): Database.Database {
     if (this.db) {
       return this.db;
