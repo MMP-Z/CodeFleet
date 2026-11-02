@@ -9,6 +9,7 @@ import type { DatabaseService } from '../db/database';
 import { DecisionRepository } from '../db/decision-repo';
 import { ProjectMapRepository } from '../db/project-map-repo';
 import { ProjectRepository } from '../db/project-repo';
+import { QuotaRepository } from '../db/quota-repo';
 import { SettingsRepository } from '../db/settings-repo';
 import { StepFilesRepository } from '../db/step-files-repo';
 import { UserEditsRepository } from '../db/user-edits-repo';
@@ -18,6 +19,7 @@ import { ConflictDetector } from '../project/conflict-detector';
 import { EditableScanner } from '../project/editable-scanner';
 import { PreviewServerService } from '../project/preview-server';
 import { ShadowGitService } from '../project/shadow-git';
+import { QuotaService } from '../quota/quota-service';
 import { validateProjectPath } from './project-path';
 import { registerTypedHandler, type IpcRegistrar } from './router';
 import { checkSystemGit } from './system-git';
@@ -29,6 +31,8 @@ export interface IpcDependencies {
   readonly openFolderInOs: (folderPath: string) => Promise<string>;
   readonly modelsService?: ModelTierService;
   readonly agentRegistry?: AgentRegistry;
+  readonly quotaRepo?: QuotaRepository;
+  readonly quotaService?: QuotaService;
   readonly projectRepo?: ProjectRepository;
   readonly convRepo?: ConversationRepository;
   readonly decisionRepo?: DecisionRepository;
@@ -107,6 +111,10 @@ export function registerIpcHandlers(registrar: IpcRegistrar, deps: IpcDependenci
       sessionRepo,
     });
 
+  const quotaRepo = deps.quotaRepo ?? new QuotaRepository(db);
+  const quotaService =
+    deps.quotaService ?? new QuotaService(quotaRepo, settingsRepo, agentRegistry);
+
   const orchestrator =
     deps.orchestrator ??
     new Orchestrator({
@@ -116,6 +124,7 @@ export function registerIpcHandlers(registrar: IpcRegistrar, deps: IpcDependenci
       projRepo: projectRepo,
       decisionRepo,
       settingsRepo,
+      quotaService,
       logger: deps.logger.child('orchestrator'),
     });
 
@@ -123,6 +132,13 @@ export function registerIpcHandlers(registrar: IpcRegistrar, deps: IpcDependenci
   orchestrator.on('event', (payload) => {
     if (deps.broadcastEvent) {
       deps.broadcastEvent('codefleet:orchestrator:event', payload);
+    }
+  });
+
+  // Lắng nghe cập nhật quota và broadcast xuống renderer (PLAN 6.6, UI_SPEC 3.2)
+  quotaService.subscribe((snapshots) => {
+    if (deps.broadcastEvent) {
+      deps.broadcastEvent('codefleet:quota:update', snapshots);
     }
   });
 
@@ -624,6 +640,21 @@ export function registerIpcHandlers(registrar: IpcRegistrar, deps: IpcDependenci
     ({ projectId }) => {
       previewServer.stop(projectId);
     },
+    ipcLogger,
+  );
+
+  // === QUOTA (PHASE 5: MH-08, PLAN 6.6, ADR-018) ===
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.QUOTA_GET_ALL],
+    () => quotaService.getAllLatest(),
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.QUOTA_REFRESH],
+    async () => quotaService.refreshPassive(),
     ipcLogger,
   );
 }

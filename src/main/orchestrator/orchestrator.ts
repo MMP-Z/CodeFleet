@@ -6,6 +6,7 @@ import type { DecisionRepository } from '../db/decision-repo';
 import type { ProjectRepository } from '../db/project-repo';
 import type { SettingsRepository } from '../db/settings-repo';
 import type { Logger } from '../logger/logger';
+import type { QuotaService } from '../quota/quota-service';
 import { SequentialExecutor } from './executor';
 import { Planner } from './planner';
 import { Router } from './router';
@@ -18,6 +19,7 @@ export interface OrchestratorOptions {
   readonly projRepo: ProjectRepository;
   readonly decisionRepo: DecisionRepository;
   readonly settingsRepo?: SettingsRepository;
+  readonly quotaService?: QuotaService;
   readonly logger?: Logger;
 }
 
@@ -28,6 +30,7 @@ export class Orchestrator extends EventEmitter {
   private readonly projRepo: ProjectRepository;
   private readonly decisionRepo: DecisionRepository;
   private readonly settingsRepo?: SettingsRepository;
+  private readonly quotaService?: QuotaService;
   private readonly logger?: Logger;
 
   private readonly planner: Planner;
@@ -43,6 +46,7 @@ export class Orchestrator extends EventEmitter {
     this.projRepo = options.projRepo;
     this.decisionRepo = options.decisionRepo;
     this.settingsRepo = options.settingsRepo;
+    this.quotaService = options.quotaService;
     this.logger = options.logger;
 
     this.planner = new Planner();
@@ -117,11 +121,14 @@ export class Orchestrator extends EventEmitter {
         ? (enabledAgentsSetting as Record<string, boolean>)
         : {};
 
+    const quotaInfo = this.quotaService?.getRouteQuotaInfo();
     const routeContext: RouteContext = {
       requiredTier: 'balanced',
       riskLevel: 'low',
       aiPick: currentAiPick,
       enabledAgents,
+      exhaustedUnits: quotaInfo?.exhaustedUnits,
+      lowQuotaUnits: quotaInfo?.lowQuotaUnits,
     };
 
     // 5. Khởi tạo và chạy SequentialExecutor
@@ -135,6 +142,7 @@ export class Orchestrator extends EventEmitter {
       convRepo: this.convRepo,
       decisionRepo: this.decisionRepo,
       projectId: project.id,
+      quotaService: this.quotaService,
       logger: this.logger,
     });
 

@@ -69,6 +69,8 @@ export const IPC_CHANNELS = {
   PREVIEW_STATUS: 'preview.status',
   PREVIEW_START: 'preview.start',
   PREVIEW_STOP: 'preview.stop',
+  QUOTA_GET_ALL: 'quota.getAll',
+  QUOTA_REFRESH: 'quota.refresh',
 } as const;
 
 export type IpcChannelName = (typeof IPC_CHANNELS)[keyof typeof IPC_CHANNELS];
@@ -482,6 +484,38 @@ export const PreviewStartOutputSchema = z.object({
 });
 export type PreviewStartOutput = z.infer<typeof PreviewStartOutputSchema>;
 
+// === PHASE 5: HẠN MỨC (QUOTA) ===
+
+export const QuotaSourceSchema = z.enum(['official', 'estimated', 'detected', 'unknown']);
+export type QuotaSource = z.infer<typeof QuotaSourceSchema>;
+
+export const QuotaScopeSchema = z.enum(['model', 'shared', 'unknown']);
+export type QuotaScope = z.infer<typeof QuotaScopeSchema>;
+
+export const QuotaStatusSchema = z.enum(['ok', 'low', 'exhausted', 'unknown']);
+export type QuotaStatus = z.infer<typeof QuotaStatusSchema>;
+
+export const QuotaWindowSchema = z.object({
+  label: z.string(),
+  usedPercent: z.number().nullable(),
+  resetsAt: z.string().nullable(),
+});
+export type QuotaWindow = z.infer<typeof QuotaWindowSchema>;
+
+export const QuotaSnapshotSchema = z.object({
+  id: z.string(),
+  agentId: z.string(),
+  model: z.string().nullable(),
+  scope: QuotaScopeSchema,
+  plan: z.string().nullable(),
+  windows: z.array(QuotaWindowSchema),
+  status: QuotaStatusSchema,
+  source: QuotaSourceSchema,
+  capturedAt: z.string(),
+});
+export type QuotaSnapshot = z.infer<typeof QuotaSnapshotSchema>;
+export const QuotaSnapshotListSchema = z.array(QuotaSnapshotSchema);
+
 export interface IpcContract<I extends z.ZodTypeAny, O extends z.ZodTypeAny> {
   readonly channel: IpcChannelName;
   readonly input: I;
@@ -684,6 +718,16 @@ export const IPC_CONTRACTS = {
     input: ProjectTargetInputSchema,
     output: VoidOutputSchema,
   },
+  [IPC_CHANNELS.QUOTA_GET_ALL]: {
+    channel: IPC_CHANNELS.QUOTA_GET_ALL,
+    input: EmptyInputSchema,
+    output: QuotaSnapshotListSchema,
+  },
+  [IPC_CHANNELS.QUOTA_REFRESH]: {
+    channel: IPC_CHANNELS.QUOTA_REFRESH,
+    input: EmptyInputSchema,
+    output: QuotaSnapshotListSchema,
+  },
 } as const;
 
 export type IpcErrorCode = 'VALIDATION_ERROR' | 'INTERNAL_ERROR';
@@ -780,5 +824,10 @@ export interface CodeFleetBridge {
     status(projectId: string): Promise<IpcResult<PreviewStatusOutput>>;
     start(projectId: string): Promise<IpcResult<PreviewStartOutput>>;
     stop(projectId: string): Promise<IpcResult<void>>;
+  };
+  readonly quota: {
+    getAll(): Promise<IpcResult<QuotaSnapshot[]>>;
+    refresh(): Promise<IpcResult<QuotaSnapshot[]>>;
+    onUpdate(callback: (snapshots: QuotaSnapshot[]) => void): () => void;
   };
 }

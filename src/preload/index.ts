@@ -152,6 +152,19 @@ const bridge: CodeFleetBridge = {
     start: (projectId) => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PREVIEW_START], { projectId }),
     stop: (projectId) => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PREVIEW_STOP], { projectId }),
   },
+  quota: {
+    getAll: () => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.QUOTA_GET_ALL], undefined),
+    refresh: () => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.QUOTA_REFRESH], undefined),
+    onUpdate: (callback) => {
+      const handler = (_event: Electron.IpcRendererEvent, payload: unknown) => {
+        callback(payload as import('@shared/ipc').QuotaSnapshot[]);
+      };
+      ipcRenderer.on('codefleet:quota:update', handler);
+      return () => {
+        ipcRenderer.removeListener('codefleet:quota:update', handler);
+      };
+    },
+  },
 };
 
 // Luật B1: Preload chỉ lộ ra API đã định nghĩa, không lộ Node/ipcRenderer thô.

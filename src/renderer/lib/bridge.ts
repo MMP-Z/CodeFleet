@@ -216,6 +216,11 @@ export const fallbackBridge: CodeFleetBridge = {
     }),
     stop: async () => ({ ok: true, data: undefined }),
   },
+  quota: {
+    getAll: async () => ({ ok: true, data: [] }),
+    refresh: async () => ({ ok: true, data: [] }),
+    onUpdate: () => () => {},
+  },
 };
 
 export function getBridge(): CodeFleetBridge {

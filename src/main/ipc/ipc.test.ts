@@ -336,4 +336,22 @@ describe('Phase 1 Typed IPC + Zod Validation (Luật P3, B2)', () => {
       expect(previewStatusRes.data.isWebProject).toBe(true);
     }
   });
+
+  it('handles Phase 5 quota IPC channels: quota.getAll and quota.refresh (PLAN 6.6, ADR-018)', async () => {
+    const { bus } = setupTestBus();
+
+    // 1. quota.getAll ban đầu
+    const getAllRes = await bus.invoke<unknown[]>(IPC_CHANNELS.QUOTA_GET_ALL, undefined);
+    expect(getAllRes.ok).toBe(true);
+    if (getAllRes.ok) {
+      expect(Array.isArray(getAllRes.data)).toBe(true);
+    }
+
+    // 2. quota.refresh thụ động 0 token
+    const refreshRes = await bus.invoke<unknown[]>(IPC_CHANNELS.QUOTA_REFRESH, undefined);
+    expect(refreshRes.ok).toBe(true);
+    if (refreshRes.ok) {
+      expect(Array.isArray(refreshRes.data)).toBe(true);
+    }
+  });
 });

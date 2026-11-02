@@ -6,6 +6,7 @@ import type { ConversationRepository } from '../db/conversation-repo';
 import type { DecisionRepository } from '../db/decision-repo';
 import type { Logger } from '../logger/logger';
 import { PathGuard } from '../security/path-guard';
+import type { QuotaService } from '../quota/quota-service';
 import { Router } from './router';
 import { Summarizer } from './summarizer';
 import type {
@@ -27,6 +28,7 @@ export interface ExecutorOptions {
   readonly convRepo: ConversationRepository;
   readonly decisionRepo: DecisionRepository;
   readonly projectId: string;
+  readonly quotaService?: QuotaService;
   readonly logger?: Logger;
 }
 
@@ -44,6 +46,7 @@ export class SequentialExecutor extends EventEmitter {
   private readonly convRepo: ConversationRepository;
   private readonly decisionRepo: DecisionRepository;
   private readonly projectId: string;
+  private readonly quotaService?: QuotaService;
   private readonly pathGuard: PathGuard;
   private readonly summarizer: Summarizer;
   private readonly logger?: Logger;
@@ -64,6 +67,7 @@ export class SequentialExecutor extends EventEmitter {
     this.convRepo = options.convRepo;
     this.decisionRepo = options.decisionRepo;
     this.projectId = options.projectId;
+    this.quotaService = options.quotaService;
     this.logger = options.logger;
     this.pathGuard = new PathGuard({ projectRoot: options.projectPath });
     this.summarizer = new Summarizer();
@@ -240,6 +244,13 @@ export class SequentialExecutor extends EventEmitter {
       }
 
       if (runOutcome.outcome === 'rate_limit') {
+        // Ghi nhận quota phát hiện lỗi 429 thụ động (ADR-018, PLAN 6.6)
+        this.quotaService?.recordDetectedRateLimit(
+          currentUnit.agentId,
+          currentUnit.modelId,
+          new Error(`${currentUnit.agentDisplayName} rate limit encountered`),
+        );
+
         // Chuỗi dự phòng khi Rate Limit (PLAN 4.5a)
         this.emitLog(
           'orchestrator',
