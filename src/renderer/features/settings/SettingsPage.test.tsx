@@ -286,4 +286,91 @@ describe('MH-11 SettingsPage (Chung & Dữ liệu)', () => {
       expect(screen.getByText('Mức xem code mặc định')).toBeInTheDocument();
     });
   });
+
+  it('renders Update tab, allows switching release channel, toggling auto-download, and checking for updates', async () => {
+    const bridge = installMockBridge({
+      update: {
+        getState: vi.fn(async () => ({
+          ok: true as const,
+          data: {
+            status: 'idle' as const,
+            currentVersion: '0.1.0',
+            channel: 'stable' as const,
+            autoDownload: true,
+            availableVersion: null,
+            releaseDate: null,
+            releaseNotes: null,
+            downloadProgress: null,
+            lastCheckedAt: null,
+            error: null,
+          },
+        })),
+        check: vi.fn(async () => ({
+          ok: true as const,
+          data: { hasUpdate: false, version: null, releaseNotes: null },
+        })),
+        download: vi.fn(async () => ({ ok: true as const, data: { ok: true } })),
+        restart: vi.fn(async () => ({ ok: true as const, data: { ok: true } })),
+        setChannel: vi.fn(async (channel) => ({
+          ok: true as const,
+          data: {
+            status: 'idle' as const,
+            currentVersion: '0.1.0',
+            channel,
+            autoDownload: true,
+            availableVersion: null,
+            releaseDate: null,
+            releaseNotes: null,
+            downloadProgress: null,
+            lastCheckedAt: null,
+            error: null,
+          },
+        })),
+        setAutoDownload: vi.fn(async (autoDownload) => ({
+          ok: true as const,
+          data: {
+            status: 'idle' as const,
+            currentVersion: '0.1.0',
+            channel: 'stable' as const,
+            autoDownload,
+            availableVersion: null,
+            releaseDate: null,
+            releaseNotes: null,
+            downloadProgress: null,
+            lastCheckedAt: null,
+            error: null,
+          },
+        })),
+        onStateChange: vi.fn(() => () => {}),
+      },
+    });
+
+    render(
+      <ToastProvider>
+        <SettingsPage />
+      </ToastProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Cập nhật' })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cập nhật' }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Đang dùng bản 0.1.0/i)).toBeInTheDocument();
+      expect(screen.getByText('Kênh cập nhật')).toBeInTheDocument();
+      expect(screen.getByText('Tự tải bản cập nhật')).toBeInTheDocument();
+    });
+
+    // Check updates
+    const checkBtn = screen.getByRole('button', { name: /Kiểm tra bản cập nhật/i });
+    fireEvent.click(checkBtn);
+    expect(bridge.update.check).toHaveBeenCalledWith(true);
+
+    // Switch channel to Beta
+    const betaBtn = screen.getByRole('button', { name: 'Thử nghiệm' });
+    fireEvent.click(betaBtn);
+    expect(bridge.update.setChannel).toHaveBeenCalledWith('beta');
+  });
 });

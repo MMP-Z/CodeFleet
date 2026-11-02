@@ -1,16 +1,18 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import type { DetectResult, EditableModelTier, ModelInfo } from '@shared/agents';
+import type { UpdateState } from '@shared/ipc';
 import { DEFAULT_SETTINGS, type AppSettingsMap, type CodeLevel } from '@shared/settings';
 import { Button } from '../../components/Button';
 import { Notice } from '../../components/Notice';
 import { Pill } from '../../components/Pill';
+import { Progress } from '../../components/Progress';
 import { Segmented } from '../../components/Segmented';
 import { useToast } from '../../components/Toast';
 import { Toggle } from '../../components/Toggle';
 import { t } from '../../i18n';
 import { getBridge } from '../../lib/bridge';
 
-export type SettingsTab = 'ai' | 'general' | 'data';
+export type SettingsTab = 'ai' | 'general' | 'update' | 'data';
 
 /**
  * MH-11 · Cài đặt (hỗ trợ mục "AI và model", "Chung" và "Dữ liệu").
@@ -29,15 +31,18 @@ export function SettingsPage(): React.JSX.Element {
   const [detectingAgents, setDetectingAgents] = useState<boolean>(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [backingUp, setBackingUp] = useState<boolean>(false);
+  const [updateState, setUpdateState] = useState<UpdateState | null>(null);
+  const [checkingUpdate, setCheckingUpdate] = useState<boolean>(false);
 
   const loadInitialData = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
-    const [settingsRes, dataInfoRes, agentsRes, modelsRes] = await Promise.all([
+    const [settingsRes, dataInfoRes, agentsRes, modelsRes, updateRes] = await Promise.all([
       bridge.settings.getAll(),
       bridge.system.getDataInfo(),
       bridge.agents.detectAll(),
       bridge.models.list(),
+      bridge.update.getState(),
     ]);
 
     if (!settingsRes.ok) {
@@ -56,12 +61,22 @@ export function SettingsPage(): React.JSX.Element {
     if (modelsRes.ok) {
       setModels(modelsRes.data);
     }
+    if (updateRes.ok) {
+      setUpdateState(updateRes.data);
+    }
     setLoading(false);
   }, [bridge]);
 
   useEffect(() => {
     void loadInitialData();
   }, [loadInitialData]);
+
+  useEffect(() => {
+    const unsubscribe = bridge.update.onStateChange((state) => {
+      setUpdateState(state);
+    });
+    return unsubscribe;
+  }, [bridge]);
 
   const handleRecheckAgents = async () => {
     setDetectingAgents(true);
@@ -169,9 +184,82 @@ export function SettingsPage(): React.JSX.Element {
     }
   };
 
+  const handleCheckUpdate = async () => {
+    setCheckingUpdate(true);
+    try {
+      await bridge.update.check(true);
+      const updated = await bridge.update.getState();
+      if (updated.ok) {
+        setUpdateState(updated.data);
+      }
+    } finally {
+      setCheckingUpdate(false);
+    }
+  };
+
+  const handleRestartToUpdate = async () => {
+    pushToast({
+      tone: 'info',
+      title: t('mh11.update.restartingToast'),
+    });
+    await bridge.update.restart();
+  };
+
+  const handleSetChannel = async (channel: 'stable' | 'beta') => {
+    const res = await bridge.update.setChannel(channel);
+    if (res.ok) {
+      setUpdateState(res.data);
+    }
+  };
+
+  const handleSetAutoDownload = async (autoDownload: boolean) => {
+    const res = await bridge.update.setAutoDownload(autoDownload);
+    if (res.ok) {
+      setUpdateState(res.data);
+    }
+  };
+
+  const getUpdateStatusPill = () => {
+    if (!updateState) {
+      return { tone: 'wait' as const, label: t('mh11.update.statusPill.idle') };
+    }
+    switch (updateState.status) {
+      case 'available':
+        return {
+          tone: 'brand' as const,
+          label: t('mh11.update.statusPill.available', {
+            version: updateState.availableVersion ?? '',
+          }),
+        };
+      case 'downloaded':
+        return {
+          tone: 'ok' as const,
+          label: t('mh11.update.statusPill.downloaded', {
+            version: updateState.availableVersion ?? '',
+          }),
+        };
+      case 'downloading':
+        return {
+          tone: 'brand' as const,
+          label: t('mh11.update.statusPill.downloading', {
+            percent: updateState.downloadProgress?.percent ?? 0,
+          }),
+        };
+      case 'checking':
+        return { tone: 'wait' as const, label: t('mh11.update.statusPill.checking') };
+      case 'not-available':
+        return { tone: 'ok' as const, label: t('mh11.update.statusPill.notAvailable') };
+      case 'error':
+        return { tone: 'danger' as const, label: t('mh11.update.statusPill.error') };
+      default:
+        return { tone: 'wait' as const, label: t('mh11.update.statusPill.idle') };
+    }
+  };
+
   const navItems: { id: SettingsTab; label: string }[] = [
     { id: 'ai', label: t('mh11.tabs.ai') },
     { id: 'general', label: t('mh11.tabs.general') },
+    { id: 'update', label: t('mh11.tabs.update') },
     { id: 'data', label: t('mh11.tabs.data') },
   ];
 
@@ -473,6 +561,119 @@ export function SettingsPage(): React.JSX.Element {
                       void handleUpdateBoolean('ui.autoPreview', checked);
                     }}
                     ariaLabel={t('mh11.general.autoPreviewLabel')}
+                  />
+                </div>
+              </div>
+            </section>
+          ) : null}
+
+          {/* TAB: CẬP NHẬT (PHASE 7) */}
+          {!loading && activeTab === 'update' ? (
+            <section className="flex flex-col gap-4">
+              <div className="bg-cf-surface border border-cf-line rounded-cf-card shadow-cf-card p-5 flex flex-col gap-4">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex flex-col">
+                    <strong className="text-base text-cf-text font-semibold">
+                      {t('mh11.update.currentVersion', {
+                        version: updateState?.currentVersion ?? '0.1.0',
+                      })}
+                    </strong>
+                    <span className="text-xs text-cf-muted">
+                      {updateState?.lastCheckedAt
+                        ? t('mh11.update.lastChecked', {
+                            time: new Date(updateState.lastCheckedAt).toLocaleTimeString('vi-VN'),
+                          })
+                        : t('mh11.update.neverChecked')}
+                    </span>
+                  </div>
+                  {(() => {
+                    const pill = getUpdateStatusPill();
+                    return <Pill tone={pill.tone}>{pill.label}</Pill>;
+                  })()}
+                </div>
+
+                {updateState?.status === 'downloaded' && (
+                  <Notice tone="info">
+                    <strong>
+                      {t('mh11.update.downloadedNoticeTitle', {
+                        version: updateState.availableVersion ?? '',
+                      })}
+                    </strong>{' '}
+                    {updateState.releaseNotes || t('mh11.update.downloadedNoticeDefault')}
+                  </Notice>
+                )}
+
+                {updateState?.status === 'downloading' && updateState.downloadProgress && (
+                  <div className="flex flex-col gap-1.5">
+                    <Progress value={updateState.downloadProgress.percent} tone="brand" />
+                    <span className="text-xs text-cf-muted self-end font-mono">
+                      {updateState.downloadProgress.percent}%
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-3 pt-1 flex-wrap">
+                  {updateState?.status === 'downloaded' ? (
+                    <>
+                      <Button variant="primary" onClick={() => void handleRestartToUpdate()}>
+                        {t('mh11.update.btnRestart')}
+                      </Button>
+                      <Button variant="default" onClick={() => setActiveTab('general')}>
+                        {t('mh11.update.btnLater')}
+                      </Button>
+                    </>
+                  ) : updateState?.status === 'available' ? (
+                    <Button variant="primary" onClick={() => void bridge.update.download()}>
+                      {t('mh11.update.btnDownload')}
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="default"
+                      onClick={() => void handleCheckUpdate()}
+                      disabled={checkingUpdate || updateState?.status === 'checking'}
+                    >
+                      {checkingUpdate || updateState?.status === 'checking'
+                        ? t('mh11.update.checking')
+                        : t('mh11.update.recheck')}
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-cf-surface border border-cf-line rounded-cf-card shadow-cf-card overflow-hidden divide-y divide-cf-line">
+                <div className="p-4 flex items-center justify-between gap-4 flex-wrap">
+                  <div className="flex flex-col gap-0.5">
+                    <strong className="text-sm font-semibold text-cf-text">
+                      {t('mh11.update.channelLabel')}
+                    </strong>
+                    <span className="text-xs text-cf-muted">
+                      {t('mh11.update.channelHint')}
+                    </span>
+                  </div>
+                  <Segmented
+                    options={[
+                      { value: 'stable', label: t('mh11.update.channelStable') },
+                      { value: 'beta', label: t('mh11.update.channelBeta') },
+                    ]}
+                    value={updateState?.channel ?? 'stable'}
+                    onChange={(val) => void handleSetChannel(val as 'stable' | 'beta')}
+                    ariaLabel={t('mh11.update.channelLabel')}
+                  />
+                </div>
+
+                <div className="p-4 flex items-center justify-between gap-4 flex-wrap">
+                  <div className="flex flex-col gap-0.5">
+                    <strong className="text-sm font-semibold text-cf-text">
+                      {t('mh11.update.autoDownloadLabel')}
+                    </strong>
+                    <span className="text-xs text-cf-muted">
+                      {t('mh11.update.autoDownloadHint')}
+                    </span>
+                  </div>
+                  <Toggle
+                    checked={updateState?.autoDownload ?? true}
+                    onChange={(checked) => void handleSetAutoDownload(checked)}
+                    ariaLabel={t('mh11.update.autoDownloadLabel')}
                   />
                 </div>
               </div>

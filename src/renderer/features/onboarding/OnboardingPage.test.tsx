@@ -149,7 +149,12 @@ describe('MH-01 OnboardingPage (Khởi động lần đầu)', () => {
       </ToastProvider>,
     );
 
-    // Tiêu đề
+    // Bước 1: Chào mừng
+    expect(screen.getByText('Chào mừng bạn đến với CodeFleet')).toBeInTheDocument();
+    const startBtn = screen.getByRole('button', { name: /Bắt đầu kiểm tra AI/i });
+    fireEvent.click(startBtn);
+
+    // Bước 2: Tiêu đề kiểm tra
     expect(screen.getByText('Kiểm tra các AI trên máy bạn')).toBeInTheDocument();
 
     // Chờ detectAll tải xong
@@ -168,8 +173,13 @@ describe('MH-01 OnboardingPage (Khởi động lần đầu)', () => {
     const continueBtn = screen.getByRole('button', { name: /Tiếp tục với Claude/i });
     expect(continueBtn).toBeEnabled();
 
-    // Bấm Tiếp tục
+    // Bấm Tiếp tục sang Bước 3 (Sẵn sàng)
     fireEvent.click(continueBtn);
+    expect(screen.getByText('Đội tàu AI đã sẵn sàng!')).toBeInTheDocument();
+
+    const finishBtn = screen.getByRole('button', { name: /Vào chọn dự án và bắt đầu chat/i });
+    fireEvent.click(finishBtn);
+
     await waitFor(() => {
       expect(bridge.settings.set).toHaveBeenCalledWith({
         key: 'onboarding.completed',
@@ -184,7 +194,7 @@ describe('MH-01 OnboardingPage (Khởi động lần đầu)', () => {
 
     render(
       <ToastProvider>
-        <OnboardingPage />
+        <OnboardingPage initialStep={2} />
       </ToastProvider>,
     );
 
@@ -203,7 +213,7 @@ describe('MH-01 OnboardingPage (Khởi động lần đầu)', () => {
 
     render(
       <ToastProvider>
-        <OnboardingPage />
+        <OnboardingPage initialStep={2} />
       </ToastProvider>,
     );
 
