@@ -24,10 +24,22 @@ const EXPECTED_TABLES = [
 
 describe('DatabaseService & SettingsRepository (ADR-002, Luật P8, B2)', () => {
   const tempDirs: string[] = [];
+  const activeServices: DatabaseService[] = [];
 
   afterEach(() => {
+    for (const svc of activeServices.splice(0)) {
+      try {
+        svc.close();
+      } catch {
+        // ignore
+      }
+    }
     for (const dir of tempDirs.splice(0)) {
-      fs.rmSync(dir, { recursive: true, force: true });
+      try {
+        fs.rmSync(dir, { recursive: true, force: true });
+      } catch {
+        // ignore
+      }
     }
   });
 
@@ -37,9 +49,17 @@ describe('DatabaseService & SettingsRepository (ADR-002, Luật P8, B2)', () => 
     return dir;
   }
 
+  function createTrackedService(
+    opts: ConstructorParameters<typeof DatabaseService>[0],
+  ): DatabaseService {
+    const svc = new DatabaseService(opts);
+    activeServices.push(svc);
+    return svc;
+  }
+
   it('enables WAL mode, foreign keys, and creates all 13 Migration 001 tables', () => {
     const userDataDir = makeTempUserData();
-    const service = new DatabaseService({ userDataDir });
+    const service = createTrackedService({ userDataDir });
     const db = service.openAndMigrate();
 
     const journalMode = db.pragma('journal_mode', { simple: true });
@@ -82,9 +102,8 @@ describe('DatabaseService & SettingsRepository (ADR-002, Luật P8, B2)', () => 
     const userDataDir = makeTempUserData();
 
     // Lần mở 1: Migration 001 + dữ liệu người dùng
-    const serviceV1 = new DatabaseService({
+    const serviceV1 = createTrackedService({
       userDataDir,
-      migrations: [migration001Initial],
     });
     const dbV1 = serviceV1.openAndMigrate();
     dbV1
@@ -99,7 +118,7 @@ describe('DatabaseService & SettingsRepository (ADR-002, Luật P8, B2)', () => 
       sql: 'CREATE INDEX idx_steps_conv_test ON steps(conversation_id);',
     };
 
-    const serviceV2 = new DatabaseService({
+    const serviceV2 = createTrackedService({
       userDataDir,
       migrations: [migration001Initial, migration002Mock],
     });
@@ -124,7 +143,7 @@ describe('DatabaseService & SettingsRepository (ADR-002, Luật P8, B2)', () => 
 
   it('persists typed settings across restarts and rejects secret keys per Luật B2', () => {
     const userDataDir = makeTempUserData();
-    const service = new DatabaseService({ userDataDir });
+    const service = createTrackedService({ userDataDir });
     const db = service.openAndMigrate();
     const repo = new SettingsRepository(db);
 
@@ -133,6 +152,8 @@ describe('DatabaseService & SettingsRepository (ADR-002, Luật P8, B2)', () => 
       'ui.codeLevel': 'summary',
       'ui.showJargon': false,
       'ui.autoPreview': true,
+      'agents.enabled': {},
+      'onboarding.completed': false,
     });
 
     repo.set('ui.showJargon', true);
@@ -140,7 +161,7 @@ describe('DatabaseService & SettingsRepository (ADR-002, Luật P8, B2)', () => 
     service.close();
 
     // Mở lại lần mới để kiểm chứng bền vững sau khởi động lại
-    const serviceReopened = new DatabaseService({ userDataDir });
+    const serviceReopened = createTrackedService({ userDataDir });
     const repoReopened = new SettingsRepository(serviceReopened.openAndMigrate());
     expect(repoReopened.get('ui.showJargon')).toBe(true);
     expect(repoReopened.get('ui.codeLevel')).toBe('full');

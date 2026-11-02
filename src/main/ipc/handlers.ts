@@ -1,4 +1,7 @@
 import { IPC_CHANNELS, IPC_CONTRACTS } from '@shared/ipc';
+import { AgentRegistry } from '../agents/detect';
+import { ModelTierService } from '../agents/models';
+import { AgentSessionRepository } from '../agents/session-repo';
 import type { DatabaseService } from '../db/database';
 import { SettingsRepository } from '../db/settings-repo';
 import type { Logger } from '../logger/logger';
@@ -10,14 +13,31 @@ export interface IpcDependencies {
   readonly dbService: DatabaseService;
   readonly logger: Logger;
   readonly openFolderInOs: (folderPath: string) => Promise<string>;
+  readonly modelsService?: ModelTierService;
+  readonly agentRegistry?: AgentRegistry;
 }
 
 /**
- * Đăng ký toàn bộ kênh IPC của Phase 1.
+ * Đăng ký toàn bộ kênh IPC của Phase 1 và Phase 2.
  */
-export function registerPhase1IpcHandlers(registrar: IpcRegistrar, deps: IpcDependencies): void {
+export function registerIpcHandlers(registrar: IpcRegistrar, deps: IpcDependencies): void {
   const settingsRepo = new SettingsRepository(deps.dbService.getConnection());
   const ipcLogger = deps.logger.child('ipc');
+
+  const modelsService =
+    deps.modelsService ??
+    new ModelTierService({
+      db: deps.dbService.getConnection(),
+      userDataDir: deps.userDataDir,
+    });
+
+  const sessionRepo = new AgentSessionRepository(deps.dbService.getConnection());
+  const agentRegistry =
+    deps.agentRegistry ??
+    new AgentRegistry({
+      modelsService,
+      sessionRepo,
+    });
 
   registerTypedHandler(
     registrar,
@@ -49,6 +69,12 @@ export function registerPhase1IpcHandlers(registrar: IpcRegistrar, deps: IpcDepe
           break;
         case 'ui.autoPreview':
           settingsRepo.set('ui.autoPreview', input.value);
+          break;
+        case 'agents.enabled':
+          settingsRepo.set('agents.enabled', input.value);
+          break;
+        case 'onboarding.completed':
+          settingsRepo.set('onboarding.completed', input.value);
           break;
       }
       ipcLogger.info('Updated user setting', { key: input.key });
@@ -94,4 +120,45 @@ export function registerPhase1IpcHandlers(registrar: IpcRegistrar, deps: IpcDepe
     () => deps.dbService.backupNow('user'),
     ipcLogger,
   );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.AGENTS_DETECT_ALL],
+    () => agentRegistry.detectAll(),
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.AGENTS_OPEN_LOGIN],
+    async ({ agentId }) => {
+      await agentRegistry.openLoginTerminal(agentId);
+    },
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.AGENTS_OPEN_DOCS],
+    async ({ agentId }) => {
+      await agentRegistry.openDocsUrl(agentId);
+    },
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.MODELS_LIST],
+    ({ agentId }) => modelsService.listModels(agentId),
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.MODELS_SET_TIER],
+    ({ agentId, modelId, tier }) => modelsService.setModelTier(agentId, modelId, tier),
+    ipcLogger,
+  );
 }
+
+export const registerPhase1IpcHandlers = registerIpcHandlers;

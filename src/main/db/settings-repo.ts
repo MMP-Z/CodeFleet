@@ -57,6 +57,8 @@ export class SettingsRepository {
       'ui.codeLevel': this.get('ui.codeLevel'),
       'ui.showJargon': this.get('ui.showJargon'),
       'ui.autoPreview': this.get('ui.autoPreview'),
+      'agents.enabled': this.get('agents.enabled'),
+      'onboarding.completed': this.get('onboarding.completed'),
     };
   }
 

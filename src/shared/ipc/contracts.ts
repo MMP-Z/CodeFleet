@@ -1,4 +1,14 @@
 import { z } from 'zod';
+import {
+  AgentIdSchema,
+  DetectResultSchema,
+  EditableModelTierSchema,
+  ModelInfoSchema,
+  type AgentId,
+  type DetectResult,
+  type EditableModelTier,
+  type ModelInfo,
+} from '../agents';
 import { APP_NAME, APP_VERSION } from '../constants';
 import type { FeatureFlags } from '../feature-flags';
 import {
@@ -22,6 +32,11 @@ export const IPC_CHANNELS = {
   SYSTEM_GET_DATA_INFO: 'system.getDataInfo',
   SYSTEM_OPEN_DATA_DIR: 'system.openDataDir',
   SYSTEM_BACKUP_NOW: 'system.backupNow',
+  AGENTS_DETECT_ALL: 'agents.detectAll',
+  AGENTS_OPEN_LOGIN: 'agents.openLogin',
+  AGENTS_OPEN_DOCS: 'agents.openDocs',
+  MODELS_LIST: 'models.list',
+  MODELS_SET_TIER: 'models.setTier',
 } as const;
 
 export type IpcChannelName = (typeof IPC_CHANNELS)[keyof typeof IPC_CHANNELS];
@@ -31,7 +46,12 @@ export const SettingGetInputSchema = z.object({
 });
 export type SettingGetInput = z.infer<typeof SettingGetInputSchema>;
 
-export const SettingValueSchema = z.union([LocaleSchema, CodeLevelSchema, z.boolean()]);
+export const SettingValueSchema = z.union([
+  LocaleSchema,
+  CodeLevelSchema,
+  z.boolean(),
+  z.record(z.string(), z.boolean()),
+]);
 export type SettingValue = z.infer<typeof SettingValueSchema>;
 
 export const SettingSetInputSchema = z.discriminatedUnion('key', [
@@ -39,6 +59,11 @@ export const SettingSetInputSchema = z.discriminatedUnion('key', [
   z.object({ key: z.literal('ui.codeLevel'), value: CodeLevelSchema }),
   z.object({ key: z.literal('ui.showJargon'), value: z.boolean() }),
   z.object({ key: z.literal('ui.autoPreview'), value: z.boolean() }),
+  z.object({
+    key: z.literal('agents.enabled'),
+    value: z.record(z.string(), z.boolean()),
+  }),
+  z.object({ key: z.literal('onboarding.completed'), value: z.boolean() }),
 ]);
 export type SettingSetInput = z.infer<typeof SettingSetInputSchema>;
 
@@ -69,6 +94,32 @@ export const BackupNowOutputSchema = z.object({
   sizeBytes: z.number().int().nonnegative(),
 });
 export type BackupNowOutput = z.infer<typeof BackupNowOutputSchema>;
+
+export const AgentOpenLoginInputSchema = z.object({
+  agentId: AgentIdSchema,
+});
+export type AgentOpenLoginInput = z.infer<typeof AgentOpenLoginInputSchema>;
+
+export const AgentOpenDocsInputSchema = z.object({
+  agentId: AgentIdSchema,
+});
+export type AgentOpenDocsInput = z.infer<typeof AgentOpenDocsInputSchema>;
+
+export const ModelListInputSchema = z.object({
+  agentId: AgentIdSchema.optional(),
+});
+export type ModelListInput = z.infer<typeof ModelListInputSchema>;
+
+export const ModelSetTierInputSchema = z.object({
+  agentId: AgentIdSchema,
+  modelId: z.string().min(1),
+  tier: EditableModelTierSchema,
+});
+export type ModelSetTierInput = z.infer<typeof ModelSetTierInputSchema>;
+
+export const DetectResultListSchema = z.array(DetectResultSchema);
+export const ModelInfoListSchema = z.array(ModelInfoSchema);
+export const VoidOutputSchema = z.void();
 
 export interface IpcContract<I extends z.ZodTypeAny, O extends z.ZodTypeAny> {
   readonly channel: IpcChannelName;
@@ -112,6 +163,31 @@ export const IPC_CONTRACTS = {
     input: EmptyInputSchema,
     output: BackupNowOutputSchema,
   },
+  [IPC_CHANNELS.AGENTS_DETECT_ALL]: {
+    channel: IPC_CHANNELS.AGENTS_DETECT_ALL,
+    input: EmptyInputSchema,
+    output: DetectResultListSchema,
+  },
+  [IPC_CHANNELS.AGENTS_OPEN_LOGIN]: {
+    channel: IPC_CHANNELS.AGENTS_OPEN_LOGIN,
+    input: AgentOpenLoginInputSchema,
+    output: VoidOutputSchema,
+  },
+  [IPC_CHANNELS.AGENTS_OPEN_DOCS]: {
+    channel: IPC_CHANNELS.AGENTS_OPEN_DOCS,
+    input: AgentOpenDocsInputSchema,
+    output: VoidOutputSchema,
+  },
+  [IPC_CHANNELS.MODELS_LIST]: {
+    channel: IPC_CHANNELS.MODELS_LIST,
+    input: ModelListInputSchema,
+    output: ModelInfoListSchema,
+  },
+  [IPC_CHANNELS.MODELS_SET_TIER]: {
+    channel: IPC_CHANNELS.MODELS_SET_TIER,
+    input: ModelSetTierInputSchema,
+    output: ModelInfoSchema,
+  },
 } as const;
 
 export type IpcErrorCode = 'VALIDATION_ERROR' | 'INTERNAL_ERROR';
@@ -142,5 +218,18 @@ export interface CodeFleetBridge {
     getDataInfo(): Promise<IpcResult<DataInfoOutput>>;
     openDataDir(): Promise<IpcResult<OpenDataDirOutput>>;
     backupNow(): Promise<IpcResult<BackupNowOutput>>;
+  };
+  readonly agents: {
+    detectAll(): Promise<IpcResult<DetectResult[]>>;
+    openLogin(agentId: AgentId): Promise<IpcResult<void>>;
+    openDocs(agentId: AgentId): Promise<IpcResult<void>>;
+  };
+  readonly models: {
+    list(agentId?: AgentId): Promise<IpcResult<ModelInfo[]>>;
+    setTier(
+      agentId: AgentId,
+      modelId: string,
+      tier: EditableModelTier,
+    ): Promise<IpcResult<ModelInfo>>;
   };
 }

@@ -522,7 +522,7 @@ Mọi kênh: dữ liệu vào/ra có zod schema trong `src/shared/ipc/`. Tên d�
 
 | Kênh | Loại | Màn | Phase |
 |---|---|---|---|
-| `agents.detectAll` / `agents.openLogin(agentId)` | invoke | 01, 11 | 2 |
+| `agents.detectAll` / `agents.openLogin(agentId)` / `agents.openDocs(agentId)` | invoke | 01, 11 | 2 |
 | `system.checkGit` | invoke | 01 | 0/1 |
 | `models.list` / `models.setTier` | invoke | 08, 11 | 2 |
 | `projects.list` / `projects.create` / `projects.open` / `projects.validatePath` / `projects.pickFolder` | invoke | 02 | 3 |
@@ -586,6 +586,7 @@ Mọi kênh: dữ liệu vào/ra có zod schema trong `src/shared/ipc/`. Tên d�
 
 | Ngày | Phiên bản | Người/AI | Thay đổi |
 |---|---|---|---|
+| 2026-11-02 | 0.5 | Antigravity (AI) | Bổ sung kênh IPC `agents.openDocs(agentId)` và các kiểu dữ liệu `DetectResult`, `ModelInfo`, `EditableModelTier` vào bảng mục 7 cho Phase 2 |
 | 2026-11-02 | 0.4 | Antigravity (AI) | Cập nhật bảng kênh IPC mục 7 cho Phase 1: bổ sung `settings.getAll`, `system.getDataInfo`, `system.openDataDir`, `system.backupNow` khớp với `src/shared/ipc/contracts.ts` |
 | 2026-11-02 | 0.3 | Antigravity (AI) | Xác nhận câu "Đọc hạn mức không tốn hạn mức của bạn" ở MH-08 là đúng theo kết quả Phase 0 và ADR-018 (đọc thụ động 0 token LLM); đồng bộ tham chiếu `PROJECT_PLAN.md` v0.6 |
 | 2026-11-02 | 0.2 | Antigravity (AI) | Cập nhật tên app **CodeFleet** (G10, ADR-011) và chốt toàn bộ Q1–Q12 theo quyết định của chủ dự án (ADR-012 → ADR-017); gạch các dòng mục 8 và sửa các ô `[CHƯA CHỐT]` liên quan |

@@ -66,6 +66,18 @@ const bridge: CodeFleetBridge = {
     openDataDir: () => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.SYSTEM_OPEN_DATA_DIR], undefined),
     backupNow: () => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.SYSTEM_BACKUP_NOW], undefined),
   },
+  agents: {
+    detectAll: () => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.AGENTS_DETECT_ALL], undefined),
+    openLogin: (agentId) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.AGENTS_OPEN_LOGIN], { agentId }),
+    openDocs: (agentId) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.AGENTS_OPEN_DOCS], { agentId }),
+  },
+  models: {
+    list: (agentId) => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.MODELS_LIST], { agentId }),
+    setTier: (agentId, modelId, tier) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.MODELS_SET_TIER], { agentId, modelId, tier }),
+  },
 };
 
 // Luật B1: Preload chỉ lộ ra API đã định nghĩa, không lộ Node/ipcRenderer thô.

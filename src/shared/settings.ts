@@ -15,6 +15,8 @@ export const SettingKeySchema = z.enum([
   'ui.codeLevel',
   'ui.showJargon',
   'ui.autoPreview',
+  'agents.enabled',
+  'onboarding.completed',
 ]);
 export type SettingKey = z.infer<typeof SettingKeySchema>;
 
@@ -23,6 +25,8 @@ export const SettingSchemas = {
   'ui.codeLevel': CodeLevelSchema,
   'ui.showJargon': z.boolean(),
   'ui.autoPreview': z.boolean(),
+  'agents.enabled': z.record(z.string(), z.boolean()),
+  'onboarding.completed': z.boolean(),
 } as const;
 
 export interface AppSettingsMap {
@@ -30,6 +34,8 @@ export interface AppSettingsMap {
   'ui.codeLevel': CodeLevel;
   'ui.showJargon': boolean;
   'ui.autoPreview': boolean;
+  'agents.enabled': Record<string, boolean>;
+  'onboarding.completed': boolean;
 }
 
 export const DEFAULT_SETTINGS: AppSettingsMap = {
@@ -37,6 +43,8 @@ export const DEFAULT_SETTINGS: AppSettingsMap = {
   'ui.codeLevel': 'summary',
   'ui.showJargon': false,
   'ui.autoPreview': true,
+  'agents.enabled': {},
+  'onboarding.completed': false,
 };
 
 export const AppSettingsMapSchema = z.object({
@@ -44,4 +52,6 @@ export const AppSettingsMapSchema = z.object({
   'ui.codeLevel': CodeLevelSchema,
   'ui.showJargon': z.boolean(),
   'ui.autoPreview': z.boolean(),
+  'agents.enabled': z.record(z.string(), z.boolean()),
+  'onboarding.completed': z.boolean(),
 });

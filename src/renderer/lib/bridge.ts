@@ -30,6 +30,12 @@ const fallbackBridge: CodeFleetBridge = {
         case 'ui.autoPreview':
           inMemoryFallbackState['ui.autoPreview'] = input.value;
           break;
+        case 'agents.enabled':
+          inMemoryFallbackState['agents.enabled'] = input.value;
+          break;
+        case 'onboarding.completed':
+          inMemoryFallbackState['onboarding.completed'] = input.value;
+          break;
       }
       return { ok: true, data: { ...inMemoryFallbackState } };
     },
@@ -51,6 +57,46 @@ const fallbackBridge: CodeFleetBridge = {
         backupPath: 'C:/Users/ban/AppData/Roaming/CodeFleet/backups/codefleet-user.sqlite.bak',
         createdAt: new Date().toISOString(),
         sizeBytes: 16384,
+      },
+    }),
+  },
+  agents: {
+    detectAll: async () => ({
+      ok: true,
+      data: [
+        {
+          agentId: 'claude',
+          displayName: 'Claude Code',
+          shortName: 'Claude',
+          logoLetter: 'C',
+          color: '#C2603A',
+          darkColor: '#E08A64',
+          docsUrl: 'https://docs.anthropic.com/en/docs/claude-code/overview',
+          installCommand: 'irm https://claude.ai/install.ps1 | iex',
+          loginCommand: 'claude auth login',
+          installed: true,
+          version: '1.2.0',
+          loggedIn: true,
+          status: 'ready',
+          errorDetail: null,
+          modelsCount: 3,
+        },
+      ],
+    }),
+    openLogin: async () => ({ ok: true, data: undefined }),
+    openDocs: async () => ({ ok: true, data: undefined }),
+  },
+  models: {
+    list: async () => ({ ok: true, data: [] }),
+    setTier: async (_agentId, modelId, tier) => ({
+      ok: true,
+      data: {
+        id: modelId,
+        agentId: 'claude',
+        agentDisplayName: 'Claude Code',
+        label: modelId,
+        tier,
+        tierSource: 'user',
       },
     }),
   },

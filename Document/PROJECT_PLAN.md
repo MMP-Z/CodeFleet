@@ -1,6 +1,6 @@
 # KẾ HOẠCH TRIỂN KHAI — Ứng dụng chat "vibe code có hiểu"
 
-> **Phiên bản tài liệu:** 0.14
+> **Phiên bản tài liệu:** 0.15
 > **Cập nhật lần cuối:** 2026-11-02
 > **Giai đoạn hiện tại:** Phase 2 — Kết nối CLI (Đang làm)
 > **Tên ứng dụng:** CodeFleet (xem ADR-011)
@@ -906,6 +906,7 @@ Ghi nguồn (đường dẫn tài liệu, ngày kiểm tra) cho mỗi ô đã đ
 
 | Ngày | Phiên bản TL | Người/AI | Thay đổi | Lý do |
 |---|---|---|---|---|
+| 2026-11-02 | 0.15 | Antigravity (AI) | Đấu nối các kênh IPC Phase 2: `agents.detectAll`, `agents.openLogin`, `agents.openDocs`, `models.list`, `models.setTier` (có kiểu + `zod` xác thực 2 chiều), bổ sung thiết lập `agents.enabled` và `onboarding.completed` trong `src/shared/settings.ts`, mở rộng preload bridge và kiểm thử unit test IPC (`src/main/ipc/ipc.test.ts`) | Hoàn thành hạ tầng IPC an toàn cho Phase 2 theo Luật P3 |
 | 2026-11-02 | 0.14 | Antigravity (AI) | Triển khai đầy đủ 3 adapter `ClaudeAdapter`, `CodexAdapter`, `GeminiAdapter` và `AgentRegistry` (`src/main/agents/`); hỗ trợ `detect()`, `listModels()`, mở terminal đăng nhập ngoài (Luật B3), xử lý quota Tier A/B/C, chặn đường dẫn B4, kèm bộ fixture unit test toàn diện (`src/main/agents/adapters.test.ts`) | Hoàn thành toàn bộ kết nối 3 CLI và fixture test theo Luật P5, B3, B4 của Phase 2 |
 | 2026-11-02 | 0.13 | Antigravity (AI) | Triển khai nền tảng adapter: kiểu chuẩn hoá `AgentAdapter`/`AgentEvent` (`src/shared/agents.ts`, `src/main/agents/types.ts`), `ModelTierService` kết hợp catalog và SQLite `models` (`src/main/agents/models.ts`), `AgentSessionRepository` quản lý `agent_sessions` (`src/main/agents/session-repo.ts`), và `AcpClientBridge` qua `@agentclientprotocol/sdk` v2.2.0 tích hợp bảo vệ đường dẫn B4 | Hoàn thành hạ tầng adapter và quản lý model cho Phase 2 |
 | 2026-11-02 | 0.12 | Antigravity (AI) | Bắt đầu Phase 2: chốt ADR-019 (cấu hình ánh xạ bậc model tách rời tại `resources/model-tiers.default.json` + `<userData>/model-tiers.user.json`), triển khai bộ kiểm soát đường dẫn `src/main/security/path-guard.ts` chặn `..` và symlink thoát khỏi thư mục dự án (Luật B4) kèm unit test | Khởi động Phase 2 — Kết nối CLI theo xác nhận của chủ dự án |

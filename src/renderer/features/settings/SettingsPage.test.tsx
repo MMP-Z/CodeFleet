@@ -56,6 +56,25 @@ describe('MH-11 SettingsPage (Chung & Dữ liệu)', () => {
           },
         })),
       },
+      agents: {
+        detectAll: vi.fn(async () => ({ ok: true as const, data: [] })),
+        openLogin: vi.fn(async () => ({ ok: true as const, data: undefined })),
+        openDocs: vi.fn(async () => ({ ok: true as const, data: undefined })),
+      },
+      models: {
+        list: vi.fn(async () => ({ ok: true as const, data: [] })),
+        setTier: vi.fn(async (_agentId, modelId, tier) => ({
+          ok: true as const,
+          data: {
+            id: modelId,
+            agentId: 'claude',
+            agentDisplayName: 'Claude Code',
+            label: modelId,
+            tier,
+            tierSource: 'user' as const,
+          },
+        })),
+      },
       ...overrides,
     };
 

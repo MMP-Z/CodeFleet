@@ -10,6 +10,7 @@ import {
   type IpcResult,
   type OpenDataDirOutput,
 } from '@shared/ipc';
+import type { DetectResult, ModelInfo } from '@shared/agents';
 import type { AppSettingsMap } from '@shared/settings';
 import { DatabaseService } from '../db/database';
 import { createLogger } from '../logger/logger';
@@ -83,6 +84,8 @@ describe('Phase 1 Typed IPC + Zod Validation (Luật P3, B2)', () => {
         'ui.codeLevel': 'summary',
         'ui.showJargon': false,
         'ui.autoPreview': true,
+        'agents.enabled': {},
+        'onboarding.completed': false,
       },
     });
 
@@ -156,5 +159,49 @@ describe('Phase 1 Typed IPC + Zod Validation (Luật P3, B2)', () => {
     // Kiểm tra nhánh thiếu git không ném ngoại lệ
     const missingGit = await checkSystemGit('definitely-non-existent-git-binary-xyz');
     expect(missingGit).toEqual({ available: false, version: null });
+  });
+
+  it('handles Phase 2 IPC channels: agents.detectAll, agents.openLogin, models.list, models.setTier', async () => {
+    const { bus } = setupTestBus();
+
+    // 1. agents.detectAll
+    const detectRes = await bus.invoke<DetectResult[]>(IPC_CHANNELS.AGENTS_DETECT_ALL);
+    expect(detectRes.ok).toBe(true);
+    if (detectRes.ok) {
+      expect(detectRes.data.length).toBeGreaterThanOrEqual(3);
+    }
+
+    // 2. models.list
+    const modelsRes = await bus.invoke<ModelInfo[]>(IPC_CHANNELS.MODELS_LIST, {});
+    expect(modelsRes.ok).toBe(true);
+    if (modelsRes.ok) {
+      expect(modelsRes.data.length).toBeGreaterThan(0);
+      const first = modelsRes.data[0];
+      expect(first).toBeDefined();
+      expect(['strong', 'balanced', 'fast', 'unknown']).toContain(first?.tier);
+    }
+
+    // 3. models.setTier
+    const setTierRes = await bus.invoke<ModelInfo>(IPC_CHANNELS.MODELS_SET_TIER, {
+      agentId: 'codex',
+      modelId: 'gpt-5-codex',
+      tier: 'strong',
+    });
+    expect(setTierRes.ok).toBe(true);
+    if (setTierRes.ok) {
+      expect(setTierRes.data.tier).toBe('strong');
+      expect(setTierRes.data.tierSource).toBe('user');
+    }
+
+    // 4. models.setTier với tier sai -> VALIDATION_ERROR
+    const badTierRes = await bus.invoke(IPC_CHANNELS.MODELS_SET_TIER, {
+      agentId: 'codex',
+      modelId: 'gpt-5-codex',
+      tier: 'super-genius-unsupported',
+    });
+    expect(badTierRes.ok).toBe(false);
+    if (!badTierRes.ok) {
+      expect(badTierRes.error.code).toBe('VALIDATION_ERROR');
+    }
   });
 });
