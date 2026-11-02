@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>02 · Chọn / tạo dự án</title>
+<link rel="stylesheet" href="assets/styles.css">
+<script src="assets/shell.js"></script>
+<style>
+  .proj { display: flex; gap: 14px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); text-decoration: none; color: var(--text); }
+  .proj:first-of-type { border-top: 0; }
+  .proj:hover { background: var(--surface-2); }
+  .proj-thumb { flex: none; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; }
+  .choice { display: flex; flex-direction: column; gap: 8px; padding: 18px; text-align: left; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+  .choice:hover { border-color: var(--primary); }
+  .choice[aria-pressed="true"] { border: 2px solid var(--primary); padding: 17px; background: var(--primary-row); }
+  .tpl { display: flex; flex-direction: column; gap: 6px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); text-align: left; }
+  .tpl[aria-pressed="true"] { border: 2px solid var(--primary); padding: 11px; }
+  .tpl .thumb { height: 64px; border-radius: 6px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header data-app-header data-project="" data-no-quota="true"></header>
+
+  <div class="page">
+    <div class="row" style="justify-content:space-between;align-items:flex-end">
+      <div class="col" style="gap:4px">
+        <h1>Bạn muốn làm dự án nào?</h1>
+        <p class="muted">Code do AI viết sẽ nằm trong đúng thư mục dự án bạn chọn, trên máy của bạn.</p>
+      </div>
+      <input class="input" style="width:260px" placeholder="Tìm dự án…" aria-label="Tìm dự án">
+    </div>
+
+    <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">
+      <!-- Dự án gần đây -->
+      <section class="card" style="flex:1 1 420px;min-width:0;overflow:hidden">
+        <div class="card-head eyebrow">Dự án gần đây</div>
+        <a class="proj" href="03-man-hinh-chinh.html">
+          <div class="proj-thumb" style="background:#F3E3C8;color:#7A4F00">T</div>
+          <div class="grow" style="min-width:0">
+            <div class="row"><strong>Tiệm Bánh Nhỏ</strong><span class="pill run">Đang làm 3/5 bước</span></div>
+            <div class="small muted mono">Documents/tiem-banh</div>
+          </div>
+          <span class="small muted">Hôm nay, 20:41</span>
+        </a>
+        <a class="proj" href="03-man-hinh-chinh.html">
+          <div class="proj-thumb" style="background:var(--primary-soft);color:var(--primary)">P</div>
+          <div class="grow" style="min-width:0">
+            <div class="row"><strong>Portfolio cá nhân</strong><span class="pill ok">Xong</span></div>
+            <div class="small muted mono">Documents/portfolio</div>
+          </div>
+          <span class="small muted">Hôm qua</span>
+        </a>
+        <a class="proj" href="03-man-hinh-chinh.html">
+          <div class="proj-thumb" style="background:var(--info-bg);color:var(--info-ink)">S</div>
+          <div class="grow" style="min-width:0">
+            <div class="row"><strong>Sổ chi tiêu</strong><span class="pill wait">Có git riêng của bạn</span></div>
+            <div class="small muted mono">D:/code/so-chi-tieu</div>
+          </div>
+          <span class="small muted">28/10</span>
+        </a>
+        <div class="proj" style="opacity:.75">
+          <div class="proj-thumb" style="background:var(--line);color:var(--muted)">?</div>
+          <div class="grow" style="min-width:0">
+            <div class="row"><strong>Web đặt lịch</strong><span class="pill danger">Không tìm thấy thư mục</span></div>
+            <div class="small muted">Thư mục đã bị đổi tên hoặc xoá. <a href="#">Chỉ lại vị trí</a> · <a href="#">Bỏ khỏi danh sách</a></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tạo mới / mở -->
+      <section class="card card-pad col" style="flex:1 1 440px;min-width:0;gap:16px">
+        <h2>Bắt đầu dự án</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <button class="choice" aria-pressed="true">
+            <strong>＋ Tạo dự án mới</strong>
+            <span class="small muted">App tạo một thư mục trống cho bạn.</span>
+          </button>
+          <button class="choice" aria-pressed="false">
+            <strong>📁 Mở thư mục có sẵn</strong>
+            <span class="small muted">Dùng code bạn đã có. App không xoá gì của bạn.</span>
+          </button>
+        </div>
+
+        <label class="field">Tên dự án
+          <input class="input" value="Tiệm Hoa Xinh">
+        </label>
+        <label class="field">Lưu ở đâu
+          <div class="row" style="flex-wrap:nowrap">
+            <input class="input mono" value="C:/Users/ban/Documents/tiem-hoa-xinh" style="font-size:13px">
+            <button class="btn">Chọn…</button>
+          </div>
+          <span class="hint" style="color:var(--ok-ink)">✓ Thư mục trống, có quyền ghi.</span>
+        </label>
+
+        <div class="col" style="gap:8px">
+          <div class="row" style="justify-content:space-between"><span style="font-weight:500">Bắt đầu từ mẫu <span class="small muted">(không bắt buộc)</span></span><a class="small" href="10-plugin.html">Thêm mẫu từ Plugin →</a></div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+            <button class="tpl" aria-pressed="true"><div class="thumb" style="background:repeating-linear-gradient(45deg,var(--line),var(--line) 6px,var(--surface-2) 6px,var(--surface-2) 12px)"></div><strong class="small">Trống</strong></button>
+            <button class="tpl" aria-pressed="false"><div class="thumb" style="background:linear-gradient(180deg,#F3E3C8 40%,#FFF 40%)"></div><strong class="small">Landing page</strong><span class="pill brand" style="align-self:flex-start;font-size:11px">Đã kiểm duyệt</span></button>
+            <button class="tpl" aria-pressed="false"><div class="thumb" style="background:linear-gradient(90deg,var(--primary-soft) 30%,#FFF 30%)"></div><strong class="small">Web bán hàng</strong><span class="pill brand" style="align-self:flex-start;font-size:11px">Đã kiểm duyệt</span></button>
+          </div>
+        </div>
+
+        <div class="notice danger small">
+          <span class="icon">!</span>
+          <div><strong>Ví dụ lỗi:</strong> Không ghi được vào “C:/Program Files/du-an”. Thư mục này cần quyền quản trị.
+            <div style="margin-top:4px">Bạn có thể: <a href="#">chọn thư mục trong Documents</a> hoặc <a href="#">chọn thư mục khác</a>.</div></div>
+        </div>
+
+        <div class="row" style="justify-content:flex-end">
+          <a class="btn primary lg" href="03-man-hinh-chinh.html">Tạo và bắt đầu chat →</a>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+

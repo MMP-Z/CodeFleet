@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>09 · Lịch sử, nhật ký quyết định, bản đồ dự án</title>
+<link rel="stylesheet" href="assets/styles.css">
+<script src="assets/shell.js"></script>
+<style>
+  .tl { position: relative; padding-left: 26px; display: flex; flex-direction: column; gap: 12px; }
+  .tl::before { content: ''; position: absolute; left: 9px; top: 6px; bottom: 6px; width: 2px; background: var(--line); }
+  .tl-item { position: relative; }
+  .tl-item::before { content: ''; position: absolute; left: -22px; top: 16px; width: 12px; height: 12px; border-radius: 50%; background: var(--surface); border: 2px solid var(--primary); }
+  .tl-item.undone::before { border-color: var(--dashed); }
+  .tl-item.user::before { border-color: var(--bar-low); }
+  .map-node { padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); display: flex; flex-direction: column; gap: 6px; }
+  .map-node .files { display: flex; flex-wrap: wrap; gap: 6px; }
+  .map-node .files span { font-family: var(--mono); font-size: 12px; padding: 2px 8px; border-radius: 6px; background: var(--line); }
+  .conv { padding: 10px 12px; border-radius: 8px; cursor: pointer; }
+  .conv[aria-current="true"] { background: var(--surface); box-shadow: var(--shadow-tab); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header data-app-header data-active="log"></header>
+  <div class="page" style="max-width:1180px">
+    <div class="row" style="justify-content:space-between;align-items:flex-end">
+      <div class="col" style="gap:4px">
+        <h1>Lịch sử dự án</h1>
+        <p class="muted">Xem lại AI đã làm gì, vì sao, và quay về bất kỳ thời điểm nào.</p>
+      </div>
+      <div class="seg" role="tablist" style="width:460px;max-width:100%">
+        <button role="tab" data-t="history" aria-selected="true">Lịch sử & hoàn tác</button>
+        <button role="tab" data-t="decisions" aria-selected="false">Vì sao làm vậy</button>
+        <button role="tab" data-t="map" aria-selected="false">Bản đồ dự án</button>
+      </div>
+    </div>
+
+    <!-- ===== Lịch sử & hoàn tác ===== -->
+    <section data-panel="history" class="settings">
+      <nav class="settings-nav" aria-label="Các cuộc trò chuyện">
+        <div class="eyebrow" style="padding:0 12px 6px">Cuộc trò chuyện</div>
+        <div class="conv" aria-current="true"><strong class="small">Web bán bánh có giỏ hàng…</strong><div class="small muted">Hôm nay · 5 bước</div></div>
+        <div class="conv"><strong class="small">Đổi màu chủ đạo sang nâu</strong><div class="small muted">Hôm qua · 1 bước</div></div>
+        <div class="conv"><strong class="small">Tạo trang giới thiệu</strong><div class="small muted">30/10 · 3 bước</div></div>
+      </nav>
+      <div class="settings-main">
+        <div class="tl">
+          <div class="tl-item">
+            <div class="card card-pad row" style="justify-content:space-between">
+              <div><div class="row" style="gap:8px"><strong>Bước 4: Thêm đăng nhập bằng email và mật khẩu</strong><span class="pill warn">Liên quan đăng nhập</span></div>
+                <div class="small muted"><span class="dot claude"></span> Claude · Opus 5.5 · 21:10 · 4 file đã đổi</div></div>
+              <div class="row"><a class="btn sm" href="03-man-hinh-chinh.html">Xem code</a><button class="btn sm">↶ Quay về trước bước này</button></div>
+            </div>
+          </div>
+          <div class="tl-item user">
+            <div class="card card-pad row" style="justify-content:space-between;border-color:var(--warn-border)">
+              <div><div class="row" style="gap:8px"><strong>Bạn tự sửa: giá Bánh su kem 18.000đ → 20.000đ</strong><span class="pill warn">Bạn sửa</span></div>
+                <div class="small muted">products.js · 21:02 · AI sẽ không ghi đè chỗ này</div></div>
+              <button class="btn sm">↶ Bỏ thay đổi này</button>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="card card-pad row" style="justify-content:space-between">
+              <div><strong>Bước 3: Làm giỏ hàng</strong>
+                <div class="small muted"><span class="dot codex"></span> Codex · GPT-5.5 · 20:44 · 2 file đã đổi</div></div>
+              <div class="row"><a class="btn sm" href="03-man-hinh-chinh.html">Xem code</a><button class="btn sm">↶ Quay về trước bước này</button></div>
+            </div>
+          </div>
+          <div class="tl-item undone">
+            <div class="card card-pad row" style="justify-content:space-between;opacity:.7">
+              <div><div class="row" style="gap:8px"><strong style="text-decoration:line-through">Bước 2b: Thêm ảnh động cho banner</strong><span class="pill wait">Đã hoàn tác</span></div>
+                <div class="small muted"><span class="dot gemini"></span> Gemini · Flash · 20:37 · bạn hoàn tác lúc 20:38</div></div>
+              <button class="btn sm">Làm lại</button>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="card card-pad row" style="justify-content:space-between">
+              <div><strong>Bước 2: Thêm danh sách bánh</strong>
+                <div class="small muted"><span class="dot codex"></span> Codex · GPT-5.5 · 20:35 · 2 file</div></div>
+              <div class="row"><a class="btn sm" href="03-man-hinh-chinh.html">Xem code</a><button class="btn sm">↶ Quay về trước bước này</button></div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="card card-pad row" style="justify-content:space-between">
+              <div><strong>Bắt đầu dự án</strong><div class="small muted">20:30 · thư mục trống</div></div>
+              <button class="btn sm">↶ Quay về lúc này</button>
+            </div>
+          </div>
+        </div>
+        <div class="notice neutral small"><span class="icon">i</span><div>Điểm khôi phục được cất ở thư mục riêng của app, không thêm gì vào dự án và không đụng tới git của bạn. Quay về một thời điểm cũ cũng tạo một điểm khôi phục mới, nên bạn luôn quay lại được.</div></div>
+      </div>
+    </section>
+
+    <!-- ===== Nhật ký quyết định ===== -->
+    <section data-panel="decisions" class="col hidden">
+      <div class="row"><input class="input" style="max-width:320px" placeholder="Tìm trong nhật ký…"><select class="select" style="width:auto"><option>Mọi bước</option><option>Chỉ đổi AI</option><option>Chỉ cách làm</option></select></div>
+      <div class="card">
+        <table class="tbl">
+          <thead><tr><th style="width:90px">Lúc</th><th style="width:90px">Bước</th><th>Quyết định (lời thường)</th><th style="width:140px">Loại</th></tr></thead>
+          <tbody>
+            <tr><td>21:10</td><td>Bước 4</td><td>Cất mật khẩu bằng thư viện bcrypt thay vì tự viết, vì tự viết dễ sai và kém an toàn.</td><td><span class="pill brand">Cách làm</span></td></tr>
+            <tr><td>20:40</td><td>Bước 4</td><td>Gemini Pro hết hạn mức; bước này nhạy cảm nên không dùng Gemini Flash, chuyển sang Claude Opus 5.5.</td><td><span class="pill warn">Đổi AI</span></td></tr>
+            <tr><td>20:44</td><td>Bước 3</td><td>Chưa lưu giỏ hàng lâu dài vì chưa có đăng nhập. Bước 4 sẽ nối giỏ hàng với tài khoản.</td><td><span class="pill brand">Cách làm</span></td></tr>
+            <tr><td>20:35</td><td>Bước 2</td><td>Để dữ liệu bánh trong một mảng riêng, sau này đổi giá hay thêm bánh chỉ sửa một chỗ.</td><td><span class="pill brand">Cách làm</span></td></tr>
+            <tr><td>20:35</td><td>Bước 2</td><td>Chọn Codex vì việc viết danh sách đơn giản và Codex còn nhiều hạn mức.</td><td><span class="pill wait">Chọn AI</span></td></tr>
+            <tr><td>20:31</td><td>Bước 1</td><td>Dùng HTML thuần vì trang còn đơn giản, chưa cần framework nặng.</td><td><span class="pill brand">Cách làm</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== Bản đồ dự án ===== -->
+    <section data-panel="map" class="col hidden">
+      <p class="muted">Chức năng nào nằm ở file nào. Bấm vào một file để mở ở mức “Toàn bộ”.</p>
+      <div class="grid">
+        <div class="map-node"><strong>Trang chủ & menu</strong><span class="small muted">Thanh trên cùng, banner, liên kết</span><div class="files"><span>index.html</span><span>style.css</span></div></div>
+        <div class="map-node"><strong>Danh sách bánh</strong><span class="small muted">Tên, giá, ảnh từng loại bánh</span><div class="files"><span>products.js</span></div></div>
+        <div class="map-node"><strong>Giỏ hàng</strong><span class="small muted">Thêm, bớt, tính tổng tiền</span><div class="files"><span>cart.js</span></div></div>
+        <div class="map-node" style="border-color:var(--warn-border)"><div class="row" style="justify-content:space-between"><strong>Đăng nhập</strong><span class="pill warn">Nhạy cảm</span></div><span class="small muted">Đăng ký, đăng nhập, cất mật khẩu</span><div class="files"><span>auth.js</span><span>login.html</span></div></div>
+        <div class="map-node" style="border-color:var(--warn-border)"><div class="row" style="justify-content:space-between"><strong>Cấu hình & khoá bí mật</strong><span class="pill warn">Nhạy cảm</span></div><span class="small muted">Không chia sẻ file này cho ai</span><div class="files"><span>.env</span></div></div>
+        <div class="map-node"><strong>Thư viện đã cài</strong><span class="small muted">Danh sách thư viện dự án dùng</span><div class="files"><span>package.json</span></div></div>
+      </div>
+    </section>
+  </div>
+</div>
+<script>
+  document.querySelectorAll('[data-t]').forEach((b) => b.onclick = () => {
+    document.querySelectorAll('[data-t]').forEach((x) => x.setAttribute('aria-selected', x === b));
+    document.querySelectorAll('[data-panel]').forEach((p) => p.classList.toggle('hidden', p.dataset.panel !== b.dataset.t));
+  });
+</script>
+</body>
+</html>
+

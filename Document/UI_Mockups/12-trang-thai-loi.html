@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>12 · Lỗi và trạng thái trống</title>
+<link rel="stylesheet" href="assets/styles.css">
+<script src="assets/shell.js"></script>
+<style>
+  .state { display: flex; flex-direction: column; gap: 10px; padding: 18px; }
+  .state .label { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 28px 16px; }
+  .empty .ill { width: 56px; height: 56px; border-radius: 16px; background: var(--primary-soft); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--primary); }
+  .sugg { padding: 6px 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header data-app-header data-active=""></header>
+  <div class="page" style="max-width:1180px">
+    <div class="col" style="gap:4px">
+      <h1>Lỗi và trạng thái trống</h1>
+      <p class="muted">Mọi lỗi đều nói bằng lời thường và kèm việc bạn có thể làm tiếp (Luật U2).</p>
+    </div>
+
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(340px,1fr))">
+
+      <!-- Chat trống -->
+      <div class="card state" style="grid-column:span 2">
+        <span class="label">CHAT TRỐNG · DỰ ÁN MỚI</span>
+        <div class="empty">
+          <div class="ill">✦</div>
+          <h2>Bạn muốn làm gì hôm nay?</h2>
+          <p class="muted small">Mô tả bằng lời thường, càng cụ thể càng tốt. App sẽ chia việc và chọn AI giúp bạn.</p>
+          <div class="row" style="justify-content:center;gap:8px">
+            <button class="sugg">Làm trang landing đơn giản cho tiệm hoa</button>
+            <button class="sugg">Thêm form liên hệ gửi về email</button>
+            <button class="sugg">Giải thích dự án này đang có gì</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Xem trước lỗi build -->
+      <div class="card state">
+        <span class="label">TAB XEM TRƯỚC · LỖI KHI CHẠY THỬ</span>
+        <div class="notice danger"><span class="icon">!</span><div><strong>Trang chưa chạy được</strong><div class="small">File <span class="mono">cart.js</span> dòng 12 dùng một hàm chưa có tên là <span class="mono">renderCart</span>.</div></div></div>
+        <div class="row"><button class="btn primary sm">Nhờ AI sửa lỗi này</button><button class="btn sm">↶ Hoàn tác bước 3</button><button class="btn sm ghost">Xem chi tiết lỗi</button></div>
+      </div>
+
+      <!-- Xem trước: không phải web -->
+      <div class="card state">
+        <span class="label">TAB XEM TRƯỚC · KHÔNG PHẢI DỰ ÁN WEB</span>
+        <div class="notice neutral"><span class="icon">i</span><div><strong>Chưa xem trước được</strong><div class="small">App chưa thấy cách chạy thử dự án này (không có <span class="mono">package.json</span> với lệnh chạy).</div></div></div>
+        <div class="row"><button class="btn sm">Nhờ AI thêm cách chạy thử</button><button class="btn sm ghost">Tìm hiểu thêm</button></div>
+      </div>
+
+      <!-- CLI mất đăng nhập -->
+      <div class="card state">
+        <span class="label">GIỮA CHỪNG · AI BỊ ĐĂNG XUẤT</span>
+        <div class="notice warn"><span class="icon">!</span><div><strong>Codex đã bị đăng xuất</strong><div class="small">Bước 3 tạm dừng. App sẽ dùng AI khác nếu bạn muốn.</div></div></div>
+        <div class="row"><button class="btn primary sm">Đăng nhập lại Codex</button><button class="btn sm">Làm tiếp bằng AI khác</button></div>
+      </div>
+
+      <!-- Không có AI nào -->
+      <div class="card state">
+        <span class="label">KHÔNG CÓ AI NÀO SẴN SÀNG</span>
+        <div class="notice danger"><span class="icon">!</span><div><strong>Chưa có AI nào dùng được</strong><div class="small">App cần ít nhất một AI đã cài và đã đăng nhập.</div></div></div>
+        <div class="row"><a class="btn primary sm" href="01-khoi-dong.html">Mở hướng dẫn cài đặt</a></div>
+      </div>
+
+      <!-- Ghi ra ngoài dự án -->
+      <div class="card state">
+        <span class="label">CHẶN GHI RA NGOÀI THƯ MỤC DỰ ÁN</span>
+        <div class="notice warn"><span class="icon">⛔</span><div><strong>Đã chặn một thao tác</strong><div class="small">AI định sửa file <span class="mono">C:/Users/ban/.bashrc</span>, nằm ngoài thư mục dự án. App đã chặn, không có gì thay đổi.</div></div></div>
+        <div class="row"><button class="btn sm">Bảo AI làm cách khác</button><button class="btn sm ghost">Xem trong nhật ký</button></div>
+      </div>
+
+      <!-- Hạn mức không rõ -->
+      <div class="card state">
+        <span class="label">HẠN MỨC KHÔNG ĐỌC ĐƯỢC</span>
+        <div class="row"><span class="quota-chip unknown"><span class="dot gemini"></span>Gemini <strong>không rõ</strong></span></div>
+        <div class="notice neutral small"><span class="icon">i</span><div>App chưa đọc được hạn mức của Gemini (có thể AI vừa đổi cách báo). Gemini vẫn dùng được bình thường. <a href="#">Thử đọc lại</a></div></div>
+      </div>
+
+      <!-- Mất kết nối / AI treo -->
+      <div class="card state">
+        <span class="label">AI KHÔNG PHẢN HỒI</span>
+        <div class="notice warn"><span class="icon">…</span><div><strong>Claude chưa trả lời sau 3 phút</strong><div class="small">Có thể mạng chậm hoặc AI đang bận.</div></div></div>
+        <div class="row"><button class="btn sm">Đợi thêm</button><button class="btn sm">Dừng và thử lại</button><button class="btn sm">Chuyển AI khác</button></div>
+      </div>
+
+      <!-- Hoàn tác thành công -->
+      <div class="card state">
+        <span class="label">SAU KHI HOÀN TÁC</span>
+        <div class="notice info"><span class="icon">✓</span><div><strong>Đã quay về lúc trước bước 3</strong><div class="small">2 file được khôi phục. Phần bạn tự sửa không bị ảnh hưởng.</div></div></div>
+        <div class="row"><button class="btn sm">Làm lại bước 3</button><button class="btn sm ghost">Đóng</button></div>
+      </div>
+
+      <!-- Không có git -->
+      <div class="card state">
+        <span class="label">MÁY KHÔNG CÓ GIT</span>
+        <div class="notice warn"><span class="icon">!</span><div><strong>Chưa có công cụ lưu điểm khôi phục</strong><div class="small">Thiếu git nên tính năng hoàn tác chưa bật. [Phương án dự phòng: xác minh ở Phase 0]</div></div></div>
+        <div class="row"><button class="btn primary sm">Hướng dẫn cài git</button><button class="btn sm ghost">Tiếp tục không có hoàn tác</button></div>
+      </div>
+
+      <!-- Đang làm việc / loading -->
+      <div class="card state">
+        <span class="label">ĐANG LẬP KẾ HOẠCH</span>
+        <div class="row" style="gap:12px"><div class="bot-avatar"></div><div class="col" style="gap:6px;flex:1">
+          <div class="small">Đang chia việc thành các bước…</div>
+          <div class="progress thin"><div class="brand" style="width:35%"></div></div>
+          <div class="small muted"><span class="dot claude"></span> Claude · Sonnet 5.5 đang lập kế hoạch</div>
+        </div></div>
+        <div class="row"><button class="btn sm danger">■ Dừng</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+

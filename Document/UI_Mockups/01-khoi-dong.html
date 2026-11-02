@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>01 · Khởi động lần đầu</title>
+<link rel="stylesheet" href="assets/styles.css">
+<script src="assets/shell.js"></script>
+<style>
+  .stepper { display: flex; gap: 8px; flex-wrap: wrap; }
+  .stepper .s { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+  .stepper .s b { width: 24px; height: 24px; border-radius: 50%; background: var(--line); display: flex; align-items: center; justify-content: center; font-size: 12px; }
+  .stepper .s.on { color: var(--text); font-weight: 600; }
+  .stepper .s.on b { background: var(--primary); color: #FFF; }
+  .stepper .s.done b { background: var(--ok-bg); color: var(--ok-ink); }
+  .stepper .sep { width: 28px; height: 1px; background: var(--border); align-self: center; }
+  .cli { display: flex; gap: 14px; align-items: flex-start; padding: 16px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+  .cli:first-of-type { border-top: 0; }
+  .cli > .grow { flex: 1 1 0; }
+  .cli-logo { flex: none; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #FFF; font-weight: 700; }
+  .guide { margin: 8px 0 0; padding: 10px 12px 10px 30px; background: var(--bg); border-radius: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .cmd { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: var(--dark); color: var(--dark-text); border-radius: 6px; font-family: var(--mono); font-size: 12.5px; }
+  .cmd button { margin-left: auto; background: #26322E; color: #FFF; border: 0; border-radius: 4px; padding: 2px 8px; font-size: 11px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header data-app-header data-project="" data-no-quota="true"></header>
+
+  <div class="page page-narrow">
+    <div class="stepper" aria-label="Các bước thiết lập">
+      <span class="s done"><b>✓</b>Chào mừng</span><span class="sep"></span>
+      <span class="s on"><b>2</b>Kiểm tra AI trên máy</span><span class="sep"></span>
+      <span class="s"><b>3</b>Chọn dự án</span>
+    </div>
+
+    <div class="col" style="gap:6px">
+      <h1>Kiểm tra các AI trên máy bạn</h1>
+      <p class="muted">App không tự cài AI của hãng khác. App chỉ tìm những AI bạn đã cài, rồi hướng dẫn phần còn thiếu. Bạn cần <strong>ít nhất một AI</strong> sẵn sàng để bắt đầu.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-head row" style="justify-content:space-between">
+        <span class="eyebrow">Đã tìm thấy 2 / 3 AI · 1 AI sẵn sàng</span>
+        <button class="btn sm">↻ Kiểm tra lại</button>
+      </div>
+
+      <!-- Claude: sẵn sàng -->
+      <div class="cli">
+        <div class="cli-logo" style="background:var(--claude)">C</div>
+        <div class="grow" style="min-width:240px">
+          <div class="row"><strong>Claude Code</strong><span class="pill ok">✓ Sẵn sàng</span></div>
+          <div class="small muted">Đã cài · đã đăng nhập · tìm thấy 3 model (bậc mạnh, cân bằng, nhanh)</div>
+        </div>
+      </div>
+
+      <!-- Codex: đã cài, chưa đăng nhập -->
+      <div class="cli">
+        <div class="cli-logo" style="background:var(--codex)">X</div>
+        <div class="grow" style="min-width:240px">
+          <div class="row"><strong>Codex CLI</strong><span class="pill warn">Chưa đăng nhập</span></div>
+          <div class="small muted">Đã cài trên máy nhưng chưa đăng nhập tài khoản.</div>
+          <ol class="guide small">
+            <li>Bấm “Mở cửa sổ đăng nhập”. Một cửa sổ dòng lệnh sẽ hiện ra.</li>
+            <li>Làm theo hướng dẫn trên màn hình (thường sẽ mở trình duyệt để bạn đăng nhập).</li>
+            <li>Quay lại đây và bấm “Kiểm tra lại”.</li>
+          </ol>
+        </div>
+        <button class="btn primary">Mở cửa sổ đăng nhập</button>
+      </div>
+
+      <!-- Gemini: chưa cài -->
+      <div class="cli">
+        <div class="cli-logo" style="background:var(--gemini)">G</div>
+        <div class="grow" style="min-width:240px">
+          <div class="row"><strong>Gemini CLI</strong><span class="pill wait">Chưa cài</span></div>
+          <div class="small muted">Không bắt buộc. Có thêm AI thì app dễ đổi sang AI khác khi một AI hết hạn mức.</div>
+          <ol class="guide small">
+            <li>Cài theo hướng dẫn chính thức của hãng. <a href="#">Mở trang hướng dẫn ↗</a></li>
+            <li>Hoặc chép lệnh dưới đây vào cửa sổ dòng lệnh:
+              <div class="cmd" style="margin-top:4px"><span>[lệnh cài theo tài liệu hãng — xác minh ở Phase 0]</span><button>Chép</button></div>
+            </li>
+            <li>Cài xong, quay lại bấm “Kiểm tra lại”.</li>
+          </ol>
+        </div>
+        <button class="btn">Bỏ qua</button>
+      </div>
+    </div>
+
+    <div class="card card-pad col" style="gap:10px">
+      <div class="eyebrow">Công cụ hỗ trợ</div>
+      <div class="row" style="justify-content:space-between">
+        <div><strong>git</strong> <span class="small muted">— dùng để lưu điểm khôi phục (hoàn tác) cho từng bước</span></div>
+        <span class="pill ok">✓ Đã có</span>
+      </div>
+      <div class="small muted">App lưu điểm khôi phục ở thư mục riêng, <strong>không</strong> thêm gì vào dự án của bạn và không đụng tới git sẵn có của bạn.</div>
+    </div>
+
+    <div class="notice info small">
+      <span class="icon">i</span>
+      <div>App không đọc mật khẩu hay mã đăng nhập của các AI. App chỉ hỏi AI “đã đăng nhập chưa” qua cách chính thức của từng hãng.</div>
+    </div>
+
+    <div class="row" style="justify-content:space-between">
+      <button class="btn ghost">← Quay lại</button>
+      <div class="row">
+        <span class="small muted">Có thể thêm AI khác sau trong Cài đặt</span>
+        <a class="btn primary lg" href="02-chon-du-an.html">Tiếp tục với Claude →</a>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+

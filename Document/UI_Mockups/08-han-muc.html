@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>08 · Chi tiết hạn mức</title>
+<link rel="stylesheet" href="assets/styles.css">
+<script src="assets/shell.js"></script>
+<style>
+  .cli-card { overflow: hidden; }
+  .cli-top { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .win { display: grid; grid-template-columns: 120px 1fr 56px; gap: 10px; align-items: center; font-size: 13px; }
+  .mrow { display: grid; grid-template-columns: 1.3fr 90px 1.6fr 1.2fr; gap: 12px; align-items: center; padding: 10px 16px; border-top: 1px solid var(--line); font-size: 13px; }
+  .mrow.head { font-size: 12px; color: var(--muted); font-weight: 600; background: var(--surface-2); }
+  .mrow > .pill { justify-self: start; }
+  @media (max-width: 720px) { .mrow { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header data-app-header data-active=""></header>
+  <div class="page">
+    <div class="row" style="justify-content:space-between;align-items:flex-end">
+      <div class="col" style="gap:4px">
+        <h1>Hạn mức của các AI</h1>
+        <p class="muted">Mỗi AI cho bạn dùng một lượng nhất định trong một khoảng thời gian. Hết thì app tự chuyển sang model hoặc AI khác.</p>
+      </div>
+      <div class="row"><span class="small muted">Cập nhật lúc 20:41</span><button class="btn">↻ Làm mới</button></div>
+    </div>
+
+    <div class="notice neutral small">
+      <span class="icon">i</span>
+      <div>
+        <strong>Độ tin cậy của con số:</strong>
+        <span class="pill ok" style="margin:0 4px">Chính thức</span> do AI tự báo ·
+        <span class="pill warn" style="margin:0 4px">Ước lượng</span> app tự tính từ log trên máy, có thể lệch ·
+        <span class="pill danger" style="margin:0 4px">Đã phát hiện</span> AI báo đã hết ·
+        <span class="pill wait" style="margin:0 4px">Không rõ</span> chưa có số liệu, app không đoán.
+      </div>
+    </div>
+
+    <!-- Claude -->
+    <section class="card cli-card">
+      <div class="cli-top">
+        <span class="dot lg claude"></span><h2>Claude</h2>
+        <span class="pill ok">Chính thức</span>
+        <span class="pill brand">Dùng chung cho mọi model</span>
+        <span class="grow"></span><span class="small muted">Gói: [tên gói]</span>
+      </div>
+      <div class="col" style="padding:14px 16px;gap:10px">
+        <div class="win"><span>Cửa sổ 5 giờ</span><div class="progress"><div style="width:62%"></div></div><strong>62%</strong></div>
+        <div class="small muted" style="margin:-6px 0 0 130px">Làm mới lúc 22:40</div>
+        <div class="win"><span>Tuần</span><div class="progress"><div style="width:38%"></div></div><strong>38%</strong></div>
+        <div class="small muted" style="margin:-6px 0 0 130px">Làm mới Thứ Hai</div>
+      </div>
+      <div class="mrow head"><span>Model</span><span>Bậc</span><span>Trạng thái</span><span>Ghi chú</span></div>
+      <div class="mrow"><span>Opus 5.5</span><span class="pill brand">Mạnh</span><span class="pill ok">Dùng được</span><span class="small muted">Tốn hạn mức nhanh nhất</span></div>
+      <div class="mrow"><span>Sonnet 5.5</span><span class="pill wait">Cân bằng</span><span class="pill ok">Dùng được</span><span class="small muted">—</span></div>
+      <div class="mrow"><span>Haiku 5</span><span class="pill wait">Nhanh</span><span class="pill ok">Dùng được</span><span class="small muted">App dùng để viết tóm tắt</span></div>
+    </section>
+
+    <!-- Codex -->
+    <section class="card cli-card">
+      <div class="cli-top">
+        <span class="dot lg codex"></span><h2>Codex</h2>
+        <span class="pill warn">Ước lượng</span>
+        <span class="pill wait">Chưa rõ tách theo model · tạm coi là dùng chung</span>
+        <span class="grow"></span><span class="pill warn">Sắp hết · app giảm ưu tiên</span>
+      </div>
+      <div class="col" style="padding:14px 16px;gap:10px">
+        <div class="win"><span>Cửa sổ 5 giờ</span><div class="progress"><div class="low" style="width:81%"></div></div><strong>81%</strong></div>
+        <div class="small muted" style="margin:-6px 0 0 130px">Làm mới khoảng 23:15 (ước lượng)</div>
+        <div class="win"><span>Tuần</span><div class="progress"><div style="width:54%"></div></div><strong>54%</strong></div>
+        <div class="small muted" style="margin:-6px 0 0 130px">Làm mới Thứ Hai</div>
+      </div>
+      <div class="mrow head"><span>Model</span><span>Bậc</span><span>Trạng thái</span><span>Ghi chú</span></div>
+      <div class="mrow"><span>GPT-5.5</span><span class="pill brand">Mạnh</span><span class="pill warn">Sắp hết</span><span class="small muted">—</span></div>
+      <div class="mrow"><span>GPT-5.5 mini</span><span class="pill wait">Nhanh</span><span class="pill warn">Sắp hết</span><span class="small muted">Dùng chung hạn mức</span></div>
+    </section>
+
+    <!-- Gemini -->
+    <section class="card cli-card">
+      <div class="cli-top">
+        <span class="dot lg gemini"></span><h2>Gemini</h2>
+        <span class="pill brand">Tính riêng từng model</span>
+        <span class="grow"></span><span class="pill warn">Pro hết · Flash còn</span>
+      </div>
+      <div class="mrow head"><span>Model</span><span>Bậc</span><span>Hôm nay đã dùng</span><span>Nguồn · làm mới</span></div>
+      <div class="mrow">
+        <span>Gemini Pro</span><span class="pill brand">Mạnh</span>
+        <div class="row" style="flex-wrap:nowrap"><div class="progress grow"><div class="out" style="width:100%"></div></div><strong>100%</strong></div>
+        <span class="small"><span class="pill danger">Đã phát hiện</span> 00:00</span>
+      </div>
+      <div class="mrow">
+        <span>Gemini Flash</span><span class="pill wait">Nhanh</span>
+        <div class="row" style="flex-wrap:nowrap"><div class="progress grow"><div style="width:23%"></div></div><strong>23%</strong></div>
+        <span class="small"><span class="pill warn">Ước lượng</span> 00:00</span>
+      </div>
+    </section>
+
+    <!-- Không rõ (ví dụ plugin) -->
+    <section class="card cli-card">
+      <div class="cli-top">
+        <span class="dot lg app"></span><h2>AI từ plugin: [Tên CLI khác]</h2>
+        <span class="pill wait">Không rõ</span>
+      </div>
+      <div class="col" style="padding:14px 16px;gap:8px">
+        <p class="small muted">AI này không cho biết hạn mức và chưa có cách ước lượng. App vẫn dùng bình thường; nếu AI báo hết, app sẽ ghi nhận ngay và chuyển AI khác.</p>
+      </div>
+    </section>
+
+    <div class="card card-pad col" style="gap:8px">
+      <h3>App dùng hạn mức thế nào khi chọn AI</h3>
+      <ul class="small" style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px">
+        <li>Model <strong>đã hết</strong>: không dùng tới khi được làm mới. Một model hết <strong>không</strong> có nghĩa cả AI hết.</li>
+        <li>Model <strong>sắp hết</strong> (từ 80%): vẫn dùng được nhưng ưu tiên thấp hơn.</li>
+        <li>Bước nhạy cảm (đăng nhập, thanh toán…): không bao giờ tự hạ xuống model nhanh.</li>
+        <li>Đọc hạn mức không tốn hạn mức của bạn. <span class="pill wait" style="font-size:11px">Giữ chỗ: chỉ hiện câu này nếu Phase 0 xác minh đúng</span></li>
+      </ul>
+      <div class="row small"><a href="11-cai-dat.html">Đổi ngưỡng cảnh báo và thông báo trong Cài đặt →</a></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+

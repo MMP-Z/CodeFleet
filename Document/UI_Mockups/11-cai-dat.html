@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>11 · Cài đặt</title>
+<link rel="stylesheet" href="assets/styles.css">
+<script src="assets/shell.js"></script>
+</head>
+<body>
+<div class="app">
+  <header data-app-header data-active="settings"></header>
+  <div class="page" style="max-width:1120px">
+    <h1>Cài đặt</h1>
+    <div class="settings">
+      <nav class="settings-nav" aria-label="Mục cài đặt">
+        <button data-s="ai" aria-current="true">AI và model</button>
+        <button data-s="quota">Hạn mức và thông báo</button>
+        <button data-s="safety">An toàn</button>
+        <button data-s="general">Chung</button>
+        <button data-s="update">Cập nhật</button>
+        <button data-s="data">Dữ liệu và nhật ký lỗi</button>
+      </nav>
+
+      <div class="settings-main">
+        <!-- AI và model -->
+        <section data-panel="ai" class="col">
+          <div class="card">
+            <div class="card-head row" style="justify-content:space-between"><span class="eyebrow">AI trên máy</span><button class="btn sm">↻ Kiểm tra lại</button></div>
+            <table class="tbl">
+              <thead><tr><th>AI</th><th>Phiên bản</th><th>Trạng thái</th><th>Model tìm thấy</th><th style="width:110px">Dùng</th></tr></thead>
+              <tbody>
+                <tr><td><span class="dot claude"></span> Claude Code</td><td class="mono small">[x.y.z]</td><td><span class="pill ok">Sẵn sàng</span></td><td>3</td><td><button class="toggle" role="switch" aria-checked="true" aria-label="Dùng Claude"></button></td></tr>
+                <tr><td><span class="dot codex"></span> Codex CLI</td><td class="mono small">[x.y.z]</td><td><span class="pill ok">Sẵn sàng</span></td><td>2</td><td><button class="toggle" role="switch" aria-checked="true" aria-label="Dùng Codex"></button></td></tr>
+                <tr><td><span class="dot gemini"></span> Gemini CLI</td><td class="mono small">[x.y.z]</td><td><span class="pill ok">Sẵn sàng</span></td><td>2</td><td><button class="toggle" role="switch" aria-checked="true" aria-label="Dùng Gemini"></button></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <div class="setting-row">
+              <div class="desc"><strong>Cách chọn AI</strong><div class="small muted">Mặc định app tự chọn AI và model hợp nhất cho từng bước, dựa trên độ khó và hạn mức còn lại.</div></div>
+              <div class="seg" style="width:300px"><button aria-pressed="true">Để app tự chọn</button><button aria-pressed="false">Ưu tiên một AI</button></div>
+            </div>
+            <div class="setting-row">
+              <div class="desc"><strong>Thứ tự ưu tiên khi các AI ngang nhau</strong><div class="small muted">Kéo để đổi thứ tự.</div></div>
+              <div class="row" style="gap:6px"><span class="pill wait">1 · Claude</span><span class="pill wait">2 · Codex</span><span class="pill wait">3 · Gemini</span></div>
+            </div>
+            <div class="setting-row">
+              <div class="desc"><strong>Nhờ AI khác kiểm tra lại bước nhạy cảm</strong><div class="small muted">Tốn thêm hạn mức, nhưng dễ phát hiện lỗi ở phần đăng nhập, thanh toán.</div></div>
+              <button class="toggle" role="switch" aria-checked="false" aria-label="Kiểm tra chéo"></button>
+            </div>
+          </div>
+
+          <details class="card">
+            <summary class="card-pad" style="cursor:pointer"><strong>Nâng cao: bậc model và ghim model</strong> <span class="small muted">— dành cho người muốn tự kiểm soát</span></summary>
+            <div style="padding:0 16px 16px" class="col">
+              <p class="small muted">App không ghi cứng tên model. Danh sách dưới đây do từng AI báo; app chỉ xếp model vào bậc <strong>Mạnh / Cân bằng / Nhanh</strong> theo file cấu hình, bản cập nhật có thể chỉnh lại.</p>
+              <table class="tbl" style="border:1px solid var(--line);border-radius:8px">
+                <thead><tr><th>AI</th><th>Model (AI báo)</th><th>Bậc</th><th>Nguồn bậc</th></tr></thead>
+                <tbody>
+                  <tr><td>Claude</td><td class="mono small">opus-5.5</td><td><select class="select" style="padding:4px 8px;width:auto"><option>Mạnh</option><option>Cân bằng</option><option>Nhanh</option></select></td><td class="small muted">Cấu hình mặc định</td></tr>
+                  <tr><td>Claude</td><td class="mono small">sonnet-5.5</td><td><select class="select" style="padding:4px 8px;width:auto"><option>Cân bằng</option></select></td><td class="small muted">Cấu hình mặc định</td></tr>
+                  <tr><td>Codex</td><td class="mono small">gpt-5.5</td><td><select class="select" style="padding:4px 8px;width:auto"><option>Mạnh</option></select></td><td class="small muted">Cấu hình mặc định</td></tr>
+                  <tr><td>Gemini</td><td class="mono small">gemini-pro</td><td><select class="select" style="padding:4px 8px;width:auto"><option>Mạnh</option></select></td><td class="small muted">Cấu hình mặc định</td></tr>
+                  <tr><td>Gemini</td><td class="mono small">gemini-flash</td><td><select class="select" style="padding:4px 8px;width:auto"><option>Nhanh</option></select></td><td class="small muted">Cấu hình mặc định</td></tr>
+                  <tr><td>Codex</td><td class="mono small">gpt-5.5-new</td><td><select class="select" style="padding:4px 8px;width:auto"><option>Chưa xếp bậc</option></select></td><td><span class="pill warn">Model mới, chưa có trong cấu hình</span></td></tr>
+                </tbody>
+              </table>
+              <div class="setting-row" style="padding:10px 0;border-top:0">
+                <div class="desc"><strong>Cho phép chế độ tự chọn model của từng AI</strong><div class="small muted">Khi bật, AI tự quyết model; app sẽ khó kiểm soát hạn mức và bậc hơn.</div></div>
+                <button class="toggle" role="switch" aria-checked="false" aria-label="Chế độ tự chọn của CLI"></button>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <!-- Hạn mức -->
+        <section data-panel="quota" class="col hidden">
+          <div class="card">
+            <div class="setting-row"><div class="desc"><strong>Cảnh báo khi một AI dùng tới</strong><div class="small muted">Từ mức này app cũng giảm ưu tiên AI đó.</div></div><select class="select" style="width:auto"><option>80%</option><option>70%</option><option>90%</option></select></div>
+            <div class="setting-row"><div class="desc"><strong>Thông báo khi một model hết hạn mức</strong></div><button class="toggle" role="switch" aria-checked="true"></button></div>
+            <div class="setting-row"><div class="desc"><strong>Hiện dòng thông báo trong chat khi app đổi AI</strong><div class="small muted">Ví dụ: “Gemini Pro đã hết hạn mức, chuyển sang Claude”.</div></div><button class="toggle" role="switch" aria-checked="true"></button></div>
+            <div class="setting-row"><div class="desc"><strong>Tự chạy tiếp khi AI được làm mới hạn mức</strong><div class="small muted">Nếu app phải tạm dừng vì hết hạn mức.</div></div><button class="toggle" role="switch" aria-checked="false"></button></div>
+          </div>
+        </section>
+
+        <!-- An toàn -->
+        <section data-panel="safety" class="col hidden">
+          <div class="card">
+            <div class="card-head eyebrow">Hỏi tôi trước khi AI…</div>
+            <div class="setting-row"><div class="desc"><strong>Xoá file</strong></div><span class="pill warn">Luôn hỏi</span></div>
+            <div class="setting-row"><div class="desc"><strong>Cài thư viện mới</strong><div class="small muted">Đang được phép tự động trong dự án “Tiệm Bánh Nhỏ”. <a href="#">Thu hồi</a></div></div><select class="select" style="width:auto"><option>Luôn hỏi</option><option>Tự cho phép theo dự án</option></select></div>
+            <div class="setting-row"><div class="desc"><strong>Chạy lệnh hoặc script lạ</strong></div><span class="pill warn">Luôn hỏi</span></div>
+            <div class="setting-row"><div class="desc"><strong>Truy cập Internet</strong></div><select class="select" style="width:auto"><option>Luôn hỏi</option><option>Tự cho phép theo dự án</option></select></div>
+          </div>
+          <div class="card">
+            <div class="card-head eyebrow">Nhãn rủi ro</div>
+            <div class="setting-row"><div class="desc"><strong>Đánh dấu thay đổi chạm vào</strong><div class="small muted">Thanh toán · Đăng nhập · Dữ liệu người dùng · File .env/khoá · Đổi cấu trúc dữ liệu · Thư viện mới · Gọi ra Internet</div></div><button class="btn sm">Tuỳ chỉnh…</button></div>
+          </div>
+          <div class="notice info small"><span class="icon">i</span><div>AI chỉ được ghi trong thư mục dự án. Mọi cố gắng ghi ra ngoài đều bị chặn và báo cho bạn.</div></div>
+        </section>
+
+        <!-- Chung -->
+        <section data-panel="general" class="col hidden">
+          <div class="card">
+            <div class="setting-row"><div class="desc"><strong>Ngôn ngữ</strong></div><select class="select" style="width:auto"><option>Tiếng Việt</option><option>English (sắp có)</option></select></div>
+            <div class="setting-row"><div class="desc"><strong>Mức xem code mặc định</strong><div class="small muted">Áp dụng khi bạn bấm “Xem code”.</div></div><div class="seg" style="width:300px"><button aria-pressed="true">Tóm tắt</button><button aria-pressed="false">Đoạn chính</button><button aria-pressed="false">Toàn bộ</button></div></div>
+            <div class="setting-row"><div class="desc"><strong>Hiện thuật ngữ kỹ thuật</strong><div class="small muted">Tắt: chỉ dùng lời thường (khuyên dùng cho người mới).</div></div><button class="toggle" role="switch" aria-checked="false"></button></div>
+            <div class="setting-row"><div class="desc"><strong>Tự mở “Xem trước” khi dự án web chạy được</strong></div><button class="toggle" role="switch" aria-checked="true"></button></div>
+          </div>
+        </section>
+
+        <!-- Cập nhật -->
+        <section data-panel="update" class="col hidden">
+          <div class="card card-pad col">
+            <div class="row" style="justify-content:space-between">
+              <div><strong>Đang dùng bản 0.1.0</strong><div class="small muted">Kiểm tra lần cuối: hôm nay 09:00</div></div>
+              <span class="pill brand">Có bản 0.2.0</span>
+            </div>
+            <div class="notice info small"><span class="icon">↑</span><div><strong>Bản 0.2.0 đã tải xong.</strong> Thêm hỗ trợ model mới, sửa lỗi đọc hạn mức của Codex. Dữ liệu của bạn được giữ nguyên và tự sao lưu trước khi nâng cấp.</div></div>
+            <div class="row"><button class="btn primary">Khởi động lại để cập nhật</button><button class="btn">Để lần sau mở app</button></div>
+          </div>
+          <div class="card">
+            <div class="setting-row"><div class="desc"><strong>Kênh cập nhật</strong><div class="small muted">Thử nghiệm: có tính năng mới sớm hơn nhưng có thể còn lỗi.</div></div><select class="select" style="width:auto"><option>Ổn định</option><option>Thử nghiệm</option></select></div>
+            <div class="setting-row"><div class="desc"><strong>Tự tải bản cập nhật</strong></div><button class="toggle" role="switch" aria-checked="true"></button></div>
+          </div>
+        </section>
+
+        <!-- Dữ liệu -->
+        <section data-panel="data" class="col hidden">
+          <div class="card">
+            <div class="setting-row"><div class="desc"><strong>Dữ liệu của app nằm ở</strong><div class="small muted mono">C:/Users/ban/AppData/Roaming/[ten-app]</div></div><button class="btn sm">Mở thư mục</button></div>
+            <div class="setting-row"><div class="desc"><strong>Sao lưu dữ liệu app</strong><div class="small muted">Lịch sử chat, nhật ký quyết định, cài đặt. Code dự án vẫn nằm trong thư mục dự án của bạn.</div></div><button class="btn sm">Sao lưu ngay</button></div>
+            <div class="setting-row"><div class="desc"><strong>Gửi số liệu sử dụng ẩn danh</strong><div class="small muted">Mặc định tắt. Không bao giờ gửi code hay nội dung chat.</div></div><button class="toggle" role="switch" aria-checked="false"></button></div>
+          </div>
+          <div class="card card-pad col">
+            <strong>Báo lỗi cho nhóm phát triển</strong>
+            <p class="small muted">App gom nhật ký lỗi, đã lọc mật khẩu, mã đăng nhập và nội dung file. Bạn xem lại toàn bộ trước khi gửi.</p>
+            <textarea class="textarea" placeholder="Mô tả ngắn chuyện gì đã xảy ra…"></textarea>
+            <div class="row"><button class="btn">Xem nội dung sẽ gửi</button><button class="btn primary">Gửi báo lỗi</button></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  document.querySelectorAll('[data-s]').forEach((b) => b.onclick = () => {
+    document.querySelectorAll('[data-s]').forEach((x) => x.setAttribute('aria-current', x === b));
+    document.querySelectorAll('[data-panel]').forEach((p) => p.classList.toggle('hidden', p.dataset.panel !== b.dataset.s));
+  });
+  document.querySelectorAll('.toggle').forEach((t) => t.onclick = () => t.setAttribute('aria-checked', t.getAttribute('aria-checked') !== 'true'));
+</script>
+</body>
+</html>
+

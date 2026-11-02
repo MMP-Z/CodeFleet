@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup giao diện — [Tên app]</title>
+<link rel="stylesheet" href="assets/styles.css">
+<script src="assets/shell.js"></script>
+</head>
+<body>
+<div class="page">
+  <div class="row">
+    <div class="logo"><div class="logo-mark" aria-hidden="true"></div><strong>[Tên app]</strong></div>
+    <span class="demo-badge">Dữ liệu minh hoạ</span>
+  </div>
+  <div class="col" style="gap:6px">
+    <h1>Mockup giao diện — bố cục C “Kết hợp”</h1>
+    <p class="muted">Dựng từ <span class="mono">PROJECT_PLAN.md</span> (mục 6, ADR-009, ADR-010) và mẫu “C · Kết hợp (đề xuất)”. Chat là mặc định, khung phải có 3 tab: Xem trước · Code của bước · Điều phối chi tiết. Tên model chỉ để minh hoạ.</p>
+  </div>
+  <div class="grid" data-gallery></div>
+
+  <div class="card card-pad col" style="gap:8px">
+    <h3>Màn hình ↔ mục trong PROJECT_PLAN</h3>
+    <table class="tbl">
+      <thead><tr><th>Màn</th><th>Mục / luật liên quan</th><th>Phase</th></tr></thead>
+      <tbody>
+        <tr><td>01 Khởi động lần đầu</td><td>6.8, B3, B6</td><td>2, 7</td></tr>
+        <tr><td>02 Chọn / tạo dự án</td><td>6.1, 6.7 (template), U2</td><td>3</td></tr>
+        <tr><td>03 Màn hình chính</td><td>6.1, 6.2, 6.3, 6.5, 6.6, 6.9</td><td>3, 4, 5</td></tr>
+        <tr><td>04 Xin phép</td><td>B5</td><td>3</td></tr>
+        <tr><td>05 Xung đột</td><td>4.7, U5</td><td>4</td></tr>
+        <tr><td>06 Tự sửa trực tiếp</td><td>6.4, 4.7</td><td>4</td></tr>
+        <tr><td>07 Hết hạn mức</td><td>4.5a, 6.6</td><td>3, 5</td></tr>
+        <tr><td>08 Chi tiết hạn mức</td><td>6.6, ADR-008, ADR-010, U3</td><td>5</td></tr>
+        <tr><td>09 Lịch sử / nhật ký / bản đồ</td><td>4.6, 6.3, 6.4</td><td>4</td></tr>
+        <tr><td>10 Plugin</td><td>6.7, B7, ADR-007</td><td>6</td></tr>
+        <tr><td>11 Cài đặt</td><td>P10, 4.4a, B5, 6.8, Phase 8</td><td>1–8</td></tr>
+        <tr><td>12 Lỗi & trạng thái trống</td><td>U2, B4, 6.5, 6.6 (unknown)</td><td>2–5</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+  const DESC = {
+    '01-khoi-dong.html': 'Phát hiện CLI đã cài / đã đăng nhập, hướng dẫn phần còn thiếu, kiểm tra git.',
+    '02-chon-du-an.html': 'Dự án gần đây, tạo mới / mở thư mục có sẵn, chọn mẫu, lỗi quyền ghi.',
+    '03-man-hinh-chinh.html': 'Chat + kế hoạch từng bước, chip hạn mức, 3 tab bên phải, 3 mức xem code, hoàn tác.',
+    '04-xin-phep.html': 'Hộp thoại xin phép bằng lời thường khi AI muốn cài thư viện / chạy lệnh.',
+    '05-xung-dot.html': 'AI muốn sửa file bạn đã tự sửa: so sánh 2 bản, chọn cách xử lý.',
+    '06-tu-sua.html': 'Sửa chữ, màu, số không cần gọi AI, xem trước trực tiếp.',
+    '07-het-han-muc.html': 'Chuỗi dự phòng khi hết hạn mức; tạm dừng, không tự hạ bậc bước nhạy cảm.',
+    '08-han-muc.html': 'Hạn mức từng CLI và từng model, phạm vi dùng chung / tính riêng, nhãn nguồn.',
+    '09-nhat-ky.html': 'Dòng thời gian điểm khôi phục, nhật ký “vì sao làm vậy”, bản đồ dự án.',
+    '10-plugin.html': 'Danh mục plugin, cài / cập nhật / gỡ, hộp thoại xin quyền, cài từ link.',
+    '11-cai-dat.html': 'AI và model (bậc, ghim), hạn mức, an toàn, chung, cập nhật, dữ liệu.',
+    '12-trang-thai-loi.html': 'Các tình huống lỗi và trạng thái trống, luôn có việc tiếp theo.'
+  };
+  document.querySelector('[data-gallery]').innerHTML = window.MOCK_SCREENS.map((s, i) => `
+    <a class="card gallery-card" href="${s[0]}">
+      <span class="num">${String(i + 1).padStart(2, '0')}</span>
+      <h3>${s[1]}</h3>
+      <span class="small muted">${DESC[s[0]] || ''}</span>
+    </a>`).join('');
+</script>
+</body>
+</html>
+

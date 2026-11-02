@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>10 · Plugin</title>
+<link rel="stylesheet" href="assets/styles.css">
+<script src="assets/shell.js"></script>
+<style>
+  .plug { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+  .plug-ico { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; flex: none; }
+  .perm { display: flex; gap: 12px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; background: var(--bg); }
+  .perm .tag { flex: none; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header data-app-header data-active="plugin"></header>
+  <div class="page">
+    <div class="row" style="justify-content:space-between;align-items:flex-end">
+      <div class="col" style="gap:4px">
+        <h1>Plugin</h1>
+        <p class="muted">Thêm AI mới, mẫu dự án, bộ hướng dẫn cho AI, hoặc kết nối công cụ. Plugin chỉ là khai báo, không chạy code tuỳ ý.</p>
+      </div>
+      <button class="btn" data-open-link>＋ Cài từ đường link</button>
+    </div>
+
+    <div class="row">
+      <div class="seg" role="tablist" style="width:auto">
+        <button aria-selected="true">Danh mục</button><button aria-selected="false">Đã cài (3)</button><button aria-selected="false">Có bản mới (1)</button>
+      </div>
+      <span class="grow"></span>
+      <select class="select" style="width:auto"><option>Mọi loại</option><option>Thêm AI</option><option>Bộ hướng dẫn</option><option>Mẫu dự án</option><option>Kết nối công cụ (MCP)</option></select>
+      <input class="input" style="width:240px" placeholder="Tìm plugin…">
+    </div>
+
+    <div class="grid">
+      <div class="card plug">
+        <div class="row" style="flex-wrap:nowrap"><div class="plug-ico" style="background:#F3E3C8;color:#7A4F00">▤</div>
+          <div class="grow"><strong>Mẫu landing page</strong><div class="small muted">Mẫu dự án · v1.0.0</div></div></div>
+        <p class="small">Trang giới thiệu một trang: banner, tính năng, bảng giá, form liên hệ.</p>
+        <div class="row small" style="gap:6px"><span class="pill brand">✓ Đã kiểm duyệt</span><span class="pill wait">Ghi vào dự án</span></div>
+        <div class="row" style="justify-content:space-between"><span class="pill ok">Đã cài</span><button class="btn sm">Gỡ</button></div>
+      </div>
+
+      <div class="card plug">
+        <div class="row" style="flex-wrap:nowrap"><div class="plug-ico" style="background:var(--primary-soft);color:var(--primary)">✦</div>
+          <div class="grow"><strong>Hướng dẫn: web bán hàng an toàn</strong><div class="small muted">Bộ hướng dẫn · v2.1.0</div></div></div>
+        <p class="small">Nhắc AI luôn kiểm tra giá ở phía máy chủ, không lưu thẻ thanh toán, đánh dấu rủi ro.</p>
+        <div class="row small" style="gap:6px"><span class="pill brand">✓ Đã kiểm duyệt</span><span class="pill wait">Đọc dự án</span></div>
+        <div class="row" style="justify-content:space-between"><span class="pill warn">Có bản 2.2.0</span><button class="btn sm primary">Cập nhật</button></div>
+      </div>
+
+      <div class="card plug" style="border-color:var(--primary)">
+        <div class="row" style="flex-wrap:nowrap"><div class="plug-ico" style="background:#E8E2F8;color:var(--gemini)">DB</div>
+          <div class="grow"><strong>Kết nối cơ sở dữ liệu (MCP)</strong><div class="small muted">Kết nối công cụ · v0.4.0</div></div></div>
+        <p class="small">Cho AI xem cấu trúc cơ sở dữ liệu trên máy bạn để viết code khớp hơn.</p>
+        <div class="row small" style="gap:6px"><span class="pill brand">✓ Đã kiểm duyệt</span><span class="pill warn">Chạy chương trình</span><span class="pill warn">Kết nối công cụ</span></div>
+        <div class="row" style="justify-content:flex-end"><button class="btn sm primary" data-open-install>Cài đặt</button></div>
+      </div>
+
+      <div class="card plug">
+        <div class="row" style="flex-wrap:nowrap"><div class="plug-ico" style="background:var(--line);color:var(--muted)">⌘</div>
+          <div class="grow"><strong>Thêm AI: [Tên CLI khác]</strong><div class="small muted">Thêm AI · v1.2.0</div></div></div>
+        <p class="small">Cho app điều phối thêm một AI dòng lệnh nói được giao thức ACP. Bạn cần tự cài AI đó.</p>
+        <div class="row small" style="gap:6px"><span class="pill brand">✓ Đã kiểm duyệt</span><span class="pill warn">Chạy chương trình</span></div>
+        <div class="row" style="justify-content:flex-end"><button class="btn sm primary">Cài đặt</button></div>
+      </div>
+
+      <div class="card plug">
+        <div class="row" style="flex-wrap:nowrap"><div class="plug-ico" style="background:var(--info-bg);color:var(--info-ink)">▦</div>
+          <div class="grow"><strong>Mẫu web bán hàng</strong><div class="small muted">Mẫu dự án · v1.3.0</div></div></div>
+        <p class="small">Trang sản phẩm, giỏ hàng, trang thanh toán giả lập để thử.</p>
+        <div class="row small" style="gap:6px"><span class="pill brand">✓ Đã kiểm duyệt</span><span class="pill wait">Ghi vào dự án</span></div>
+        <div class="row" style="justify-content:space-between"><span class="pill ok">Đã cài</span><button class="btn sm">Gỡ</button></div>
+      </div>
+
+      <div class="card plug" style="opacity:.8">
+        <div class="row" style="flex-wrap:nowrap"><div class="plug-ico" style="background:var(--danger-bg);color:var(--danger-ink)">!</div>
+          <div class="grow"><strong>Mẫu blog (lỗi)</strong><div class="small muted">Mẫu dự án · v0.9.0</div></div></div>
+        <p class="small">Plugin này không mở được: file khai báo bị hỏng. App vẫn chạy bình thường.</p>
+        <div class="row" style="justify-content:space-between"><span class="pill danger">Đã tắt tự động</span><div class="row"><button class="btn sm">Cài lại</button><button class="btn sm">Gỡ</button></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hộp thoại xin quyền cài plugin -->
+<div class="scrim" data-dlg="install">
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="pi-title">
+    <div class="dialog-head">
+      <div class="plug-ico" style="background:#E8E2F8;color:var(--gemini)">DB</div>
+      <div class="col" style="gap:4px">
+        <h2 id="pi-title">Cài “Kết nối cơ sở dữ liệu”?</h2>
+        <div class="row small" style="gap:6px"><span class="pill brand">✓ Đã kiểm duyệt</span><span class="muted">v0.4.0 · từ danh mục chính thức · kiểm tra toàn vẹn: ✓ khớp</span></div>
+      </div>
+    </div>
+    <div class="dialog-body">
+      <p>Plugin này xin các quyền sau. Bạn có thể đổi lại trong Cài đặt bất kỳ lúc nào.</p>
+      <div class="perm"><input type="checkbox" checked disabled><div class="grow"><strong>Đọc file trong dự án</strong><div class="small muted">Để biết dự án đang dùng cơ sở dữ liệu nào.</div></div><span class="tag">project:read</span></div>
+      <div class="perm"><input type="checkbox" checked><div class="grow"><strong>Chạy một chương trình trên máy</strong><div class="small muted">Khởi động bộ kết nối cơ sở dữ liệu khi AI cần.</div></div><span class="tag">process:run</span></div>
+      <div class="perm"><input type="checkbox" checked><div class="grow"><strong>Cho AI dùng công cụ này</strong><div class="small muted">AI được hỏi cấu trúc bảng, không được xoá dữ liệu.</div></div><span class="tag">mcp:connect</span></div>
+      <div class="perm" style="opacity:.6"><input type="checkbox" disabled><div class="grow"><strong>Không xin:</strong> ghi file dự án, truy cập Internet</div></div>
+      <div class="notice neutral small"><span class="icon">i</span><div>Plugin không bao giờ đọc được mật khẩu hay mã đăng nhập của bạn.</div></div>
+    </div>
+    <div class="dialog-foot"><button class="btn" data-close>Huỷ</button><button class="btn primary" data-close>Cài với các quyền đã chọn</button></div>
+  </div>
+</div>
+
+<!-- Hộp thoại cài từ link -->
+<div class="scrim hidden" data-dlg="link">
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="pl-title">
+    <div class="dialog-head"><div class="big-icon danger">!</div>
+      <div class="col" style="gap:4px"><h2 id="pl-title">Cài plugin từ đường link</h2><p class="small muted">Plugin ngoài danh mục chưa được ai kiểm duyệt.</p></div></div>
+    <div class="dialog-body">
+      <label class="field">Đường link plugin<input class="input mono" value="https://github.com/ai-do/plugin-la" style="font-size:13px"></label>
+      <div class="notice danger small"><span class="icon">!</span><div>Chỉ cài nếu bạn tin người tạo ra plugin này. App vẫn hỏi quyền trước khi cài, nhưng không đảm bảo nội dung của plugin.</div></div>
+      <label class="row small" style="gap:8px"><input type="checkbox"> Tôi hiểu rủi ro và muốn tiếp tục</label>
+    </div>
+    <div class="dialog-foot"><button class="btn" data-close>Huỷ</button><button class="btn primary" data-close>Tải và xem quyền</button></div>
+  </div>
+</div>
+<script>
+  const dlg = (n) => document.querySelector(`[data-dlg="${n}"]`);
+  document.querySelector('[data-open-install]').onclick = () => dlg('install').classList.remove('hidden');
+  document.querySelector('[data-open-link]').onclick = () => dlg('link').classList.remove('hidden');
+  document.querySelectorAll('[data-close]').forEach((b) => b.onclick = () => b.closest('.scrim').classList.add('hidden'));
+</script>
+</body>
+</html>

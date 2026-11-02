@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>04 · Xin phép hành động rủi ro</title>
+<link rel="stylesheet" href="assets/styles.css">
+<script>
+  window.MOCK_WS = {
+    step: 4, tab: 'detail',
+    stepsOverride: [
+      { id: 1, text: 'Dựng khung trang chủ: tiêu đề, banner và menu', ai: 'Claude', model: 'Sonnet 5.5', status: 'done' },
+      { id: 2, text: 'Thêm danh sách bánh có tên và giá', ai: 'Codex', model: 'GPT-5.5', status: 'done' },
+      { id: 3, text: 'Làm giỏ hàng: thêm bánh, đổi số lượng, tính tổng tiền', ai: 'Codex', model: 'GPT-5.5', status: 'done' },
+      { id: 4, text: 'Thêm đăng nhập bằng email và mật khẩu', ai: 'Claude', model: 'Opus 5.5', status: 'ask', risk: 'Liên quan đăng nhập: nên đọc kỹ' },
+      { id: 5, text: 'Chạy thử toàn bộ và sửa lỗi', ai: 'Claude', model: 'Sonnet 5.5', status: 'waiting' }
+    ],
+    tail: '<span class="pill warn">⏸ Bước 4 đang chờ bạn cho phép</span>'
+  };
+</script>
+<script src="assets/shell.js"></script>
+<script src="assets/workspace.js"></script>
+</head>
+<body>
+<div class="app">
+  <header data-app-header data-active="chat"></header>
+  <div data-workspace></div>
+</div>
+
+<div class="scrim" role="presentation">
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="ask-title">
+    <div class="dialog-head">
+      <div class="big-icon warn">!</div>
+      <div class="col" style="gap:4px">
+        <div class="row small muted" style="gap:6px"><span class="dot claude"></span>Claude · Opus 5.5 · Bước 4</div>
+        <h2 id="ask-title">AI muốn cài thêm một thư viện</h2>
+      </div>
+    </div>
+    <div class="dialog-body">
+      <p>Để làm phần đăng nhập, AI muốn tải về và cài <strong>bcrypt</strong>, một thư viện giúp cất mật khẩu người dùng an toàn (không lưu mật khẩu dạng chữ thường).</p>
+
+      <div class="card" style="overflow:hidden">
+        <div class="card-head eyebrow">Việc này sẽ làm gì</div>
+        <div class="col small" style="padding:12px 14px;gap:8px">
+          <div class="row" style="flex-wrap:nowrap;align-items:flex-start"><span class="pill warn" style="flex:none">Mạng</span><span>Tải thư viện từ kho npm trên Internet.</span></div>
+          <div class="row" style="flex-wrap:nowrap;align-items:flex-start"><span class="pill warn" style="flex:none">Chạy lệnh</span><span>Chạy lệnh cài trong thư mục dự án <span class="mono">Documents/tiem-banh</span>.</span></div>
+          <div class="row" style="flex-wrap:nowrap;align-items:flex-start"><span class="pill run" style="flex:none">Sửa file</span><span>Thêm 1 dòng vào <span class="mono">package.json</span>.</span></div>
+        </div>
+      </div>
+
+      <details>
+        <summary class="small" style="cursor:pointer;color:var(--primary)">Xem lệnh chính xác (dành cho người muốn xem sâu)</summary>
+        <div class="code" style="margin-top:8px"><div class="ln"><span class="s">$</span><span class="t">npm install bcrypt</span></div></div>
+      </details>
+
+      <div class="notice neutral small">
+        <span class="icon">i</span>
+        <div>Thư viện phổ biến, được dùng rộng rãi. App đã tạo điểm khôi phục trước bước này: nếu có gì sai, bạn hoàn tác được ngay.</div>
+      </div>
+
+      <label class="row small" style="gap:8px"><input type="checkbox"> Luôn cho phép cài thư viện trong dự án này</label>
+    </div>
+    <div class="dialog-foot">
+      <button class="btn">Không cho phép</button>
+      <button class="btn">Hỏi AI cách khác</button>
+      <a class="btn primary" href="03-man-hinh-chinh.html">Cho phép lần này</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+

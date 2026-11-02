@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>05 · Xung đột với phần bạn tự sửa</title>
+<link rel="stylesheet" href="assets/styles.css">
+<script>
+  window.MOCK_WS = {
+    step: 5, tab: 'code', running: false,
+    stepsOverride: [
+      { id: 1, text: 'Dựng khung trang chủ: tiêu đề, banner và menu', ai: 'Claude', model: 'Sonnet 5.5', status: 'done' },
+      { id: 2, text: 'Thêm danh sách bánh có tên và giá', ai: 'Codex', model: 'GPT-5.5', status: 'done' },
+      { id: 3, text: 'Làm giỏ hàng: thêm bánh, đổi số lượng, tính tổng tiền', ai: 'Codex', model: 'GPT-5.5', status: 'done' },
+      { id: 4, text: 'Thêm đăng nhập bằng email và mật khẩu', ai: 'Claude', model: 'Opus 5.5', status: 'done', risk: 'Liên quan đăng nhập: nên đọc kỹ' },
+      { id: 5, text: 'Chạy thử toàn bộ và sửa lỗi', ai: 'Claude', model: 'Sonnet 5.5', status: 'conflict', note: '1 file cần bạn xác nhận' }
+    ],
+    systemLine: '',
+    tail: '<span class="pill warn">Bước 5 tạm dừng: AI muốn sửa một file bạn vừa tự sửa</span>'
+  };
+</script>
+<script src="assets/shell.js"></script>
+<script src="assets/workspace.js"></script>
+</head>
+<body>
+<div class="app">
+  <header data-app-header data-active="chat"></header>
+  <div data-workspace></div>
+</div>
+
+<div class="scrim" role="presentation">
+  <div class="dialog wide" role="dialog" aria-modal="true" aria-labelledby="cf-title">
+    <div class="dialog-head">
+      <div class="big-icon warn">⇄</div>
+      <div class="col" style="gap:4px">
+        <div class="row small muted" style="gap:6px"><span class="dot claude"></span>Claude · Sonnet 5.5 · Bước 5</div>
+        <h2 id="cf-title">AI muốn sửa <span class="mono">products.js</span>, nhưng bạn đã tự sửa file này</h2>
+        <p class="small muted">Bạn sửa lúc 21:02 (đổi giá Bánh su kem). App không tự ghi đè phần bạn sửa. Hãy chọn cách xử lý.</p>
+      </div>
+    </div>
+    <div class="dialog-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="col" style="gap:6px">
+          <div class="row" style="justify-content:space-between"><strong class="small">Bản của bạn (hiện tại)</strong><span class="pill brand">Bạn sửa</span></div>
+          <div class="code">
+            <div class="ln"><span class="g">1</span><span class="t">const cakes = [</span></div>
+            <div class="ln"><span class="g">2</span><span class="t">  { id: 1, name: 'Bánh mì bơ tỏi', price: 25000 },</span></div>
+            <div class="ln mark"><span class="g">3</span><span class="t">  { id: 2, name: 'Bánh su kem', price: 20000 },</span></div>
+            <div class="ln"><span class="g">4</span><span class="t">  { id: 3, name: 'Tart trứng', price: 22000 },</span></div>
+            <div class="ln"><span class="g">5</span><span class="t">];</span></div>
+          </div>
+        </div>
+        <div class="col" style="gap:6px">
+          <div class="row" style="justify-content:space-between"><strong class="small">Bản AI muốn ghi</strong><span class="pill run">AI đề xuất</span></div>
+          <div class="code">
+            <div class="ln"><span class="g">1</span><span class="t">const cakes = [</span></div>
+            <div class="ln"><span class="g">2</span><span class="t">  { id: 1, name: 'Bánh mì bơ tỏi', price: 25000 },</span></div>
+            <div class="ln del"><span class="g">3</span><span class="t">  { id: 2, name: 'Bánh su kem', price: 18000 },</span></div>
+            <div class="ln"><span class="g">4</span><span class="t">  { id: 3, name: 'Tart trứng', price: 22000 },</span></div>
+            <div class="ln add"><span class="g">5</span><span class="t">  { id: 4, name: 'Bánh croissant', price: 30000 },</span></div>
+            <div class="ln"><span class="g">6</span><span class="t">];</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="notice info small">
+        <span class="icon">i</span>
+        <div><strong>Nói đơn giản:</strong> AI muốn thêm bánh croissant. Nhưng bản của AI vẫn dùng giá cũ 18.000đ cho Bánh su kem, trong khi bạn đã đổi thành 20.000đ.</div>
+      </div>
+
+      <div class="col" style="gap:8px">
+        <label class="card card-pad row" style="flex-wrap:nowrap;align-items:flex-start;border:2px solid var(--primary);background:var(--primary-row)">
+          <input type="radio" name="cf" checked style="margin-top:4px">
+          <div><strong>Giữ phần tôi sửa, nhờ AI thêm lại phần của nó</strong> <span class="pill ok">Khuyên dùng</span>
+            <div class="small muted">AI làm lại, giữ giá 20.000đ của bạn và chỉ thêm croissant.</div></div>
+        </label>
+        <label class="card card-pad row" style="flex-wrap:nowrap;align-items:flex-start">
+          <input type="radio" name="cf" style="margin-top:4px">
+          <div><strong>Giữ nguyên bản của tôi</strong><div class="small muted">Bỏ thay đổi của AI cho file này. Các file khác của bước 5 vẫn giữ.</div></div>
+        </label>
+        <label class="card card-pad row" style="flex-wrap:nowrap;align-items:flex-start">
+          <input type="radio" name="cf" style="margin-top:4px">
+          <div><strong>Dùng bản của AI</strong><div class="small muted">Phần bạn sửa sẽ mất. Vẫn có thể hoàn tác sau.</div></div>
+        </label>
+      </div>
+    </div>
+    <div class="dialog-foot">
+      <button class="btn">Để sau, tạm dừng bước này</button>
+      <a class="btn primary" href="03-man-hinh-chinh.html">Xác nhận</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+

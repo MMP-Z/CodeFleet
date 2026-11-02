@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>07 · Hết hạn mức / chuyển AI</title>
+<link rel="stylesheet" href="assets/styles.css">
+<script>
+  window.MOCK_QUOTA = {
+    Claude: {
+      cls: 'claude', state: 'out', text: 'Đã hết',
+      sourceLabel: 'Số liệu từ CLI (chính thức)', sourceCls: 'ok',
+      windows: [{ label: '5 giờ', p: 100, reset: 'Làm mới lúc 22:40' }, { label: 'Tuần', p: 71, reset: 'Làm mới Thứ Hai' }],
+      scope: 'Dùng chung cho mọi model của Claude.',
+      note: 'Cửa sổ 5 giờ đã hết. App sẽ dùng lại Claude sau 22:40.'
+    },
+    Codex: {
+      cls: 'codex', state: 'out', text: 'Đã hết hạn mức',
+      sourceLabel: 'Đã phát hiện khi CLI báo', sourceCls: 'danger',
+      windows: [{ label: '5 giờ', p: 100, reset: 'Làm mới khoảng 23:15 (CLI báo)' }],
+      scope: 'Chưa rõ có tách theo model hay không, app tạm coi là dùng chung.',
+      note: 'CLI báo hết hạn mức lúc 21:18.'
+    },
+    Gemini: {
+      cls: 'gemini', state: 'low', text: 'Pro hết · Flash 23%',
+      sourceLabel: 'Pro: đã phát hiện · Flash: ước lượng', sourceCls: 'warn',
+      windows: [{ label: 'Pro · ngày', p: 100, reset: 'Làm mới lúc 00:00' }, { label: 'Flash · ngày', p: 23, reset: 'Làm mới lúc 00:00 (ước lượng)' }],
+      scope: 'Tính riêng từng model: Pro hết, Flash còn.',
+      note: 'Flash thuộc bậc nhanh, không đủ cho bước nhạy cảm.'
+    }
+  };
+  window.MOCK_WS = {
+    step: 4, tab: 'detail', running: false,
+    stepsOverride: [
+      { id: 1, text: 'Dựng khung trang chủ: tiêu đề, banner và menu', ai: 'Claude', model: 'Sonnet 5.5', status: 'done' },
+      { id: 2, text: 'Thêm danh sách bánh có tên và giá', ai: 'Codex', model: 'GPT-5.5', status: 'done' },
+      { id: 3, text: 'Làm giỏ hàng: thêm bánh, đổi số lượng, tính tổng tiền', ai: 'Codex', model: 'GPT-5.5', status: 'done' },
+      { id: 4, text: 'Thêm đăng nhập bằng email và mật khẩu', ai: 'Claude', model: 'Opus 5.5', status: 'paused', note: 'Claude hết hạn mức giữa chừng, đã quay về điểm đầu bước', risk: 'Liên quan đăng nhập: nên đọc kỹ' },
+      { id: 5, text: 'Chạy thử toàn bộ và sửa lỗi', ai: 'Claude', model: 'Sonnet 5.5', status: 'waiting' }
+    ],
+    systemLine: 'Claude Opus 5.5 hết hạn mức giữa bước 4. Codex cũng đã hết. App thử Gemini: Pro hết, Flash còn nhưng không đủ mạnh cho phần đăng nhập.',
+    tail: '',
+    reasons: [
+      ['Bước 4 → Claude · Opus 5.5 (lần 1)', 'Gemini Pro hết hạn mức; Flash thuộc bậc nhanh nên bỏ qua. Chọn Claude Opus 5.5.'],
+      ['Bước 4 → thử model khác của Claude', 'Claude dùng chung một hạn mức cho mọi model, nên Sonnet cũng hết theo.'],
+      ['Bước 4 → thử AI khác', 'Codex đã hết. Gemini Pro hết. Gemini Flash còn nhưng bước có nhãn rủi ro cao, không hạ bậc.'],
+      ['Kết luận', 'Không còn ô (AI, model) đủ bậc. Tạm dừng, báo giờ làm mới sớm nhất: 22:40 (Claude).']
+    ],
+    log: [
+      ['21:10:02', 'Claude', 'Đang làm bước 4: đăng nhập (Opus 5.5)'],
+      ['21:18:05', 'Codex', 'Báo hết hạn mức (đang làm việc khác), làm mới ~23:15'],
+      ['21:24:37', 'Claude', 'Báo hết hạn mức cửa sổ 5 giờ, làm mới 22:40'],
+      ['21:24:38', 'Điều phối', 'Khôi phục file về điểm đầu bước 4'],
+      ['21:24:38', 'Điều phối', 'Claude dùng chung hạn mức: loại cả Claude'],
+      ['21:24:39', 'Điều phối', 'Codex đã hết từ 21:18: bỏ qua'],
+      ['21:24:39', 'Điều phối', 'Gemini Pro hết; Flash bậc nhanh, bước rủi ro cao: bỏ qua'],
+      ['21:24:40', 'Điều phối', 'Tạm dừng bước 4, chờ người dùng chọn']
+    ],
+    extraChat: `
+      <div class="card" style="border-color:var(--warn-border);overflow:hidden">
+        <div class="row" style="padding:12px 14px;background:var(--warn-bg);color:var(--warn-ink)"><strong>⏸ Tạm dừng: chưa có AI đủ mạnh cho bước 4</strong></div>
+        <div class="col" style="padding:14px;gap:12px">
+          <p>Bước 4 làm phần đăng nhập nên app <strong>không tự hạ</strong> xuống model nhanh. File của bạn đã được khôi phục về lúc đầu bước 4, không có gì dở dang.</p>
+          <div class="col small" style="gap:6px">
+            <div class="row" style="justify-content:space-between"><span class="row" style="gap:6px"><span class="dot claude"></span>Claude (mọi model)</span><span class="pill danger">Hết · làm mới 22:40</span></div>
+            <div class="row" style="justify-content:space-between"><span class="row" style="gap:6px"><span class="dot codex"></span>Codex</span><span class="pill danger">Hết · làm mới ~23:15</span></div>
+            <div class="row" style="justify-content:space-between"><span class="row" style="gap:6px"><span class="dot gemini"></span>Gemini Pro</span><span class="pill danger">Hết · làm mới 00:00</span></div>
+            <div class="row" style="justify-content:space-between"><span class="row" style="gap:6px"><span class="dot gemini"></span>Gemini Flash</span><span class="pill warn">Còn 77% · bậc nhanh</span></div>
+          </div>
+          <div class="eyebrow">Bạn có thể</div>
+          <div class="col" style="gap:8px">
+            <button class="btn primary" style="justify-content:flex-start">⏰ Tự chạy tiếp lúc 22:40 khi Claude được làm mới <span class="small" style="font-weight:400;opacity:.85">(sớm nhất)</span></button>
+            <button class="btn" style="justify-content:flex-start">Làm bước 5 trước bằng Gemini Flash (bước này ít rủi ro)</button>
+            <button class="btn" style="justify-content:flex-start">Vẫn dùng Gemini Flash cho bước 4 <span class="pill warn" style="margin-left:6px">Không khuyên dùng</span></button>
+          </div>
+        </div>
+      </div>`
+  };
+</script>
+<script src="assets/shell.js"></script>
+<script src="assets/workspace.js"></script>
+<style>
+  .toast { position: fixed; right: 20px; bottom: 20px; width: 360px; max-width: calc(100% - 40px); z-index: 40; background: var(--surface); border: 1px solid var(--warn-border); border-left: 4px solid var(--bar-low); border-radius: 10px; box-shadow: var(--shadow-pop); padding: 12px 14px; display: flex; gap: 10px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header data-app-header data-active="chat" data-open-quota="Claude"></header>
+  <div data-workspace></div>
+</div>
+
+<div class="toast" role="status">
+  <div class="col" style="gap:4px;flex:1">
+    <strong class="small">Claude đã hết hạn mức 5 giờ</strong>
+    <span class="small">App đã tạm dừng bước 4 và quay về điểm đầu bước. Claude được làm mới lúc 22:40.</span>
+    <div class="row small"><a href="08-han-muc.html">Xem hạn mức</a><button class="btn sm ghost" onclick="this.closest('.toast').remove()">Đã hiểu</button></div>
+  </div>
+</div>
+</body>
+</html>
+
