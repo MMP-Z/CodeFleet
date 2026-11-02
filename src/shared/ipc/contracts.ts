@@ -21,6 +21,9 @@ import {
   type AppSettingsMap,
   type SettingKey,
 } from '../settings';
+import type { OrchestrationLogEntry, StepCodeVM, StepUiStatus } from '../vm';
+
+export type { OrchestrationLogEntry, StepCodeVM, StepUiStatus };
 
 /**
  * Hợp đồng IPC có kiểu + Zod schema cho cả dữ liệu vào và ra (Luật P3, UI_SPEC mục 7).

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { ProjectRecord } from '@shared/ipc';
 import { AppHeader, type NavRoute } from './components/AppHeader';
 import { ToastProvider } from './components/Toast';
+import { ChatPage } from './features/chat/ChatPage';
 import { DevComponentsPage } from './features/dev/DevComponentsPage';
 import { OnboardingPage } from './features/onboarding/OnboardingPage';
 import { ProjectSelectModal } from './features/projects/ProjectSelectModal';
@@ -141,8 +142,7 @@ export function App(): React.JSX.Element {
           ) : route === 'projects' || !currentProject ? (
             <ProjectSelectPage onProjectSelected={handleProjectSelected} />
           ) : (
-            /* Tạm thời hiển thị ProjectSelectPage hoặc placeholder cho đến khi ghép ChatPage ở Commit 5 */
-            <ProjectSelectPage onProjectSelected={handleProjectSelected} />
+            <ChatPage project={currentProject} />
           )}
         </main>
 

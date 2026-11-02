@@ -111,6 +111,85 @@
     "dialogSwitchTitle": "Đổi dự án đang làm việc",
     "dialogSwitchClose": "Đóng"
   },
+  "mh03": {
+    "planTitle": "KẾ HOẠCH",
+    "planProgress": "{done} / {total} bước xong",
+    "stepNumber": "Bước {seq}",
+    "stepRiskLabel": "Rủi ro cao: nên đọc kỹ",
+    "viewCode": "Xem code",
+    "codeNotRunNotice": "Bước này chưa chạy. Khi AI làm xong, phần code sẽ hiện ở đây.",
+    "codePlaceholder": "Phần xem code chi tiết sẽ có đầy đủ ở Phase 4.",
+    "previewPlaceholder": "Phần xem trước trang sẽ có đầy đủ ở Phase 4.",
+    "tabs": {
+      "ariaLabel": "Khung bên phải",
+      "preview": "Xem trước",
+      "code": "Code của bước",
+      "detail": "Điều phối chi tiết",
+      "collapse": "⇥ Thu gọn",
+      "expand": "⇤ Mở khung phải",
+      "collapseAria": "Thu gọn khung bên phải",
+      "expandAria": "Mở khung bên phải"
+    },
+    "composer": {
+      "placeholder": "Nhập yêu cầu tiếp theo…",
+      "ariaLabel": "Nhập yêu cầu tiếp theo",
+      "send": "Gửi",
+      "stop": "■ Dừng",
+      "aiLabel": "AI làm việc:",
+      "aiAria": "Chọn AI",
+      "autoPick": "Để app tự chọn (khuyên dùng)",
+      "pinAgent": "Ghim {name}",
+      "pinAgentModel": "Ghim AI + model… (Nâng cao)",
+      "undoableGuarantee": "Mọi thay đổi đều hoàn tác được."
+    },
+    "status": {
+      "done": "Xong",
+      "running": "Đang làm",
+      "pending": "Chờ",
+      "paused": "Tạm dừng",
+      "failed": "Chưa làm được",
+      "ask": "Đang chờ bạn cho phép",
+      "undone": "Đã hoàn tác"
+    },
+    "empty": {
+      "title": "Bạn muốn làm gì hôm nay?",
+      "description": "Mô tả bằng lời thường, càng cụ thể càng tốt. App sẽ chia việc và chọn AI giúp bạn.",
+      "prompt1": "Làm cho tôi trang landing đơn giản",
+      "prompt2": "Thêm form liên hệ gửi về email",
+      "prompt3": "Giải thích dự án này đang có gì"
+    },
+    "detail": {
+      "reasonsTitle": "VÌ SAO APP CHỌN AI VÀ MODEL NÀY",
+      "logTitle": "NHẬT KÝ TRỰC TIẾP",
+      "emptyReasons": "Chưa có quyết định điều phối nào trong hội thoại này.",
+      "emptyLog": "Chưa có dòng nhật ký nào.",
+      "hint": "Mặc định thẻ này ẩn sau tab. Người mới không cần mở, người muốn xem sâu thì bấm vào."
+    }
+  },
+  "mh04": {
+    "stepContext": "{agent} · {model} · Bước {seq}",
+    "titleAction": "AI muốn {action}",
+    "whatItDoes": "Việc này sẽ làm gì",
+    "tagNetwork": "Mạng",
+    "tagCommand": "Chạy lệnh",
+    "tagFile": "Sửa file",
+    "exactCommand": "Xem lệnh chính xác (dành cho người muốn xem sâu)",
+    "safeGuarantee": "App đã tạo điểm khôi phục trước bước này: nếu có gì sai, bạn hoàn tác được ngay.",
+    "deny": "Không cho phép",
+    "allowOnce": "Cho phép lần này"
+  },
+  "mh07": {
+    "title": "⏸ Tạm dừng: chưa có AI đủ mạnh cho bước {seq}",
+    "explanation": "Bước {seq} làm phần nhạy cảm nên app không tự hạ xuống model nhanh. File của bạn đã được khôi phục về lúc đầu bước {seq}, không có gì dở dang.",
+    "statusExhausted": "Hết · làm mới {time}",
+    "statusAvailableFast": "Còn {percent}% · bậc nhanh",
+    "earliestResetHint": "Bạn có thể quay lại sau {time} (giờ làm mới sớm nhất của {agent}) để chạy tiếp.",
+    "youCan": "Bạn có thể",
+    "retryStep": "↻ Thử lại bước này",
+    "pinOther": "Ghim AI khác…",
+    "useFastModel": "Vẫn dùng model nhanh cho bước {seq}",
+    "notRecommended": "Không khuyên dùng"
+  },
   "mh11": {
     "title": "Cài đặt",
     "navAria": "Mục cài đặt",
