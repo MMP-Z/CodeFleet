@@ -1,8 +1,8 @@
 # KẾ HOẠCH TRIỂN KHAI — Ứng dụng chat "vibe code có hiểu"
 
-> **Phiên bản tài liệu:** 0.6
+> **Phiên bản tài liệu:** 0.7
 > **Cập nhật lần cuối:** 2026-11-02
-> **Giai đoạn hiện tại:** Phase 0 — Xong (chờ chuyển sang Phase 1)
+> **Giai đoạn hiện tại:** Phase 1 — Khung dự án (Đang làm)
 > **Tên ứng dụng:** CodeFleet (xem ADR-011)
 
 ---
@@ -519,7 +519,7 @@ Ký hiệu: `Chưa bắt đầu` / `Đang làm` / `Xong` / `Tạm dừng`
 | Phase | Tên | Trạng thái | Bắt đầu | Kết thúc |
 |---|---|---|---|---|
 | 0 | Spike và xác minh | Xong | 2026-11-02 | 2026-11-02 |
-| 1 | Khung dự án | Chưa bắt đầu | — | — |
+| 1 | Khung dự án | Đang làm | 2026-11-02 | — |
 | 2 | Kết nối CLI | Chưa bắt đầu | — | — |
 | 3 | Chat và điều phối cơ bản | Chưa bắt đầu | — | — |
 | 4 | Xem code và lưới an toàn | Chưa bắt đầu | — | — |
@@ -567,9 +567,9 @@ Ký hiệu: `Chưa bắt đầu` / `Đang làm` / `Xong` / `Tạm dừng`
 ### Phase 1 — Khung dự án
 **Mục tiêu:** có app Electron chạy được với nền móng vững.
 
-- [ ] Khởi tạo repo, pnpm, electron-vite, React, Tailwind, TypeScript strict.
-- [ ] ESLint, Prettier, Vitest, hook kiểm tra trước commit.
-- [ ] Cấu hình bảo mật Electron theo B1 (contextIsolation, sandbox, CSP).
+- [x] Khởi tạo repo, pnpm, electron-vite, React, Tailwind, TypeScript strict.
+- [x] ESLint, Prettier, Vitest, hook kiểm tra trước commit.
+- [x] Cấu hình bảo mật Electron theo B1 (contextIsolation, sandbox, CSP).
 - [ ] IPC có kiểu + zod, một ví dụ hoàn chỉnh từ renderer tới main.
 - [ ] SQLite: `better-sqlite3`, WAL, migration 001 (mục 5), cơ chế sao lưu trước migration.
 - [ ] Hệ thống log (có lọc dữ liệu nhạy cảm theo P9), màn hình cài đặt cơ bản.
@@ -579,8 +579,8 @@ Ký hiệu: `Chưa bắt đầu` / `Đang làm` / `Xong` / `Tạm dừng`
 **Tiêu chí thoát:** `pnpm dev` và `pnpm build` chạy trên cả hai hệ điều hành; CI xanh; DB tạo và migrate đúng; test IPC qua.
 
 **Ghi chú giai đoạn**
-- Ngày bắt đầu: —
-- Quyết định trong giai đoạn: —
+- Ngày bắt đầu: 2026-11-02 (mục tiêu: dựng khung `electron-vite` + React + Tailwind tokens + font đóng gói + i18n + bảo mật B1 + SQLite WAL/Migration 001 + IPC `zod` + `AppHeader` + khung MH-11 + CI Win/macOS).
+- Quyết định trong giai đoạn: Đóng gói font `Be Vietnam Pro` và `JetBrains Mono` qua `@fontsource/*` để chạy offline và khớp chặt CSP `font-src 'self' data:`; dùng Tailwind v3.4 để khai báo trực tiếp toàn bộ bảng design tokens trong `tailwind.config.ts`.
 - Vấn đề gặp phải: —
 - Việc bị hoãn / ý tưởng mới: —
 - Ghi chú kết thúc: —
@@ -896,6 +896,7 @@ Ghi nguồn (đường dẫn tài liệu, ngày kiểm tra) cho mỗi ô đã đ
 
 | Ngày | Phiên bản TL | Người/AI | Thay đổi | Lý do |
 |---|---|---|---|---|
+| 2026-11-02 | 0.7 | Antigravity (AI) | Bắt đầu Phase 1: khởi tạo workspace `electron-vite` + React 19 + TypeScript `strict` (cấm `any`), Tailwind design tokens mục 2, font đóng gói offline (`Be Vietnam Pro`, `JetBrains Mono`), ESLint + Prettier + Vitest + pre-commit hook, và cấu hình bảo mật cửa sổ Electron theo Luật B1 (`window-security.ts` + test) | Chủ dự án xác nhận triển khai Phase 1 — Khung dự án |
 | 2026-11-02 | 0.6 | Antigravity (AI) | Hoàn thành Phase 0: chạy thành công 4 bộ spike trong `spikes/` (kho git bóng, SQLite+Electron 45, ACP SDK v2.2.0, parser fixture 3 CLI); điền đầy đủ bảng xác minh 3 CLI, kết quả kiểm chứng cục bộ Windows (9.1) và yêu cầu ký số (9.2); bổ sung ADR-018 (đọc hạn mức thụ động 0 token); đồng bộ `UI_SPEC.md` v0.3 và mockup `08-han-muc.html` | Đạt toàn bộ tiêu chí thoát Phase 0 để sẵn sàng sang Phase 1 (ghi nhận nợ kiểm chứng chạy binary trực tiếp 3 CLI vào đầu Phase 2) |
 | 2026-11-02 | 0.5 | Antigravity (AI) | Bắt đầu Phase 0; chốt tên ứng dụng **CodeFleet** + ưu tiên Windows trước (ADR-011) và toàn bộ câu hỏi Q1–Q12 của `UI_SPEC.md` (ADR-012 → ADR-017); cập nhật schema mục 5 (`steps.status`, `decisions.kind`, `project_map`), mục 7, 8, 12 | Chủ dự án xác nhận phạm vi Phase 0, tên app và phương án đề xuất cho Q1–Q12 |
 | 2026-11-02 | 0.4 | Antigravity (AI) | Thêm `UI_SPEC.md` (đặc tả 12 màn, tokens, trạng thái, view model, IPC dự kiến, 12 câu hỏi UI cần chốt) và `PROMPT_TRIEN_KHAI.md` (prompt theo phase); thêm tham chiếu ở mục 0; sửa 3 chỗ chưa khớp trong mockup (màn 07: thông báo và nhật ký điều phối; màn 08: câu về đọc hạn mức chuyển thành giữ chỗ) | Để AI khác triển khai từ mockup ra kết quả nhất quán |

@@ -1,0 +1,9 @@
+out/
+dist/
+release/
+build/
+coverage/
+node_modules/
+spikes/
+Document/
+pnpm-lock.yaml

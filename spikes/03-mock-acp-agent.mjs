@@ -111,3 +111,4 @@ const mockAgent = agent({ name: 'mock-acp-cli' })
 
 const stream = ndJsonStream(Writable.toWeb(process.stdout), Readable.toWeb(process.stdin));
 mockAgent.connect(stream);
+

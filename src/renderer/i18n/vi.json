@@ -1,0 +1,13 @@
+{
+  "app": {
+    "header": {
+      "navAria": "Điều hướng ứng dụng",
+      "settings": "Cài đặt",
+      "devComponents": "Thành phần UI (Dev)"
+    }
+  },
+  "mh11": {
+    "title": "Cài đặt",
+    "loading": "Đang tải cài đặt…"
+  }
+}

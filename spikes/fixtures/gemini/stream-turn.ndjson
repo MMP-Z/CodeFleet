@@ -1,3 +1,4 @@
 {"type":"init","timestamp":"2026-11-02T09:00:00.000Z","session_id":"sess_gem_stream_01","model":"gemini-2.5-flash"}
 {"type":"message","role":"assistant","content":"Đã cập nhật giao diện danh sách bánh.","delta":true}
 {"type":"result","status":"success","stats":{"total_tokens":1640,"input_tokens":1320,"output_tokens":320,"duration_ms":2150}}
+

@@ -19,3 +19,4 @@
   - `acp-session-updates.ndjson`: luồng thông báo `session/update` chuẩn ACP v1 từ `gemini --acp`.
   - `stream-turn.ndjson`: luồng sự kiện từ `gemini -p "..." --output-format stream-json`.
   - `rate-limit-429.json`: lỗi `429 RESOURCE_EXHAUSTED` theo model riêng lẻ (Quota tầng C).
+
