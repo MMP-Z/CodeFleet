@@ -1,8 +1,8 @@
 # ĐẶC TẢ GIAO DIỆN (UI_SPEC)
 
-> **Phiên bản:** 0.3
+> **Phiên bản:** 0.4
 > **Cập nhật lần cuối:** 2026-11-02
-> **Đi kèm:** `PROJECT_PLAN.md` (v0.6) và bộ mockup `Document/UI_Mockups/`
+> **Đi kèm:** `PROJECT_PLAN.md` (v0.9) và bộ mockup `Document/UI_Mockups/`
 
 ---
 
@@ -539,7 +539,8 @@ Mọi kênh: dữ liệu vào/ra có zod schema trong `src/shared/ipc/`. Tên d�
 | `ask.explainSelection` | invoke | 03 | 4 |
 | `quota.getAll` / `quota.refresh` / `quota.onUpdate` | invoke + sự kiện | header, 07, 08 | 5 |
 | `plugins.catalog` / `plugins.installed` / `plugins.install` / `plugins.update` / `plugins.uninstall` | invoke | 10 | 6 |
-| `settings.get` / `settings.set` | invoke | 11 | 1 |
+| `settings.get` / `settings.getAll` / `settings.set` | invoke | 11 | 1 |
+| `system.getDataInfo` / `system.openDataDir` / `system.backupNow` | invoke | 11 | 1 |
 | `update.status` / `update.restart` | invoke | 11 | 7 |
 | `feedback.preview` / `feedback.send` | invoke | 11 | 8 |
 
@@ -585,6 +586,7 @@ Mọi kênh: dữ liệu vào/ra có zod schema trong `src/shared/ipc/`. Tên d�
 
 | Ngày | Phiên bản | Người/AI | Thay đổi |
 |---|---|---|---|
+| 2026-11-02 | 0.4 | Antigravity (AI) | Cập nhật bảng kênh IPC mục 7 cho Phase 1: bổ sung `settings.getAll`, `system.getDataInfo`, `system.openDataDir`, `system.backupNow` khớp với `src/shared/ipc/contracts.ts` |
 | 2026-11-02 | 0.3 | Antigravity (AI) | Xác nhận câu "Đọc hạn mức không tốn hạn mức của bạn" ở MH-08 là đúng theo kết quả Phase 0 và ADR-018 (đọc thụ động 0 token LLM); đồng bộ tham chiếu `PROJECT_PLAN.md` v0.6 |
 | 2026-11-02 | 0.2 | Antigravity (AI) | Cập nhật tên app **CodeFleet** (G10, ADR-011) và chốt toàn bộ Q1–Q12 theo quyết định của chủ dự án (ADR-012 → ADR-017); gạch các dòng mục 8 và sửa các ô `[CHƯA CHỐT]` liên quan |
 | 2026-11-02 | 0.1 | Antigravity (AI) | Tạo tài liệu: nguyên tắc, tokens, ánh xạ trạng thái, thành phần, đặc tả 12 màn, view model, IPC dự kiến, 12 câu hỏi cần chốt, ánh xạ phase |
