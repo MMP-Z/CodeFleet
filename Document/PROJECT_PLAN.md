@@ -671,23 +671,41 @@ Ký hiệu: `Chưa bắt đầu` / `Đang làm` / `Xong` / `Tạm dừng`
 ### Phase 4 — Xem code và lưới an toàn
 **Mục tiêu:** người dùng hiểu và kiểm soát được những gì AI làm.
 
-- [ ] Khung xem code 3 mức (mục 6.2), chọn Monaco hoặc CodeMirror (ghi ADR).
-- [ ] Diff theo bước, danh sách file đã đổi.
-- [ ] Nhãn rủi ro (mục 6.3), cấu hình được.
-- [ ] Chú thích code, hỏi "đoạn này làm gì?", bản đồ dự án.
-- [ ] Checkpoint bằng git bóng + nút hoàn tác từng bước (mục 4.6).
-- [ ] Tự sửa trực tiếp + bảo vệ không ghi đè (mục 4.7), xử lý xung đột.
-- [ ] Nhật ký quyết định hiển thị và lưu DB.
-- [ ] Xem trước dự án web (mục 6.5).
+- [x] Khung xem code 3 mức (mục 6.2), chọn Monaco hoặc CodeMirror (ghi ADR).
+- [x] Diff theo bước, danh sách file đã đổi.
+- [x] Nhãn rủi ro (mục 6.3), cấu hình được.
+- [x] Chú thích code, hỏi "đoạn này làm gì?", bản đồ dự án.
+- [x] Checkpoint bằng git bóng + nút hoàn tác từng bước (mục 4.6).
+- [x] Tự sửa trực tiếp + bảo vệ không ghi đè (mục 4.7), xử lý xung đột.
+- [x] Nhật ký quyết định hiển thị và lưu DB.
+- [x] Xem trước dự án web (mục 6.5).
 
 **Tiêu chí thoát:** hoàn tác được bất kỳ bước nào mà không làm hỏng dự án; sửa tay một file rồi AI không ghi đè mà báo xung đột; mức "Tóm tắt/Đoạn chính/Toàn bộ" hoạt động; dự án có sẵn git của người dùng không bị đụng tới.
 
 **Ghi chú giai đoạn**
-- Ngày bắt đầu: —
-- Quyết định trong giai đoạn: —
-- Vấn đề gặp phải: —
-- Việc bị hoãn / ý tưởng mới: —
-- Ghi chú kết thúc: —
+- Ngày bắt đầu: 2026-11-02 (mục tiêu: triển khai toàn diện kho git bóng, hoàn tác từng bước, xem code 3 mức, xem trước web an toàn, tự sửa trực tiếp và giải quyết xung đột MH-05, MH-06, MH-09).
+- Quyết định trong giai đoạn:
+  1. Chốt ADR-020: Chọn CodeMirror 6 cho trình xem code 3 mức và diff trực quan vì tính gọn nhẹ (~400KB), chạy offline không cần worker ngoài, tương thích tuyệt đối CSP và sandbox.
+  2. Chốt ADR-021: Nhúng tab Xem trước bằng `iframe` sandbox độc lập `sandbox="allow-scripts allow-forms allow-same-origin"` kết nối qua `PreviewServerService` cục bộ ngẫu nhiên `127.0.0.1:0` có chặn path traversal, cô lập 100% khỏi `window.codefleet`.
+  3. Chốt ADR-022: Nhận diện và sửa trực tiếp chữ/màu/số theo định vị byte-level (`locator`) bảo toàn nguyên vẹn 100% phần còn lại của file mà không gọi AI; lưu lịch sử vào `user_edits` để kích hoạt lá chắn xung đột.
+  4. Chốt ADR-023: Lưu bản đồ dự án vào bảng `project_map` trong SQLite qua Migration 002 và hiển thị trực quan ở tab 3 của MH-09.
+  5. Kho git bóng `ShadowGitService` độc lập tại `<userData>/projects/<id>/shadow.git` với `GIT_DIR` và `GIT_WORK_TREE` tách biệt, kiểm thử nghiêm ngặt không chạm vào và không gây ô nhiễm `.git` của người dùng.
+- Vấn đề gặp phải:
+  1. Parser status git kết hợp cả `--name-status` và `--numstat` làm sai lệch dòng → tách biệt thuần `--name-status` lấy status char và file path chuẩn xác.
+  2. Electron smoke test offscreen ban đầu chụp khi component chưa composited layout → thêm đợi tín hiệu DOM và paint ổn định, kết xuất 5 ảnh chụp chuẩn xác và khác biệt rõ rệt.
+  3. Kiểm toán Prompt K phát hiện 3 chuỗi tiếng Việt hardcoded JSX trong `DiffBlock`, `PreviewTab` và `ProjectHistoryPage` → chuyển toàn bộ vào `src/renderer/i18n/vi.json` đạt chuẩn 100% Prompt K.
+- Việc bị hoãn / ý tưởng mới: Đã cấu hình điều hướng liền mạch từ nút "Xem code" ở MH-09 quay trở lại tab Code của MH-03 với đúng bước được chọn (`initialActiveStepId`).
+- Ghi chú kết thúc (đã làm / chưa làm / nợ kỹ thuật / bài học / việc tiếp theo):
+  - **Đã làm:**
+    1. Hoàn thành Migration 002 bổ sung bảng `step_files` (lưu `diff_summary`, `full_diff`), `user_edits`, `project_map`, `checkpoints`.
+    2. Triển khai `ShadowGitService`, `EditableScanner`, `ConflictDetector`, `PreviewServerService` cùng toàn bộ 12 kênh IPC Phase 4 hai chiều có Zod schemas.
+    3. Xây dựng bộ giao diện React: `DiffBlock`, `CodeLevelSwitch`, `StepCodeTab`, `PreviewTab`, `ConflictDialog` (MH-05), `DirectEditPage` (MH-06), `ProjectHistoryPage` (MH-09).
+    4. 17/17 test files (74/74 tests passed 100%).
+    5. Đạt 100% kiểm toán Prompt K (0 any, 0 hardcoded model/CLI trong renderer, 0 secret token, 0 chuỗi tiếng Việt hardcoded JSX).
+    6. Chạy Electron smoke test offscreen chụp 5 màn hình thật: `mh03-tab-code.png` (117KB), `mh03-tab-preview.png` (186KB), `mh05-xung-dot.png` (136KB), `mh06-tu-sua.png` (136KB), `mh09-lich-su.png` (93KB).
+  - **Chưa làm / Nợ kỹ thuật:** Không có nợ kỹ thuật nào trong Phase 4.
+  - **Bài học:** Việc kiểm soát xung đột bằng dấu vết tự sửa của người dùng (`user_edits`) kết hợp với kho git bóng độc lập tạo thành một "lưới an toàn" cực kỳ vững chắc, cho phép người dùng tự do thử nghiệm mà không bao giờ sợ mất code.
+  - **Việc tiếp theo:** Sẵn sàng chuyển sang **Phase 5 — Hiển thị quota** (thanh chip hạn mức, bảng chi tiết từng ô CLI/model, collector tầng A/B/C, router loại trừ ô exhausted).
 
 ---
 
@@ -958,6 +976,7 @@ Ghi nguồn (đường dẫn tài liệu, ngày kiểm tra) cho mỗi ô đã đ
 
 | Ngày | Phiên bản TL | Người/AI | Thay đổi | Lý do |
 |---|---|---|---|---|
+| 2026-11-02 | 0.19 | Antigravity (AI) | Hoàn thành toàn diện Phase 4 — Xem code và lưới an toàn: triển khai kho git bóng độc lập `ShadowGitService` (không ô nhiễm `.git` của người dùng), Migration 002 (`step_files`, `user_edits`, `project_map`, `checkpoints`), bộ quét và ghi byte-accuracy `EditableScanner`, phát hiện và giải quyết xung đột `ConflictDetector` (MH-05), server xem thử cục bộ an toàn `PreviewServerService` + `iframe` sandbox (MH-03 tab Preview), giao diện xem code 3 mức + DiffBlock + WhyBox + Hoàn tác (MH-03 tab Code), màn hình tự sửa trực tiếp chữ/màu/số (MH-06), màn hình Lịch sử & Bản đồ dự án (MH-09); 17/17 test files (74 tests passed 100%), đạt 100% kiểm toán Prompt K (0 any, 0 model cứng trong renderer, 0 secret token, 0 chuỗi tiếng Việt hardcoded JSX), hoàn thành Electron smoke test offscreen chụp 5 ảnh màn hình thực tế | Đạt toàn bộ tiêu chí thoát của Phase 4 — Xem code và lưới an toàn |
 | 2026-11-02 | 0.18 | Antigravity (AI) | Khởi động Phase 4 — Xem code và lưới an toàn: chốt ADR-020 (chọn CodeMirror 6 cho diff 3 mức), ADR-021 (`iframe` sandbox an toàn cho tab Xem trước), ADR-022 (cơ chế trích xuất byte-level cho tự sửa MH-06), ADR-023 (lưu Bản đồ dự án trong bảng `project_map` theo ADR-015) | Bắt đầu Phase 4 theo yêu cầu và phê duyệt của chủ dự án |
 | 2026-11-02 | 0.17 | Antigravity (AI) | Hoàn thành trọn vẹn Phase 3 — Chat và điều phối cơ bản: triển khai Project/Conversation/Decision Repositories, Planner, Router v1 (tuân thủ chuỗi dự phòng PLAN 4.5a, cấm hạ bậc với bước rủi ro cao), Sequential Executor, Summarizer, đấu nối 14 kênh IPC Phase 3 hai chiều Zod, xây dựng màn hình MH-02 Chọn / tạo dự án, MH-03 Chat + PlanCard + StepRow + Composer + AiPicker + tab Điều phối chi tiết, MH-04 Hộp thoại xin phép rủi ro B5 (không có "Luôn cho phép" theo ADR-012), MH-07 Thẻ tạm dừng vì rate limit, đạt 100% kiểm toán Prompt K (0 any, 0 model cứng trong renderer, 0 secret token, 0 chuỗi tiếng Việt hardcoded JSX), 14/14 test files (60 tests passed 100%) và Electron smoke test offscreen chụp 4 màn hình thật | Đạt toàn bộ tiêu chí thoát của Phase 3 — Chat và điều phối cơ bản |
 | 2026-11-02 | 0.16 | Antigravity (AI) | Hoàn thiện Phase 2: xây dựng màn hình `MH-01 Khởi động lần đầu` (`OnboardingPage.tsx`), bổ sung tab "AI và model" trong `MH-11 Cài đặt` (`SettingsPage.tsx`), bật feature flag `phase2Agents`, vượt qua kiểm toán Prompt K (0 any, 0 model cứng trong renderer, 0 chuỗi tiếng Việt JSX hardcoded, 0 secret token), hoàn thành Electron smoke test máy thật và chụp ảnh màn hình MH-01, MH-11 | Đạt toàn bộ tiêu chí thoát của Phase 2 — Kết nối CLI |

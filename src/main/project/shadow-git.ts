@@ -51,16 +51,12 @@ export class ShadowGitService {
       execFileSync('git', [`--git-dir=${this.shadowGitDir}`, 'init', '--bare'], {
         encoding: 'utf8',
       });
-      execFileSync(
-        'git',
-        [`--git-dir=${this.shadowGitDir}`, 'config', 'core.bare', 'false'],
-        { encoding: 'utf8' },
-      );
-      execFileSync(
-        'git',
-        [`--git-dir=${this.shadowGitDir}`, 'config', 'core.autocrlf', 'false'],
-        { encoding: 'utf8' },
-      );
+      execFileSync('git', [`--git-dir=${this.shadowGitDir}`, 'config', 'core.bare', 'false'], {
+        encoding: 'utf8',
+      });
+      execFileSync('git', [`--git-dir=${this.shadowGitDir}`, 'config', 'core.autocrlf', 'false'], {
+        encoding: 'utf8',
+      });
 
       const excludePath = path.join(this.shadowGitDir, 'info', 'exclude');
       fs.mkdirSync(path.dirname(excludePath), { recursive: true });
@@ -154,18 +150,13 @@ export class ShadowGitService {
     // 1. Dọn các file không có trong commit đích
     const currentTracked = this.runGit(['ls-files', '-z']).split('\0').filter(Boolean);
     const targetTracked = new Set(
-      this.runGit(['ls-tree', '-r', '--name-only', '-z', commitHash])
-        .split('\0')
-        .filter(Boolean),
+      this.runGit(['ls-tree', '-r', '--name-only', '-z', commitHash]).split('\0').filter(Boolean),
     );
     const untracked = this.runGit(['ls-files', '--others', '--exclude-standard', '-z'])
       .split('\0')
       .filter(Boolean);
 
-    for (const rel of [
-      ...currentTracked.filter((f) => !targetTracked.has(f)),
-      ...untracked,
-    ]) {
+    for (const rel of [...currentTracked.filter((f) => !targetTracked.has(f)), ...untracked]) {
       if (rel === '.git' || rel.startsWith('.git/') || rel.startsWith('.git\\')) continue;
       const full = path.resolve(this.workTree, rel);
       if (full.startsWith(this.workTree + path.sep) && fs.existsSync(full)) {

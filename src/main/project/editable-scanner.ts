@@ -94,7 +94,10 @@ export class EditableScanner {
         const textOffsetInMatch = fullMatch.indexOf(textValue);
         const col = match.index + textOffsetInMatch;
 
-        const id = crypto.createHash('md5').update(`${relPath}:${lineIdx + 1}:${col}`).digest('hex');
+        const id = crypto
+          .createHash('md5')
+          .update(`${relPath}:${lineIdx + 1}:${col}`)
+          .digest('hex');
 
         items.push({
           id,
@@ -133,7 +136,10 @@ export class EditableScanner {
       while ((match = hexColorRegex.exec(lineText)) !== null) {
         const colorValue = match[0];
         const col = match.index;
-        const id = crypto.createHash('md5').update(`${relPath}:${lineIdx + 1}:${col}`).digest('hex');
+        const id = crypto
+          .createHash('md5')
+          .update(`${relPath}:${lineIdx + 1}:${col}`)
+          .digest('hex');
 
         items.push({
           id,
@@ -176,7 +182,10 @@ export class EditableScanner {
         const numOffset = matchStr.lastIndexOf(numValue);
         const col = match.index + numOffset;
 
-        const id = crypto.createHash('md5').update(`${relPath}:${lineIdx + 1}:${col}`).digest('hex');
+        const id = crypto
+          .createHash('md5')
+          .update(`${relPath}:${lineIdx + 1}:${col}`)
+          .digest('hex');
 
         items.push({
           id,

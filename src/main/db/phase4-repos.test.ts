@@ -53,17 +53,16 @@ describe('Phase 4 Repositories & ShadowGitService (ADR-006, ADR-020-023)', () =>
     // Tạo bước giả lập trong DB
     const db = dbService.getDb();
     const convId = 'conv-1';
-    db.prepare('INSERT INTO conversations (id, project_id, title, created_at) VALUES (?, ?, ?, ?)').run(
-      convId,
-      proj.id,
-      'Test Conv',
-      new Date().toISOString(),
-    );
+    db.prepare(
+      'INSERT INTO conversations (id, project_id, title, created_at) VALUES (?, ?, ?, ?)',
+    ).run(convId, proj.id, 'Test Conv', new Date().toISOString());
     const stepId = 'step-1';
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO steps (id, conversation_id, seq, agent_id, status)
       VALUES (?, ?, ?, ?, ?)
-    `).run(stepId, convId, 1, 'claude', 'done');
+    `,
+    ).run(stepId, convId, 1, 'claude', 'done');
 
     const file = stepFilesRepo.upsert({
       stepId,

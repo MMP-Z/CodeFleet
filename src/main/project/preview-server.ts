@@ -35,7 +35,11 @@ export class PreviewServerService {
     projectDir: string,
   ): Promise<{ ok: boolean; url: string | null; error: string | null }> {
     if (!this.isWebProject(projectDir)) {
-      return { ok: false, url: null, error: 'Không phải dự án web (không có index.html hoặc package.json)' };
+      return {
+        ok: false,
+        url: null,
+        error: 'Không phải dự án web (không có index.html hoặc package.json)',
+      };
     }
 
     const existing = this.runningServers.get(projectId);

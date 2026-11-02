@@ -304,6 +304,7 @@ export const OrchestrationEventPayloadSchema = z.object({
     'system_line',
     'log_entry',
     'permission_requested',
+    'conflict_detected',
     'execution_paused',
     'execution_done',
     'execution_stopped',
@@ -401,11 +402,27 @@ export const SaveDirectEditOutputSchema = z.object({
 });
 export type SaveDirectEditOutput = z.infer<typeof SaveDirectEditOutputSchema>;
 
+export const ConflictResolutionChoiceSchema = z.enum(['keep_user_ask_ai', 'keep_user', 'use_ai']);
+export type ConflictResolutionChoice = z.infer<typeof ConflictResolutionChoiceSchema>;
+
+export const FileConflictSchema = z.object({
+  projectId: z.string(),
+  stepId: z.string(),
+  filePath: z.string(),
+  userVersion: z.string(),
+  aiVersion: z.string(),
+  userEditedAt: z.string().optional(),
+  plainExplain: z.string().optional(),
+  userLines: z.number().int().optional(),
+  aiLines: z.number().int().optional(),
+});
+export type FileConflictVM = z.infer<typeof FileConflictSchema>;
+
 export const ConflictResolveInputSchema = z.object({
   projectId: z.string(),
   stepId: z.string(),
   filePath: z.string(),
-  choice: z.enum(['keep_user_ask_ai', 'keep_user', 'use_ai']),
+  choice: ConflictResolutionChoiceSchema,
   userVersion: z.string(),
   aiVersion: z.string(),
 });
@@ -737,7 +754,10 @@ export interface CodeFleetBridge {
   };
   readonly code: {
     stepDiff(stepId: string): Promise<IpcResult<StepDiffOutput>>;
-    explainSegment(codeSnippet: string, language?: string): Promise<IpcResult<ExplainSegmentOutput>>;
+    explainSegment(
+      codeSnippet: string,
+      language?: string,
+    ): Promise<IpcResult<ExplainSegmentOutput>>;
   };
   readonly checkpoints: {
     undoStep(stepId: string): Promise<IpcResult<UndoStepOutput>>;

@@ -1,19 +1,11 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import type { ConflictResolutionChoice, FileConflictVM } from '../../shared/ipc';
 import type { UserEditsRepository } from '../db/user-edits-repo';
 import type { ShadowGitService } from './shadow-git';
 
-export interface FileConflict {
-  readonly stepId: string;
-  readonly path: string;
-  readonly userEditedAt: string;
-  readonly userVersion: string;
-  readonly aiVersion: string;
-  readonly plainExplain: string;
-}
-
-export type ConflictResolutionChoice = 'keep_user_ask_ai' | 'keep_user' | 'use_ai';
+export type FileConflict = FileConflictVM;
 
 export class ConflictDetector {
   public static checkConflict(input: {
@@ -51,11 +43,14 @@ export class ConflictDetector {
     // Có xung đột thực sự!
     const explain = `Bạn đã tự sửa file này vào lúc ${new Date(
       latestUserEdit.editedAt,
-    ).toLocaleTimeString('vi-VN')}. AI muốn ghi nội dung mới, app dừng lại để bạn chọn phương án an toàn nhất.`;
+    ).toLocaleTimeString(
+      'vi-VN',
+    )}. AI muốn ghi nội dung mới, app dừng lại để bạn chọn phương án an toàn nhất.`;
 
     return {
+      projectId: input.projectId,
       stepId: input.stepId,
-      path: input.relPath,
+      filePath: input.relPath,
       userEditedAt: latestUserEdit.editedAt,
       userVersion: currentDiskContent,
       aiVersion: input.aiProposedContent,

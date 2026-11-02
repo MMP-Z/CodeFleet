@@ -4,13 +4,15 @@ import { AppHeader, type NavRoute } from './components/AppHeader';
 import { ToastProvider } from './components/Toast';
 import { ChatPage } from './features/chat/ChatPage';
 import { DevComponentsPage } from './features/dev/DevComponentsPage';
+import { DirectEditPage } from './features/direct-edit/DirectEditPage';
+import { ProjectHistoryPage } from './features/history/ProjectHistoryPage';
 import { OnboardingPage } from './features/onboarding/OnboardingPage';
 import { ProjectSelectModal } from './features/projects/ProjectSelectModal';
 import { ProjectSelectPage } from './features/projects/ProjectSelectPage';
 import { SettingsPage } from './features/settings/SettingsPage';
 import { getBridge } from './lib/bridge';
 
-export type AppRoute = NavRoute | 'onboarding' | 'projects';
+export type AppRoute = NavRoute | 'onboarding' | 'projects' | 'direct-edit';
 
 function readInitialRoute(allowDevComponents: boolean): AppRoute {
   if (
@@ -23,6 +25,8 @@ function readInitialRoute(allowDevComponents: boolean): AppRoute {
   if (typeof window !== 'undefined') {
     if (window.location.hash === '#/settings') return 'settings';
     if (window.location.hash === '#/projects') return 'projects';
+    if (window.location.hash === '#/history') return 'history';
+    if (window.location.hash === '#/direct-edit') return 'direct-edit';
     if (window.location.hash === '#/chat') return 'chat';
   }
   return 'onboarding';
@@ -35,6 +39,7 @@ export function App(): React.JSX.Element {
   );
   const [onboardingCompleted, setOnboardingCompleted] = useState<boolean | null>(null);
   const [currentProject, setCurrentProject] = useState<ProjectRecord | null>(null);
+  const [chatInitialStepId, setChatInitialStepId] = useState<string | null>(null);
   const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
 
@@ -82,6 +87,20 @@ export function App(): React.JSX.Element {
         setRoute('settings');
       } else if (window.location.hash === '#/projects') {
         setRoute('projects');
+      } else if (window.location.hash === '#/history') {
+        setRoute('history');
+        void bridge.projects.list().then((projRes) => {
+          if (projRes.ok && projRes.data.length > 0) {
+            setCurrentProject((prev) => prev ?? projRes.data[0]);
+          }
+        });
+      } else if (window.location.hash === '#/direct-edit') {
+        setRoute('direct-edit');
+        void bridge.projects.list().then((projRes) => {
+          if (projRes.ok && projRes.data.length > 0) {
+            setCurrentProject((prev) => prev ?? projRes.data[0]);
+          }
+        });
       } else if (window.location.hash === '#/chat') {
         setRoute('chat');
         void bridge.projects.list().then((projRes) => {
@@ -105,9 +124,11 @@ export function App(): React.JSX.Element {
           ? '#/dev/components'
           : nextRoute === 'settings'
             ? '#/settings'
-            : nextRoute === 'chat'
-              ? '#/chat'
-              : '#/onboarding';
+            : nextRoute === 'history'
+              ? '#/history'
+              : nextRoute === 'chat'
+                ? '#/chat'
+                : '#/onboarding';
     }
   };
 
@@ -136,7 +157,9 @@ export function App(): React.JSX.Element {
     (!onboardingCompleted &&
       route !== 'dev-components' &&
       route !== 'settings' &&
-      route !== 'projects');
+      route !== 'projects' &&
+      route !== 'history' &&
+      route !== 'direct-edit');
 
   const headerProject = currentProject
     ? { name: currentProject.name, path: currentProject.path }
@@ -158,7 +181,11 @@ export function App(): React.JSX.Element {
     <ToastProvider>
       <div className="min-h-screen flex flex-col bg-cf-bg text-cf-text font-sans">
         <AppHeader
-          activeNav={route === 'onboarding' || route === 'projects' ? 'chat' : route}
+          activeNav={
+            route === 'onboarding' || route === 'projects' || route === 'direct-edit'
+              ? 'chat'
+              : route
+          }
           onNavigate={handleNavigate}
           project={headerProject}
           onProjectClick={() => setIsSwitchModalOpen(true)}
@@ -173,8 +200,26 @@ export function App(): React.JSX.Element {
             <SettingsPage />
           ) : route === 'projects' || !currentProject ? (
             <ProjectSelectPage onProjectSelected={handleProjectSelected} />
+          ) : route === 'history' ? (
+            <ProjectHistoryPage
+              project={currentProject}
+              onBack={() => handleNavigate('chat')}
+              onViewCode={(stepId) => {
+                setChatInitialStepId(stepId);
+                handleNavigate('chat');
+              }}
+            />
+          ) : route === 'direct-edit' ? (
+            <DirectEditPage project={currentProject} onBack={() => handleNavigate('chat')} />
           ) : (
-            <ChatPage project={currentProject} />
+            <ChatPage
+              project={currentProject}
+              onOpenDirectEdit={() => {
+                setRoute('direct-edit');
+                if (typeof window !== 'undefined') window.location.hash = '#/direct-edit';
+              }}
+              initialActiveStepId={chatInitialStepId}
+            />
           )}
         </main>
 

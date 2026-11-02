@@ -121,8 +121,7 @@ const bridge: CodeFleetBridge = {
     respond: (input) => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PERMISSION_RESPOND], input),
   },
   code: {
-    stepDiff: (stepId) =>
-      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.CODE_STEP_DIFF], { stepId }),
+    stepDiff: (stepId) => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.CODE_STEP_DIFF], { stepId }),
     explainSegment: (codeSnippet, language) =>
       invokeContract(IPC_CONTRACTS[IPC_CHANNELS.CODE_EXPLAIN_SEGMENT], { codeSnippet, language }),
   },
@@ -139,24 +138,19 @@ const bridge: CodeFleetBridge = {
       invokeContract(IPC_CONTRACTS[IPC_CHANNELS.USER_EDITS_SAVE_DIRECT], input),
   },
   conflict: {
-    resolve: (input) =>
-      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PROJECT_CONFLICT_RESOLVE], input),
+    resolve: (input) => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PROJECT_CONFLICT_RESOLVE], input),
   },
   history: {
-    get: (projectId) =>
-      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PROJECT_HISTORY], { projectId }),
+    get: (projectId) => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PROJECT_HISTORY], { projectId }),
   },
   projectMap: {
-    get: (projectId) =>
-      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PROJECT_MAP], { projectId }),
+    get: (projectId) => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PROJECT_MAP], { projectId }),
   },
   preview: {
     status: (projectId) =>
       invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PREVIEW_STATUS], { projectId }),
-    start: (projectId) =>
-      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PREVIEW_START], { projectId }),
-    stop: (projectId) =>
-      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PREVIEW_STOP], { projectId }),
+    start: (projectId) => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PREVIEW_START], { projectId }),
+    stop: (projectId) => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PREVIEW_STOP], { projectId }),
   },
 };
 

@@ -164,6 +164,110 @@
       "emptyReasons": "Chưa có quyết định điều phối nào trong hội thoại này.",
       "emptyLog": "Chưa có dòng nhật ký nào.",
       "hint": "Mặc định thẻ này ẩn sau tab. Người mới không cần mở, người muốn xem sâu thì bấm vào."
+    },
+    "code": {
+      "levelSummary": "Tóm tắt",
+      "levelDiff": "Đoạn chính",
+      "levelFull": "Toàn bộ",
+      "changedFiles": "File đã đổi",
+      "mainChange": "Chỉ phần thay đổi chính",
+      "shortExplanation": "GIẢI THÍCH NGẮN",
+      "whyBoxTitle": "VÌ SAO CHỌN CÁCH NÀY",
+      "askSnippet": "Hỏi “đoạn này làm gì?”",
+      "directEditBtn": "✎ Tự sửa chữ / màu / số",
+      "undoBtn": "↶ Hoàn tác bước này",
+      "undoHint": "Khôi phục file về lúc trước bước này.",
+      "redoBtn": "↻ Làm lại bước này",
+      "undoConfirmTitle": "Hoàn tác bước này?",
+      "undoConfirmDesc": "Hoàn tác bước {seq} sẽ khôi phục file về điểm kiểm tra trước bước này. Bạn có muốn tiếp tục?",
+      "undoConfirmYes": "Đồng ý hoàn tác",
+      "undoConfirmNo": "Không hoàn tác",
+      "undoneNotice": "Bước này đã được hoàn tác."
+    },
+    "preview": {
+      "starting": "Đang khởi động bản xem thử…",
+      "cannotPreview": "Chưa thể xem trước",
+      "running": "Đang chạy",
+      "refresh": "↻ Làm mới",
+      "openExternal": "Mở trong trình duyệt",
+      "restart": "Chạy lại",
+      "notWebProject": "Dự án này không phải ứng dụng web (chưa có index.html hoặc package.json).",
+      "sandboxNotice": "Bản xem thử chạy trong môi trường cách ly an toàn trên máy bạn."
+    }
+  },
+  "mh05": {
+    "title": "Xung đột với phần bạn tự sửa",
+    "subtitle": "AI muốn ghi vào file bạn vừa sửa tay",
+    "colUser": "Bản của bạn (hiện tại)",
+    "colUserBadge": "Bạn sửa",
+    "colAi": "Bản AI muốn ghi",
+    "colAiBadge": "AI đề xuất",
+    "plainExplainTitle": "Nói đơn giản",
+    "opt1": "Giữ phần tôi sửa, nhờ AI thêm lại phần của nó",
+    "opt1Badge": "Khuyên dùng",
+    "opt1Desc": "Gửi lại bản của bạn cho AI để AI tự tìm cách ghép hai phần lại.",
+    "opt2": "Giữ nguyên bản của tôi",
+    "opt2Desc": "Bỏ thay đổi của AI cho file này, giữ đúng từng chữ bạn đã viết.",
+    "opt3": "Dùng bản của AI",
+    "opt3Desc": "Ghi đè bằng bản của AI. App đã tạo điểm khôi phục, bạn vẫn hoàn tác được sau này.",
+    "confirmChoice": "Xác nhận lựa chọn",
+    "postpone": "Để sau, tạm dừng bước này"
+  },
+  "mh06": {
+    "title": "Tự sửa trực tiếp",
+    "tagline": "Không cần gọi AI · không tốn hạn mức",
+    "hint": "Sửa trực tiếp chữ, màu sắc hoặc số trong code mà không cần tiêu hao lượt dùng AI.",
+    "filterAll": "Tất cả ({count})",
+    "filterText": "Chữ ({count})",
+    "filterColor": "Màu sắc ({count})",
+    "filterNumber": "Số ({count})",
+    "scanning": "Đang quét các chỗ sửa được…",
+    "line": "Dòng {line}",
+    "emptyFilter": "Không tìm thấy chỗ nào thuộc loại này.",
+    "changedCount": "{count} chỗ đã đổi, chưa lưu",
+    "discard": "Bỏ thay đổi",
+    "saveToFile": "Lưu vào file",
+    "saving": "Đang lưu…",
+    "saveSuccess": "Đã lưu vào file thành công. App ghi nhận đây là phần bạn tự sửa và sẽ bảo vệ không để AI ghi đè.",
+    "discardConfirm": "Bỏ các thay đổi chưa lưu?",
+    "wantMore": "Muốn đổi thứ phức tạp hơn? Hãy nhắn trong chat để AI hỗ trợ.",
+    "backToChat": "← Quay lại chat"
+  },
+  "mh09": {
+    "title": "Lịch sử & Bản đồ dự án",
+    "loading": "Đang nạp dữ liệu lịch sử…",
+    "navAria": "Mục lịch sử",
+    "tabs": {
+      "history": "Lịch sử & hoàn tác",
+      "decisions": "Vì sao làm vậy",
+      "map": "Bản đồ dự án"
+    },
+    "history": {
+      "title": "Dòng thời gian các bước",
+      "userEditPill": "Bạn sửa",
+      "startProject": "Bắt đầu dự án",
+      "viewCode": "Xem code",
+      "restoreCheckpoint": "↶ Quay về trước bước này",
+      "discardUserEdit": "↶ Bỏ thay đổi này",
+      "redoStep": "Làm lại",
+      "undoneNotice": "Đã hoàn tác"
+    },
+    "decisions": {
+      "title": "Nhật ký quyết định điều phối",
+      "searchPlaceholder": "Tìm trong quyết định…",
+      "filterAll": "Tất cả loại",
+      "filterApproach": "Cách làm",
+      "filterPick": "Chọn AI",
+      "filterSwitch": "Đổi AI",
+      "colTime": "Lúc",
+      "colStep": "Bước",
+      "colDecision": "Quyết định",
+      "colKind": "Loại"
+    },
+    "map": {
+      "title": "Bản đồ tính năng → file",
+      "sensitive": "Nhạy cảm",
+      "empty": "Chưa có dữ liệu bản đồ dự án. Model sẽ tự động phân nhóm sau khi hoàn thành các bước."
     }
   },
   "mh04": {

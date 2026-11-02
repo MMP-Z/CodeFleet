@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import type {
   AgentId,
   AiPickOption,
+  ConflictResolutionChoice,
+  FileConflictVM,
   MessageRecord,
   OrchestrationEventPayload,
   OrchestrationLogEntry,
@@ -13,18 +15,28 @@ import { PlanCard } from '../../components/PlanCard';
 import { SystemLine } from '../../components/SystemLine';
 import { t } from '../../i18n';
 import { getBridge } from '../../lib/bridge';
+import { ConflictDialog } from './ConflictDialog';
 import { OrchestrationLog, type DecisionReason } from './OrchestrationLog';
 import { PausedCard } from './PausedCard';
 import { PermissionDialog, type PermissionRequestData } from './PermissionDialog';
+import { PreviewTab } from './PreviewTab';
+import { StepCodeTab } from './StepCodeTab';
 
 export interface ChatPageProps {
   readonly project: ProjectRecord;
   readonly initialConversationId?: string;
+  readonly onOpenDirectEdit?: () => void;
+  readonly initialActiveStepId?: string | null;
 }
 
 type RightTab = 'preview' | 'code' | 'detail';
 
-export function ChatPage({ project, initialConversationId }: ChatPageProps): React.JSX.Element {
+export function ChatPage({
+  project,
+  initialConversationId,
+  onOpenDirectEdit,
+  initialActiveStepId,
+}: ChatPageProps): React.JSX.Element {
   const bridge = getBridge();
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -39,11 +51,12 @@ export function ChatPage({ project, initialConversationId }: ChatPageProps): Rea
 
   const [running, setRunning] = useState(false);
   const [aiPick, setAiPick] = useState<string>('auto');
-  const [activeStepId, setActiveStepId] = useState<string | null>(null);
+  const [activeStepId, setActiveStepId] = useState<string | null>(initialActiveStepId ?? null);
   const [pausedStepSeq, setPausedStepSeq] = useState<number | null>(null);
   const [permissionRequest, setPermissionRequest] = useState<PermissionRequestData | null>(null);
+  const [conflict, setConflict] = useState<FileConflictVM | null>(null);
 
-  const [rightTab, setRightTab] = useState<RightTab>('detail');
+  const [rightTab, setRightTab] = useState<RightTab>(initialActiveStepId ? 'code' : 'detail');
   const [isRightCollapsed, setIsRightCollapsed] = useState(false);
 
   // Khởi tạo hoặc nạp hội thoại
@@ -130,6 +143,11 @@ export function ChatPage({ project, initialConversationId }: ChatPageProps): Rea
           setPermissionRequest(perm);
           break;
         }
+        case 'conflict_detected': {
+          const data = payload.data as FileConflictVM;
+          setConflict(data);
+          break;
+        }
         case 'execution_paused': {
           const data = payload.data as { stepSeq: number };
           setPausedStepSeq(data.stepSeq);
@@ -184,6 +202,19 @@ export function ChatPage({ project, initialConversationId }: ChatPageProps): Rea
       allowed,
     });
     setPermissionRequest(null);
+  };
+
+  const handleResolveConflict = async (choice: ConflictResolutionChoice): Promise<void> => {
+    if (!conflict) return;
+    await bridge.conflict.resolve({
+      projectId: conflict.projectId,
+      stepId: conflict.stepId,
+      filePath: conflict.filePath,
+      choice,
+      userVersion: conflict.userVersion,
+      aiVersion: conflict.aiVersion,
+    });
+    setConflict(null);
   };
 
   const handleRetryPaused = async (): Promise<void> => {
@@ -374,17 +405,30 @@ export function ChatPage({ project, initialConversationId }: ChatPageProps): Rea
           </div>
 
           {/* Nội dung tab */}
-          <div className="flex-1 overflow-y-auto p-4">
-            {rightTab === 'preview' && (
-              <div className="p-4 text-center text-muted text-small bg-surface-2/40 border border-border rounded-lg">
-                {t('mh03.previewPlaceholder')}
-              </div>
-            )}
+          <div className="flex-1 overflow-y-auto p-4 flex flex-col min-h-0">
+            {rightTab === 'preview' && <PreviewTab projectId={project.id} />}
 
             {rightTab === 'code' && (
-              <div className="p-4 text-center text-muted text-small bg-surface-2/40 border border-border rounded-lg">
-                {activeStepId ? t('mh03.codePlaceholder') : t('mh03.codeNotRunNotice')}
-              </div>
+              <StepCodeTab
+                step={
+                  steps.find((s) => s.id === activeStepId) ?? (steps.length > 0 ? steps[0] : null)
+                }
+                projectId={project.id}
+                onAskSnippet={(snippet) => {
+                  void handleSend(`Giải thích đoạn mã này giúp tôi:\n\`\`\`\n${snippet}\n\`\`\``);
+                }}
+                onDirectEditClick={onOpenDirectEdit}
+                onStepUndone={(stepId) => {
+                  setSteps((prev) =>
+                    prev.map((s) => (s.id === stepId ? { ...s, status: 'undone' } : s)),
+                  );
+                }}
+                onStepRedone={(stepId) => {
+                  setSteps((prev) =>
+                    prev.map((s) => (s.id === stepId ? { ...s, status: 'done' } : s)),
+                  );
+                }}
+              />
             )}
 
             {rightTab === 'detail' && (
@@ -398,6 +442,13 @@ export function ChatPage({ project, initialConversationId }: ChatPageProps): Rea
       <PermissionDialog
         request={permissionRequest}
         onRespond={(granted) => void handleRespondPermission(granted)}
+      />
+
+      {/* HỘP THOẠI XUNG ĐỘT CODE (MH-05) */}
+      <ConflictDialog
+        conflict={conflict}
+        onResolve={(choice) => void handleResolveConflict(choice)}
+        onClose={() => setConflict(null)}
       />
     </div>
   );
