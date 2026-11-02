@@ -26,6 +26,7 @@ export interface ChatPageProps {
   readonly project: ProjectRecord;
   readonly initialConversationId?: string;
   readonly onOpenDirectEdit?: () => void;
+  readonly onNavigateToQuota?: () => void;
   readonly initialActiveStepId?: string | null;
 }
 
@@ -35,6 +36,7 @@ export function ChatPage({
   project,
   initialConversationId,
   onOpenDirectEdit,
+  onNavigateToQuota,
   initialActiveStepId,
 }: ChatPageProps): React.JSX.Element {
   const bridge = getBridge();
@@ -86,7 +88,13 @@ export function ChatPage({
           bridge.conversations.steps(targetConvId),
         ]);
         if (mounted && msgsRes.ok) setMessages(msgsRes.data);
-        if (mounted && stepsRes.ok) setSteps(stepsRes.data);
+        if (mounted && stepsRes.ok) {
+          setSteps(stepsRes.data);
+          const paused = stepsRes.data.find((s) => s.status === 'paused');
+          if (paused) {
+            setPausedStepSeq(paused.seq);
+          }
+        }
       }
     }
 
@@ -318,6 +326,7 @@ export function ChatPage({
                   stepSeq={pausedStepSeq}
                   onRetry={() => void handleRetryPaused()}
                   onPickOtherAgent={() => setRightTab('detail')}
+                  onViewQuota={onNavigateToQuota}
                 />
               )}
             </>

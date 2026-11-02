@@ -251,6 +251,7 @@ export function App(): React.JSX.Element {
                 setRoute('direct-edit');
                 if (typeof window !== 'undefined') window.location.hash = '#/direct-edit';
               }}
+              onNavigateToQuota={() => handleNavigate('quota')}
               initialActiveStepId={chatInitialStepId}
             />
           )}

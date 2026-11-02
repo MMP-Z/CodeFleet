@@ -586,6 +586,7 @@ Mọi kênh: dữ liệu vào/ra có zod schema trong `src/shared/ipc/`. Tên d�
 
 | Ngày | Phiên bản | Người/AI | Thay đổi |
 |---|---|---|---|
+| 2026-11-02 | 0.6 | Antigravity (AI) | Nghiệm thu toàn bộ UI Phase 5: QuotaBar trên AppHeader, QuotaChip, QuotaPopover khi click chip, trang MH-08 Chi tiết hạn mức (`#/quota`) đầy đủ 4 độ tin cậy nguồn và 4 nguyên tắc chọn AI, nâng cấp thẻ tạm dừng MH-07 với chi tiết hạn mức |
 | 2026-11-02 | 0.5 | Antigravity (AI) | Bổ sung kênh IPC `agents.openDocs(agentId)` và các kiểu dữ liệu `DetectResult`, `ModelInfo`, `EditableModelTier` vào bảng mục 7 cho Phase 2 |
 | 2026-11-02 | 0.4 | Antigravity (AI) | Cập nhật bảng kênh IPC mục 7 cho Phase 1: bổ sung `settings.getAll`, `system.getDataInfo`, `system.openDataDir`, `system.backupNow` khớp với `src/shared/ipc/contracts.ts` |
 | 2026-11-02 | 0.3 | Antigravity (AI) | Xác nhận câu "Đọc hạn mức không tốn hạn mức của bạn" ở MH-08 là đúng theo kết quả Phase 0 và ADR-018 (đọc thụ động 0 token LLM); đồng bộ tham chiếu `PROJECT_PLAN.md` v0.6 |

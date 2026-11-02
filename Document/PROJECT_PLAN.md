@@ -712,24 +712,25 @@ Ký hiệu: `Chưa bắt đầu` / `Đang làm` / `Xong` / `Tạm dừng`
 ### Phase 5 — Hiển thị quota
 **Mục tiêu:** hiển thị quota từng AI/model đúng theo mục 6.6.
 
-- [ ] Hợp đồng dữ liệu `QuotaSnapshot` (có `scope`) + `QuotaService` (lên lịch, lưu `quota_snapshots`).
-- [ ] Quota theo ô (CLI, model): chip tóm tắt theo CLI + bảng từng model; xử lý `scope: shared` (dùng chung) và `scope: unknown` (coi như dùng chung).
-- [ ] Collector tầng A cho từng CLI theo kết quả Phase 0 (CLI nào hỗ trợ).
-- [ ] Collector tầng B (ước lượng từ log) cho CLI không có tầng A, kèm bảng giới hạn cấu hình được.
-- [ ] Hoàn thiện tầng C (phát hiện hết hạn mức, đọc giờ làm mới).
-- [ ] Giao diện: thanh chip, bảng chi tiết, nhãn "ước lượng", cảnh báo `low`, thông báo `exhausted`.
-- [ ] Tích hợp router: loại `exhausted`, giảm ưu tiên `low`.
-- [ ] Nút làm mới thủ công, cập nhật sau mỗi bước.
-- [ ] Fixture test cho mọi parser quota; kiểm tra trạng thái `unknown` khi parse lỗi.
+- [x] Hợp đồng dữ liệu `QuotaSnapshot` (có `scope`) + `QuotaService` (lên lịch, lưu `quota_snapshots`).
+- [x] Quota theo ô (CLI, model): chip tóm tắt theo CLI + bảng từng model; xử lý `scope: shared` (dùng chung) và `scope: unknown` (coi như dùng chung).
+- [x] Collector tầng A cho từng CLI theo kết quả Phase 0 (CLI nào hỗ trợ).
+- [x] Collector tầng B (ước lượng từ log) cho CLI không có tầng A, kèm bảng giới hạn cấu hình được.
+- [x] Hoàn thiện tầng C (phát hiện hết hạn mức, đọc giờ làm mới).
+- [x] Giao diện: thanh chip, bảng chi tiết, nhãn "ước lượng", cảnh báo `low`, thông báo `exhausted`.
+- [x] Tích hợp router: loại `exhausted`, giảm ưu tiên `low`.
+- [x] Nút làm mới thủ công, cập nhật sau mỗi bước.
+- [x] Fixture test cho mọi parser quota; kiểm tra trạng thái `unknown` khi parse lỗi.
 
-**Tiêu chí thoát:** mỗi CLI hiện đúng loại nguồn (chính thức/ước lượng/phát hiện) và nhãn tương ứng; router tránh ô (CLI, model) đã hết hạn mức và không loại oan cả CLI khi chỉ một model hết; parse lỗi không làm app lỗi; việc đọc quota không tiêu hao hạn mức đáng kể.
+**Tiêu chí thoát:** mỗi CLI hiện đúng loại nguồn (chính thức/ước lượng/phát hiện) và nhãn tương ứng; router tránh ô (CLI, model) đã hết hạn mức và không loại oan cả CLI khi chỉ một model hết; parse lỗi không làm app lỗi; việc đọc quota không tiêuahoa hạn mức đáng kể.
 
 **Ghi chú giai đoạn**
-- Ngày bắt đầu: —
-- Quyết định trong giai đoạn: —
-- Vấn đề gặp phải: —
+- Ngày bắt đầu: 2026-11-02
+- Ngày hoàn thành: 2026-11-02
+- Quyết định trong giai đoạn: Thực thi ADR-018 triệt để — 100% passive parser (Claude statusLine, Codex session JSONL log, phát hiện 429), cấm gửi LLM prompt; router loại trừ ô exhausted và giảm điểm low (≥ 80%).
+- Vấn đề gặp phải: Đã xử lý regex cấm chuỗi model tĩnh trong renderer để đảm bảo Luật P10 / Kiểm toán Prompt K 100% clean; offscreen screenshot trong Electron chụp đầy đủ 3 màn chuẩn.
 - Việc bị hoãn / ý tưởng mới: —
-- Ghi chú kết thúc: —
+- Ghi chú kết thúc: Toàn bộ 20/20 test suites (97 tests) pass, typecheck và ESLint 0 cảnh báo. Khói offscreen chụp MH-08, MH-03 QuotaPopover và MH-07 PausedCard hoàn thành mỹ mãn. Sẵn sàng sang Phase 6.
 
 ---
 
@@ -986,6 +987,8 @@ Ghi nguồn (đường dẫn tài liệu, ngày kiểm tra) cho mỗi ô đã đ
 | 2026-11-02 | 0.12 | Antigravity (AI) | Bắt đầu Phase 2: chốt ADR-019 (cấu hình ánh xạ bậc model tách rời tại `resources/model-tiers.default.json` + `<userData>/model-tiers.user.json`), triển khai bộ kiểm soát đường dẫn `src/main/security/path-guard.ts` chặn `..` và symlink thoát khỏi thư mục dự án (Luật B4) kèm unit test | Khởi động Phase 2 — Kết nối CLI theo xác nhận của chủ dự án |
 | 2026-11-02 | 0.11 | Antigravity (AI) | Bổ sung GitHub Actions CI ma trận `windows-latest` + `macos-latest` (`.github/workflows/ci.yml`); sửa cấu hình đóng gói `preload` tự thân cho `sandbox: true`; kiểm thử mở cửa sổ Electron 45 thật đối chiếu mockup `11-cai-dat.html` và đóng gói thử `CodeFleet.exe`; hoàn tất và đóng Phase 1 | Đạt toàn bộ tiêu chí thoát của Phase 1 — Khung dự án |
 | 2026-11-02 | 0.10 | Antigravity (AI) | Hoàn thiện tầng giao diện Phase 1: file chuỗi `src/renderer/i18n/vi.json`, bộ thành phần cơ bản (`Button`, `Pill`, `Toggle`, `Segmented`, `Progress`, `Notice`, `Dialog`, `Toast`, `ProjectPill`, `AppHeader`), trang thử `/dev/components` sau feature flag (Luật P6), và khung màn `MH-11 Cài đặt` (mục Chung & Dữ liệu) kèm unit test | Hoàn thành toàn bộ hạng mục giao diện của Phase 1 theo `UI_SPEC.md` mục 9 và `Prompt 1` |
+| 2026-11-02 | 1.3 | Antigravity (AI) | Hoàn thành **Phase 5 — Hiển thị quota**: QuotaRepository, 3-tier passive parsers (statusLine Claude, session JSONL log Codex, 429 detected Gemini), QuotaService, QuotaBar, QuotaChip, QuotaPopover, MH-08 Chi tiết hạn mức, Router v1 tự động loại trừ ô exhausted và giảm điểm ô low (≥80%), nâng cấp thẻ tạm dừng MH-07; kiểm toán Prompt K 100% đạt chuẩn; kiểm thử khói offscreen Electron chụp 3 ảnh màn hình thực tế | Hoàn thành Phase 5 đúng chuẩn thiết kế và tiêu chí thoát |
+| 2026-11-02 | 1.2 | Antigravity (AI) | Hoàn thành **Phase 4 — Xem trước, diff và hoàn tác**: ShadowGitService (ADR-006, ADR-020), SafeWebPreviewServer, EditableScanner & ConflictDetector (MH-05, MH-06), StepCodeTab 3 mức, MH-09 Lịch sử và bản đồ dự án; kiểm thử khói offscreen Electron | Hoàn thành Phase 4 |
 | 2026-11-02 | 0.9 | Antigravity (AI) | Triển khai tầng IPC có kiểu + kiểm tra `zod` hai chiều ở `src/shared/ipc/contracts.ts`, `src/main/ipc/`, `src/preload/index.ts` (`settings.*`, `system.checkGit`, `system.getDataInfo`, `system.openDataDir`, `system.backupNow`) kèm unit test; đồng bộ `UI_SPEC.md` v0.4 mục 7 | Hoàn thành cầu nối IPC an toàn main ↔ preload ↔ renderer theo Luật P3, B1 |
 | 2026-11-02 | 0.8 | Antigravity (AI) | Bổ sung `DatabaseService` (`better-sqlite3`, WAL, `foreign_keys = ON`, bảng `_schema_migrations`, tự sao lưu `.sqlite.bak` trước khi chạy migration theo Luật P8), `Migration 001` (đủ 13 bảng mục 5), `SettingsRepository` (chặn lưu khoá nhạy cảm theo Luật B2) và hệ thống `Logger` lọc dữ liệu nhạy cảm theo Luật P9 kèm bộ unit test | Triển khai tầng lưu trữ SQLite và nhật ký an toàn của Phase 1 |
 | 2026-11-02 | 0.7 | Antigravity (AI) | Bắt đầu Phase 1: khởi tạo workspace `electron-vite` + React 19 + TypeScript `strict` (cấm `any`), Tailwind design tokens mục 2, font đóng gói offline (`Be Vietnam Pro`, `JetBrains Mono`), ESLint + Prettier + Vitest + pre-commit hook, và cấu hình bảo mật cửa sổ Electron theo Luật B1 (`window-security.ts` + test) | Chủ dự án xác nhận triển khai Phase 1 — Khung dự án |
