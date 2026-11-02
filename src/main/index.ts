@@ -1,5 +1,5 @@
 import { join } from 'node:path';
-import { app, BrowserWindow, ipcMain, session, shell } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, session, shell } from 'electron';
 import {
   APP_NAME,
   DEFAULT_WINDOW_HEIGHT,
@@ -79,6 +79,20 @@ app.whenReady().then(() => {
     dbService,
     logger,
     openFolderInOs: (folderPath) => shell.openPath(folderPath),
+    pickFolderDialog: async () => {
+      const win = BrowserWindow.getFocusedWindow();
+      const options = {
+        title: 'Chọn thư mục dự án',
+        properties: ['openDirectory', 'createDirectory'] as Array<'openDirectory' | 'createDirectory'>,
+      };
+      const res = win
+        ? await dialog.showOpenDialog(win, options)
+        : await dialog.showOpenDialog(options);
+      if (res.canceled || res.filePaths.length === 0) {
+        return { canceled: true, folderPath: null };
+      }
+      return { canceled: false, folderPath: res.filePaths[0] };
+    },
   });
 
   const cspHeader = buildContentSecurityPolicy(isDev);

@@ -326,6 +326,25 @@ export function registerIpcHandlers(registrar: IpcRegistrar, deps: IpcDependenci
       if (deps.pickFolderDialog) {
         return deps.pickFolderDialog();
       }
+      try {
+        const { dialog, BrowserWindow } = await import('electron');
+        if (dialog?.showOpenDialog) {
+          const win = BrowserWindow?.getFocusedWindow?.();
+          const options = {
+            title: 'Chọn thư mục dự án',
+            properties: ['openDirectory', 'createDirectory'] as Array<'openDirectory' | 'createDirectory'>,
+          };
+          const res = win
+            ? await dialog.showOpenDialog(win, options)
+            : await dialog.showOpenDialog(options);
+          if (res.canceled || res.filePaths.length === 0) {
+            return { canceled: true, folderPath: null };
+          }
+          return { canceled: false, folderPath: res.filePaths[0] };
+        }
+      } catch {
+        // Fallback khi chạy dưới môi trường test không có UI native
+      }
       return { canceled: true, folderPath: null };
     },
     ipcLogger,

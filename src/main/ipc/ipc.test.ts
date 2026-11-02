@@ -223,6 +223,16 @@ describe('Phase 1 Typed IPC + Zod Validation (Luật P3, B2)', () => {
       expect(valRes.data.isWritable).toBe(true);
     }
 
+    // 1b. projects.pickFolder
+    const pickRes = await bus.invoke<{ canceled: boolean; folderPath: string | null }>(
+      IPC_CHANNELS.PROJECTS_PICK_FOLDER,
+      undefined,
+    );
+    expect(pickRes.ok).toBe(true);
+    if (pickRes.ok) {
+      expect(typeof pickRes.data.canceled).toBe('boolean');
+    }
+
     // 2. projects.create
     const createProjRes = await bus.invoke<{ id: string; name: string; path: string }>(
       IPC_CHANNELS.PROJECTS_CREATE,

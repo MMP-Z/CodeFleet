@@ -345,7 +345,16 @@ export function ProjectSelectPage({
                   id={projectPathInputId}
                   type="text"
                   value={projectPath}
-                  onChange={(e) => setProjectPath(e.target.value)}
+                  onChange={(e) => {
+                    const newPath = e.target.value;
+                    setProjectPath(newPath);
+                    if (!projectName.trim() && newPath.trim()) {
+                      const parts = newPath.replace(/\\/g, '/').split('/').filter(Boolean);
+                      if (parts.length > 0) {
+                        setProjectName(parts[parts.length - 1] ?? '');
+                      }
+                    }
+                  }}
                   placeholder="D:/du-an/tiem-banh"
                   required
                   className="flex-1 px-3 py-2 font-mono border border-border rounded-md text-small bg-surface text-cf-text focus:outline-none focus:ring-1 focus:ring-primary"
