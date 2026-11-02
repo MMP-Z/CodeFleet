@@ -9,8 +9,7 @@ function readInitialRoute(allowDevComponents: boolean): NavRoute {
   if (
     allowDevComponents &&
     typeof window !== 'undefined' &&
-    (window.location.pathname === '/dev/components' ||
-      window.location.hash === '#/dev/components')
+    (window.location.pathname === '/dev/components' || window.location.hash === '#/dev/components')
   ) {
     return 'dev-components';
   }
@@ -25,10 +24,7 @@ export function App(): React.JSX.Element {
 
   useEffect(() => {
     function handleHashChange(): void {
-      if (
-        bridge.featureFlags.devComponents &&
-        window.location.hash === '#/dev/components'
-      ) {
+      if (bridge.featureFlags.devComponents && window.location.hash === '#/dev/components') {
         setRoute('dev-components');
       } else if (window.location.hash === '#/settings') {
         setRoute('settings');

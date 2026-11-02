@@ -308,4 +308,3 @@ export function SettingsPage(): React.JSX.Element {
     </div>
   );
 }
-

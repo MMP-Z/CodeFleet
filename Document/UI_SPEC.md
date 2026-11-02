@@ -2,7 +2,7 @@
 
 > **Phiên bản:** 0.4
 > **Cập nhật lần cuối:** 2026-11-02
-> **Đi kèm:** `PROJECT_PLAN.md` (v0.9) và bộ mockup `Document/UI_Mockups/`
+> **Đi kèm:** `PROJECT_PLAN.md` (v0.11) và bộ mockup `Document/UI_Mockups/`
 
 ---
 

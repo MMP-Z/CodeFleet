@@ -56,4 +56,3 @@ export function ProjectPill({ name, path, onClick }: ProjectPillProps): React.JS
     </span>
   );
 }
-

@@ -52,8 +52,7 @@ export class DatabaseService {
     }
 
     fs.mkdirSync(path.dirname(this.dbPath), { recursive: true });
-    const hadExistingDbFile =
-      fs.existsSync(this.dbPath) && fs.statSync(this.dbPath).size > 0;
+    const hadExistingDbFile = fs.existsSync(this.dbPath) && fs.statSync(this.dbPath).size > 0;
 
     const conn = new Database(this.dbPath);
     conn.pragma('journal_mode = WAL');
@@ -69,7 +68,9 @@ export class DatabaseService {
     `);
 
     const appliedRows = conn
-      .prepare<[], { version: number }>('SELECT version FROM _schema_migrations ORDER BY version ASC')
+      .prepare<[], { version: number }>(
+        'SELECT version FROM _schema_migrations ORDER BY version ASC',
+      )
       .all();
     const appliedSet = new Set(appliedRows.map((r) => r.version));
 
@@ -91,9 +92,7 @@ export class DatabaseService {
         const applyTx = conn.transaction((mig: MigrationDefinition) => {
           conn.exec(mig.sql);
           conn
-            .prepare(
-              'INSERT INTO _schema_migrations (version, name, applied_at) VALUES (?, ?, ?)',
-            )
+            .prepare('INSERT INTO _schema_migrations (version, name, applied_at) VALUES (?, ?, ?)')
             .run(mig.version, mig.name, new Date().toISOString());
         });
 
@@ -155,4 +154,3 @@ export class DatabaseService {
     }
   }
 }
-

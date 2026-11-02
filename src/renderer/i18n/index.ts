@@ -30,4 +30,3 @@ export function t(key: string, params?: Record<string, string | number>): string
     return val === undefined ? `{${paramName}}` : String(val);
   });
 }
-

@@ -44,7 +44,9 @@ export function Notice(props: NoticeProps): React.JSX.Element {
   const { tone, children, small = false, className = '', actions } = props;
 
   if (tone === 'danger' && (!actions || actions.length === 0)) {
-    throw new Error('Vi phạm Luật U2 (UI_SPEC G2): Notice tone="danger" bắt buộc có ít nhất 1 action.');
+    throw new Error(
+      'Vi phạm Luật U2 (UI_SPEC G2): Notice tone="danger" bắt buộc có ít nhất 1 action.',
+    );
   }
 
   return (
@@ -80,4 +82,3 @@ export function Notice(props: NoticeProps): React.JSX.Element {
     </div>
   );
 }
-

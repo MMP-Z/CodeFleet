@@ -59,9 +59,12 @@ describe('DatabaseService & SettingsRepository (ADR-002, Luật P8, B2)', () => 
     }
 
     // Kiểm tra khoá ngoại ON DELETE CASCADE
-    db.prepare(
-      'INSERT INTO projects (id, name, path, created_at) VALUES (?, ?, ?, ?)',
-    ).run('p1', 'Tiệm Bánh Nhỏ', 'D:/projects/tiem-banh', '2026-11-02T00:00:00Z');
+    db.prepare('INSERT INTO projects (id, name, path, created_at) VALUES (?, ?, ?, ?)').run(
+      'p1',
+      'Tiệm Bánh Nhỏ',
+      'D:/projects/tiem-banh',
+      '2026-11-02T00:00:00Z',
+    );
     db.prepare(
       'INSERT INTO conversations (id, project_id, title, created_at) VALUES (?, ?, ?, ?)',
     ).run('c1', 'p1', 'Tạo trang chủ', '2026-11-02T00:01:00Z');

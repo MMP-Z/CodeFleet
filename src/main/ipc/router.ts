@@ -4,10 +4,7 @@ import type { Logger } from '../logger/logger';
 import { redactSensitiveText } from '../logger/redactor';
 
 export interface IpcRegistrar {
-  handle(
-    channel: string,
-    listener: (_event: unknown, rawInput: unknown) => Promise<unknown>,
-  ): void;
+  handle(channel: string, listener: (_event: unknown, rawInput: unknown) => Promise<unknown>): void;
 }
 
 /**
@@ -56,4 +53,3 @@ export function registerTypedHandler<I extends z.ZodTypeAny, O extends z.ZodType
     }
   });
 }
-

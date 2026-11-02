@@ -21,10 +21,7 @@ describe('Phase 1 UI Primitives (UI_SPEC 1.1, 2, 4, Luật U2, P6)', () => {
     );
 
     expect(screen.getByText(APP_NAME)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Cài đặt' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    );
+    expect(screen.getByRole('button', { name: 'Cài đặt' })).toHaveAttribute('aria-current', 'page');
     expect(screen.queryByRole('button', { name: /Dev/i })).not.toBeInTheDocument();
 
     const devFlags = resolveFeatureFlags(true);
@@ -154,4 +151,3 @@ describe('Phase 1 UI Primitives (UI_SPEC 1.1, 2, 4, Luật U2, P6)', () => {
     expect(long.endsWith('tiem-banh-nho')).toBe(true);
   });
 });
-

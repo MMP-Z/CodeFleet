@@ -15,10 +15,7 @@ export interface IpcDependencies {
 /**
  * Đăng ký toàn bộ kênh IPC của Phase 1.
  */
-export function registerPhase1IpcHandlers(
-  registrar: IpcRegistrar,
-  deps: IpcDependencies,
-): void {
+export function registerPhase1IpcHandlers(registrar: IpcRegistrar, deps: IpcDependencies): void {
   const settingsRepo = new SettingsRepository(deps.dbService.getConnection());
   const ipcLogger = deps.logger.child('ipc');
 
@@ -98,4 +95,3 @@ export function registerPhase1IpcHandlers(
     ipcLogger,
   );
 }
-

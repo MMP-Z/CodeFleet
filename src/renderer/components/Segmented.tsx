@@ -54,4 +54,3 @@ export function Segmented<T extends string>({
     </div>
   );
 }
-

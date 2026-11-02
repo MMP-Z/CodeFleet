@@ -57,4 +57,3 @@ export function isNavigationAllowed(targetUrl: string, allowedRendererUrl?: stri
     return false;
   }
 }
-

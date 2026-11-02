@@ -83,4 +83,3 @@ export function redactUnknown(value: unknown, depth = 0): unknown {
 
   return String(value);
 }
-

@@ -123,8 +123,7 @@ export const IpcErrorPayloadSchema = z.object({
 export type IpcErrorPayload = z.infer<typeof IpcErrorPayloadSchema>;
 
 export type IpcResult<T> =
-  | { readonly ok: true; readonly data: T }
-  | { readonly ok: false; readonly error: IpcErrorPayload };
+  { readonly ok: true; readonly data: T } | { readonly ok: false; readonly error: IpcErrorPayload };
 
 /**
  * Kiểu cầu nối Preload lộ ra tại window.codefleet (Luật B1, P3).
@@ -145,4 +144,3 @@ export interface CodeFleetBridge {
     backupNow(): Promise<IpcResult<BackupNowOutput>>;
   };
 }
-

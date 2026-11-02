@@ -113,10 +113,7 @@ export function ToastProvider({ children }: { readonly children: ReactNode }): R
     return id;
   }, []);
 
-  const contextValue = useMemo(
-    () => ({ pushToast, dismissToast }),
-    [pushToast, dismissToast],
-  );
+  const contextValue = useMemo(() => ({ pushToast, dismissToast }), [pushToast, dismissToast]);
 
   return (
     <ToastContext.Provider value={contextValue}>
@@ -142,4 +139,3 @@ export function useToast(): ToastContextValue {
   }
   return ctx;
 }
-

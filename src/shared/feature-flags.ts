@@ -28,4 +28,3 @@ export function resolveFeatureFlags(isDev: boolean): FeatureFlags {
     phase8Feedback: false,
   };
 }
-

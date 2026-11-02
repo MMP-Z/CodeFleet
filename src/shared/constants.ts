@@ -11,4 +11,3 @@ export const MIN_WINDOW_HEIGHT = 680 as const;
 
 export const DEFAULT_WINDOW_WIDTH = 1280 as const;
 export const DEFAULT_WINDOW_HEIGHT = 820 as const;
-
