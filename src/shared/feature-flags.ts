@@ -24,7 +24,7 @@ export function resolveFeatureFlags(isDev: boolean): FeatureFlags {
     phase3Workspace: true,
     phase5Quota: true,
     phase6Plugins: true,
-    phase7Updater: false,
+    phase7Updater: true,
     phase8Feedback: false,
   };
 }

@@ -1,8 +1,8 @@
 # ĐẶC TẢ GIAO DIỆN (UI_SPEC)
 
-> **Phiên bản:** 0.4
+> **Phiên bản:** 0.8
 > **Cập nhật lần cuối:** 2026-11-02
-> **Đi kèm:** `PROJECT_PLAN.md` (v0.11) và bộ mockup `Document/UI_Mockups/`
+> **Đi kèm:** `PROJECT_PLAN.md` (v1.5) và bộ mockup `Document/UI_Mockups/`
 
 ---
 
@@ -586,6 +586,7 @@ Mọi kênh: dữ liệu vào/ra có zod schema trong `src/shared/ipc/`. Tên d�
 
 | Ngày | Phiên bản | Người/AI | Thay đổi |
 |---|---|---|---|
+| 2026-11-02 | 0.8 | Antigravity (AI) | Nghiệm thu toàn bộ UI Phase 7: Màn hình MH-01 Khởi động lần đầu hoàn chỉnh với Stepper 3 bước (Chào mừng 3 triết lý an toàn -> Kiểm tra AI trên máy -> Đội tàu AI sẵn sàng), tab "Cập nhật" trong MH-11 Cài đặt với bộ chuyển kênh phát hành Stable/Beta, toggle tự tải và nút kiểm tra cập nhật thủ công |
 | 2026-11-02 | 0.7 | Antigravity (AI) | Nghiệm thu toàn bộ UI Phase 6: Màn hình MH-10 Quản lý plugin (`#/plugins`), lưới thẻ theo danh mục/đã cài/cập nhật, bộ lọc loại plugin, thanh tìm kiếm tức thì, hộp thoại xin cấp quyền trọn gói (ADR-016), hộp thoại cài đặt từ đường link ngoài kèm cảnh báo an toàn Luật U2 |
 | 2026-11-02 | 0.6 | Antigravity (AI) | Nghiệm thu toàn bộ UI Phase 5: QuotaBar trên AppHeader, QuotaChip, QuotaPopover khi click chip, trang MH-08 Chi tiết hạn mức (`#/quota`) đầy đủ 4 độ tin cậy nguồn và 4 nguyên tắc chọn AI, nâng cấp thẻ tạm dừng MH-07 với chi tiết hạn mức |
 | 2026-11-02 | 0.5 | Antigravity (AI) | Bổ sung kênh IPC `agents.openDocs(agentId)` và các kiểu dữ liệu `DetectResult`, `ModelInfo`, `EditableModelTier` vào bảng mục 7 cho Phase 2 |

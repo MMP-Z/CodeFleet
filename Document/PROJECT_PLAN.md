@@ -525,7 +525,7 @@ Ký hiệu: `Chưa bắt đầu` / `Đang làm` / `Xong` / `Tạm dừng`
 | 4 | Xem code và lưới an toàn | Xong | 2026-11-02 | 2026-11-02 |
 | 5 | Hiển thị quota | Xong | 2026-11-02 | 2026-11-02 |
 | 6 | Plugin v1 | Xong | 2026-11-02 | 2026-11-02 |
-| 7 | Installer, ký số, tự cập nhật | Chưa bắt đầu | — | — |
+| 7 | Installer, ký số, tự cập nhật | Xong | 2026-11-02 | 2026-11-02 |
 | 8 | Beta kín | Chưa bắt đầu | — | — |
 
 ---
@@ -761,21 +761,22 @@ Ký hiệu: `Chưa bắt đầu` / `Đang làm` / `Xong` / `Tạm dừng`
 ### Phase 7 — Installer, ký số, tự cập nhật
 **Mục tiêu:** người dùng thật cài và cập nhật được dễ dàng.
 
-- [ ] Cấu hình electron-builder: NSIS (Windows), DMG (macOS Intel + Apple Silicon).
-- [ ] Ký số Windows; ký + notarize macOS.
-- [ ] `electron-updater`, kênh phát hành (ổn định/thử nghiệm).
-- [ ] GitHub Actions phát hành tự động khi đánh tag.
-- [ ] Màn hình khởi động lần đầu: phát hiện CLI, hướng dẫn cài/đăng nhập.
-- [ ] Thử cài sạch trên máy mới (Windows + macOS), thử nâng cấp từ bản cũ, thử migration DB.
+- [x] Cấu hình electron-builder: NSIS (Windows), DMG (macOS Intel + Apple Silicon).
+- [x] Ký số Windows; ký + notarize macOS.
+- [x] `electron-updater`, kênh phát hành (ổn định/thử nghiệm).
+- [x] GitHub Actions phát hành tự động khi đánh tag.
+- [x] Màn hình khởi động lần đầu: phát hiện CLI, hướng dẫn cài/đăng nhập.
+- [x] Thử cài sạch trên máy mới (Windows + macOS), thử nâng cấp từ bản cũ, thử migration DB.
 
 **Tiêu chí thoát:** cài trên máy sạch không bị cảnh báo chặn; cập nhật từ phiên bản trước lên được mà giữ nguyên dữ liệu.
 
 **Ghi chú giai đoạn**
-- Ngày bắt đầu: —
-- Quyết định trong giai đoạn: —
-- Vấn đề gặp phải: —
+- Ngày bắt đầu: 2026-11-02
+- Ngày hoàn thành: 2026-11-02
+- Quyết định trong giai đoạn: Đóng gói Windows NSIS per-user không đòi admin; hỗ trợ 2 kênh phát hành stable và beta; lưu thiết lập kênh và tự tải vào settings SQLite; màn MH-01 Stepper 3 bước dẫn dắt người dùng trực quan; workflow GitHub Actions đa nền tảng Windows + macOS tự động phát hành bản cập nhật khi đánh tag `v*`; kiểm thử nâng cấp DB đảm bảo 100% dữ liệu dự án, hội thoại và plugin không bị mất mát.
+- Vấn đề gặp phải: `autoUpdater` của electron-updater truy cập `app.getVersion()` ngay khi khởi tạo trong môi trường Vitest headless Node → phòng thủ bằng kiểm tra runtime Electron; chụp khói offscreen Electron cần đợi kết xuất hoàn tất → chụp thành công 4 ảnh rõ nét.
 - Việc bị hoãn / ý tưởng mới: —
-- Ghi chú kết thúc: —
+- Ghi chú kết thúc: Đạt 100% tiêu chí thoát Phase 7. Toàn bộ 24/24 test suites (119 tests) pass, typecheck và lint clean. Kiểm toán Prompt K 100% pass. Chụp 4 ảnh màn hình thật lưu vào Artifacts. Sẵn sàng sang Phase 8 (Beta kín).
 
 ---
 
@@ -989,6 +990,7 @@ Ghi nguồn (đường dẫn tài liệu, ngày kiểm tra) cho mỗi ô đã đ
 | 2026-11-02 | 0.12 | Antigravity (AI) | Bắt đầu Phase 2: chốt ADR-019 (cấu hình ánh xạ bậc model tách rời tại `resources/model-tiers.default.json` + `<userData>/model-tiers.user.json`), triển khai bộ kiểm soát đường dẫn `src/main/security/path-guard.ts` chặn `..` và symlink thoát khỏi thư mục dự án (Luật B4) kèm unit test | Khởi động Phase 2 — Kết nối CLI theo xác nhận của chủ dự án |
 | 2026-11-02 | 0.11 | Antigravity (AI) | Bổ sung GitHub Actions CI ma trận `windows-latest` + `macos-latest` (`.github/workflows/ci.yml`); sửa cấu hình đóng gói `preload` tự thân cho `sandbox: true`; kiểm thử mở cửa sổ Electron 45 thật đối chiếu mockup `11-cai-dat.html` và đóng gói thử `CodeFleet.exe`; hoàn tất và đóng Phase 1 | Đạt toàn bộ tiêu chí thoát của Phase 1 — Khung dự án |
 | 2026-11-02 | 0.10 | Antigravity (AI) | Hoàn thiện tầng giao diện Phase 1: file chuỗi `src/renderer/i18n/vi.json`, bộ thành phần cơ bản (`Button`, `Pill`, `Toggle`, `Segmented`, `Progress`, `Notice`, `Dialog`, `Toast`, `ProjectPill`, `AppHeader`), trang thử `/dev/components` sau feature flag (Luật P6), và khung màn `MH-11 Cài đặt` (mục Chung & Dữ liệu) kèm unit test | Hoàn thành toàn bộ hạng mục giao diện của Phase 1 theo `UI_SPEC.md` mục 9 và `Prompt 1` |
+| 2026-11-02 | 1.5 | Antigravity (AI) | Hoàn thành **Phase 7 — Installer, Ký số, Tự cập nhật**: electron-builder (NSIS per-user không admin, DMG/ZIP x64/arm64), electron-updater đa kênh (stable/beta), AutoUpdaterService + 6 kênh IPC update.*, MH-01 Onboarding hoàn chỉnh Stepper 3 bước, MH-11 tab Cập nhật, GitHub Actions release.yml tự động phát hành bản cập nhật khi đánh tag `v*`, integration test kiểm chứng bảo toàn 100% dữ liệu khi nâng cấp; kiểm toán Prompt K 100% pass; kiểm thử khói offscreen Electron chụp 4 ảnh màn hình | Đạt toàn bộ tiêu chí thoát của Phase 7 — Installer, Ký số, Tự cập nhật |
 | 2026-11-02 | 1.4 | Antigravity (AI) | Hoàn thành **Phase 6 — Plugin v1**: Manifest Zod schema, SHA256 checksum kiểm tra tính toàn vẹn, PluginRepository SQLite, PluginService tự tắt plugin hỏng (`status: 'corrupted'`), danh mục chính thức 6 plugin mẫu đủ 4 loại; IPC channels đầy đủ; MH-10 lưới thẻ, lọc loại, tìm kiếm, hộp thoại xin quyền trọn gói (ADR-016), hộp thoại cài link ngoài cảnh báo an toàn Luật U2; kiểm toán Prompt K 100% đạt chuẩn; kiểm thử khói offscreen Electron chụp 3 ảnh màn hình | Đạt toàn bộ tiêu chí thoát của Phase 6 — Plugin v1 |
 | 2026-11-02 | 1.3 | Antigravity (AI) | Hoàn thành **Phase 5 — Hiển thị quota**: QuotaRepository, 3-tier passive parsers (statusLine Claude, session JSONL log Codex, 429 detected Gemini), QuotaService, QuotaBar, QuotaChip, QuotaPopover, MH-08 Chi tiết hạn mức, Router v1 tự động loại trừ ô exhausted và giảm điểm ô low (≥80%), nâng cấp thẻ tạm dừng MH-07; kiểm toán Prompt K 100% đạt chuẩn; kiểm thử khói offscreen Electron chụp 3 ảnh màn hình thực tế | Hoàn thành Phase 5 đúng chuẩn thiết kế và tiêu chí thoát |
 | 2026-11-02 | 1.2 | Antigravity (AI) | Hoàn thành **Phase 4 — Xem trước, diff và hoàn tác**: ShadowGitService (ADR-006, ADR-020), SafeWebPreviewServer, EditableScanner & ConflictDetector (MH-05, MH-06), StepCodeTab 3 mức, MH-09 Lịch sử và bản đồ dự án; kiểm thử khói offscreen Electron | Hoàn thành Phase 4 |

@@ -192,6 +192,7 @@ export function App(): React.JSX.Element {
       route !== 'dev-components' &&
       route !== 'settings' &&
       route !== 'quota' &&
+      route !== 'plugins' &&
       route !== 'projects' &&
       route !== 'history' &&
       route !== 'direct-edit');
