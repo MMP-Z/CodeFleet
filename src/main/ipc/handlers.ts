@@ -1,14 +1,23 @@
+import path from 'node:path';
 import { IPC_CHANNELS, IPC_CONTRACTS, type AgentId, type StepVM } from '@shared/ipc';
 import { AgentRegistry } from '../agents/detect';
 import { ModelTierService } from '../agents/models';
 import { AgentSessionRepository } from '../agents/session-repo';
+import { CheckpointRepository } from '../db/checkpoint-repo';
 import { ConversationRepository, type StepRecord } from '../db/conversation-repo';
 import type { DatabaseService } from '../db/database';
 import { DecisionRepository } from '../db/decision-repo';
+import { ProjectMapRepository } from '../db/project-map-repo';
 import { ProjectRepository } from '../db/project-repo';
 import { SettingsRepository } from '../db/settings-repo';
+import { StepFilesRepository } from '../db/step-files-repo';
+import { UserEditsRepository } from '../db/user-edits-repo';
 import type { Logger } from '../logger/logger';
 import { Orchestrator } from '../orchestrator/orchestrator';
+import { ConflictDetector } from '../project/conflict-detector';
+import { EditableScanner } from '../project/editable-scanner';
+import { PreviewServerService } from '../project/preview-server';
+import { ShadowGitService } from '../project/shadow-git';
 import { validateProjectPath } from './project-path';
 import { registerTypedHandler, type IpcRegistrar } from './router';
 import { checkSystemGit } from './system-git';
@@ -23,6 +32,11 @@ export interface IpcDependencies {
   readonly projectRepo?: ProjectRepository;
   readonly convRepo?: ConversationRepository;
   readonly decisionRepo?: DecisionRepository;
+  readonly stepFilesRepo?: StepFilesRepository;
+  readonly userEditsRepo?: UserEditsRepository;
+  readonly projectMapRepo?: ProjectMapRepository;
+  readonly checkpointRepo?: CheckpointRepository;
+  readonly previewServer?: PreviewServerService;
   readonly orchestrator?: Orchestrator;
   readonly pickFolderDialog?: () => Promise<{ canceled: boolean; folderPath: string | null }>;
   readonly broadcastEvent?: (channel: string, payload: unknown) => void;
@@ -71,6 +85,11 @@ export function registerIpcHandlers(registrar: IpcRegistrar, deps: IpcDependenci
   const projectRepo = deps.projectRepo ?? new ProjectRepository(db);
   const convRepo = deps.convRepo ?? new ConversationRepository(db);
   const decisionRepo = deps.decisionRepo ?? new DecisionRepository(db);
+  const stepFilesRepo = deps.stepFilesRepo ?? new StepFilesRepository(db);
+  const userEditsRepo = deps.userEditsRepo ?? new UserEditsRepository(db);
+  const projectMapRepo = deps.projectMapRepo ?? new ProjectMapRepository(db);
+  const checkpointRepo = deps.checkpointRepo ?? new CheckpointRepository(db);
+  const previewServer = deps.previewServer ?? new PreviewServerService();
   const ipcLogger = deps.logger.child('ipc');
 
   const modelsService =
@@ -345,6 +364,265 @@ export function registerIpcHandlers(registrar: IpcRegistrar, deps: IpcDependenci
     IPC_CONTRACTS[IPC_CHANNELS.PERMISSION_RESPOND],
     async ({ conversationId, requestId, allowed }) => {
       orchestrator.respondPermission(conversationId, requestId, allowed);
+    },
+    ipcLogger,
+  );
+
+  // === PHASE 4: CODE VIEW, DIFF, SAFETY NET & PREVIEW ===
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.CODE_STEP_DIFF],
+    ({ stepId }) => {
+      const step = convRepo.getStepById(stepId);
+      const files = stepFilesRepo.listByStep(stepId);
+      const whyApproach = decisionRepo.getLatestForStep(stepId, 'approach')?.text ?? null;
+      let fullDiff: string | null = null;
+      if (files.length > 0) {
+        fullDiff = files
+          .map((f) => `--- a/${f.path}\n+++ b/${f.path}\n${f.fullDiff ?? ''}`)
+          .join('\n\n');
+      }
+      return {
+        stepId,
+        summary: step?.summary ?? null,
+        fullDiff,
+        files: files.map((f) => ({
+          id: f.id,
+          path: f.path,
+          change: f.change,
+          riskTags: f.riskTags ? [...f.riskTags] : null,
+          diffSummary: f.diffSummary,
+          fullDiff: f.fullDiff,
+        })),
+        whyApproach,
+      };
+    },
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.CODE_EXPLAIN_SEGMENT],
+    ({ codeSnippet }) => {
+      const trimmed = codeSnippet.trim();
+      const firstLine = trimmed.split('\n')[0] || '';
+      return {
+        explanation: `Đoạn mã này thực hiện: "${firstLine.slice(0, 80)}". Đây là phần xử lý giao diện/dữ liệu cục bộ được viết bởi AI theo yêu cầu của bạn.`,
+      };
+    },
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.CHECKPOINT_UNDO_STEP],
+    ({ stepId }) => {
+      const step = convRepo.getStepById(stepId);
+      if (!step) {
+        throw new Error(`Step not found: ${stepId}`);
+      }
+      convRepo.updateStepStatus(stepId, 'undone');
+      const files = stepFilesRepo.listByStep(stepId);
+
+      const conv = convRepo.getById(step.conversationId);
+      if (conv) {
+        const proj = projectRepo.getById(conv.projectId);
+        if (proj && step.checkpointBefore) {
+          const shadowGit = new ShadowGitService({
+            workTree: proj.path,
+            shadowGitDir: path.join(deps.userDataDir, 'projects', proj.id, 'shadow.git'),
+          });
+          shadowGit.restoreCheckpoint(step.checkpointBefore);
+        }
+      }
+
+      return {
+        undoneStepId: stepId,
+        affectedFiles: files.map((f) => f.path),
+        dependentStepsCount: 0,
+      };
+    },
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.CHECKPOINT_REDO_STEP],
+    ({ stepId }) => {
+      const step = convRepo.getStepById(stepId);
+      if (!step) {
+        throw new Error(`Step not found: ${stepId}`);
+      }
+      convRepo.updateStepStatus(stepId, 'done');
+
+      const conv = convRepo.getById(step.conversationId);
+      if (conv) {
+        const proj = projectRepo.getById(conv.projectId);
+        if (proj && step.checkpointAfter) {
+          const shadowGit = new ShadowGitService({
+            workTree: proj.path,
+            shadowGitDir: path.join(deps.userDataDir, 'projects', proj.id, 'shadow.git'),
+          });
+          shadowGit.restoreCheckpoint(step.checkpointAfter);
+        }
+      }
+
+      return {
+        redoneStepId: stepId,
+      };
+    },
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.PROJECT_EDITABLES],
+    ({ projectId }) => {
+      const proj = projectRepo.getById(projectId);
+      if (!proj) return [];
+      return EditableScanner.scanProject(proj.path);
+    },
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.USER_EDITS_SAVE_DIRECT],
+    ({ projectId, filePath, locator, newValue }) => {
+      const proj = projectRepo.getById(projectId);
+      if (!proj) throw new Error('Project not found');
+
+      const editRes = EditableScanner.applyEdit(proj.path, filePath, locator, newValue);
+      if (!editRes.ok) {
+        throw new Error(editRes.error || 'Failed to apply direct edit');
+      }
+
+      userEditsRepo.recordEdit({
+        projectId,
+        path: filePath,
+        contentHash: editRes.newContentHash,
+      });
+
+      const shadowGit = new ShadowGitService({
+        workTree: proj.path,
+        shadowGitDir: path.join(deps.userDataDir, 'projects', proj.id, 'shadow.git'),
+      });
+      const hash = shadowGit.createCheckpoint(`Người dùng tự sửa: ${filePath}`);
+      checkpointRepo.create({
+        projectId,
+        gitHash: hash,
+        description: `Tự sửa file: ${filePath}`,
+      });
+
+      return {
+        ok: true,
+        newContentHash: editRes.newContentHash,
+      };
+    },
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.PROJECT_CONFLICT_RESOLVE],
+    ({ projectId, stepId, filePath, choice, userVersion, aiVersion }) => {
+      const proj = projectRepo.getById(projectId);
+      if (!proj) throw new Error('Project not found');
+
+      const res = ConflictDetector.resolveConflict({
+        choice,
+        projectDir: proj.path,
+        relPath: filePath,
+        userVersion,
+        aiVersion,
+        userEditsRepo,
+        projectId,
+      });
+
+      convRepo.updateStepStatus(stepId, 'done');
+      return { ok: res.ok };
+    },
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.PROJECT_HISTORY],
+    ({ projectId }) => {
+      const convs = convRepo.listByProject(projectId);
+      const allSteps: StepVM[] = [];
+      for (const c of convs) {
+        const steps = convRepo.listSteps(c.id);
+        allSteps.push(
+          ...steps.map((s) => mapStepToVm(s, agentRegistry, modelsService, decisionRepo, convRepo)),
+        );
+      }
+      const userEdits = userEditsRepo.listByProject(projectId);
+      const decisions = decisionRepo.listByProject(projectId);
+
+      return {
+        steps: allSteps,
+        userEdits: userEdits.map((e) => ({
+          id: e.id,
+          path: e.path,
+          editedAt: e.editedAt,
+        })),
+        decisions: decisions.map((d) => ({
+          id: d.id,
+          stepId: d.stepId,
+          kind: d.kind,
+          text: d.text,
+          createdAt: d.createdAt,
+        })),
+      };
+    },
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.PROJECT_MAP],
+    ({ projectId }) => {
+      const mapItems = projectMapRepo.listByProject(projectId);
+      return mapItems.map((m) => ({
+        id: m.id,
+        feature: m.feature,
+        description: m.description,
+        files: [...m.files],
+        isSensitive: m.isSensitive,
+        updatedAt: m.updatedAt,
+      }));
+    },
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.PREVIEW_STATUS],
+    ({ projectId }) => {
+      const proj = projectRepo.getById(projectId);
+      if (!proj) return { isWebProject: false, isRunning: false, url: null, error: null };
+      return previewServer.getStatus(projectId, proj.path);
+    },
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.PREVIEW_START],
+    async ({ projectId }) => {
+      const proj = projectRepo.getById(projectId);
+      if (!proj) return { ok: false, url: null, error: 'Project not found' };
+      return previewServer.start(projectId, proj.path);
+    },
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.PREVIEW_STOP],
+    ({ projectId }) => {
+      previewServer.stop(projectId);
     },
     ipcLogger,
   );

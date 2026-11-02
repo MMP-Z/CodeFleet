@@ -163,6 +163,59 @@ export const fallbackBridge: CodeFleetBridge = {
   permission: {
     respond: async () => ({ ok: true, data: undefined }),
   },
+  code: {
+    stepDiff: async (stepId) => ({
+      ok: true,
+      data: {
+        stepId,
+        summary: 'Tóm tắt thay đổi code của bước này',
+        fullDiff: '--- a/index.html\n+++ b/index.html\n+ <h1>Tiệm Bánh Nhỏ</h1>',
+        files: [],
+        whyApproach: 'Cách làm tối ưu và an toàn',
+      },
+    }),
+    explainSegment: async () => ({
+      ok: true,
+      data: { explanation: 'Đoạn code này xử lý hiển thị giao diện theo yêu cầu.' },
+    }),
+  },
+  checkpoints: {
+    undoStep: async (stepId) => ({
+      ok: true,
+      data: { undoneStepId: stepId, affectedFiles: [], dependentStepsCount: 0 },
+    }),
+    redoStep: async (stepId) => ({
+      ok: true,
+      data: { redoneStepId: stepId },
+    }),
+  },
+  directEdit: {
+    getEditables: async () => ({ ok: true, data: [] }),
+    saveDirect: async () => ({ ok: true, data: { ok: true, newContentHash: 'hash' } }),
+  },
+  conflict: {
+    resolve: async () => ({ ok: true, data: { ok: true } }),
+  },
+  history: {
+    get: async () => ({
+      ok: true,
+      data: { steps: [], userEdits: [], decisions: [] },
+    }),
+  },
+  projectMap: {
+    get: async () => ({ ok: true, data: [] }),
+  },
+  preview: {
+    status: async () => ({
+      ok: true,
+      data: { isWebProject: true, isRunning: false, url: null, error: null },
+    }),
+    start: async () => ({
+      ok: true,
+      data: { ok: true, url: 'http://127.0.0.1:5173', error: null },
+    }),
+    stop: async () => ({ ok: true, data: undefined }),
+  },
 };
 
 export function getBridge(): CodeFleetBridge {

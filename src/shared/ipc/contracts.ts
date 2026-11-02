@@ -57,6 +57,18 @@ export const IPC_CHANNELS = {
   ORCHESTRATOR_CANCEL: 'orchestrator.cancel',
   ORCHESTRATOR_SET_AI_PICK: 'orchestrator.setAiPick',
   PERMISSION_RESPOND: 'permission.respond',
+  CODE_STEP_DIFF: 'code.stepDiff',
+  CODE_EXPLAIN_SEGMENT: 'code.explainSegment',
+  CHECKPOINT_UNDO_STEP: 'checkpoint.undoStep',
+  CHECKPOINT_REDO_STEP: 'checkpoint.redoStep',
+  PROJECT_EDITABLES: 'project.editables',
+  USER_EDITS_SAVE_DIRECT: 'userEdits.saveDirect',
+  PROJECT_CONFLICT_RESOLVE: 'project.conflictResolve',
+  PROJECT_HISTORY: 'project.history',
+  PROJECT_MAP: 'project.map',
+  PREVIEW_STATUS: 'preview.status',
+  PREVIEW_START: 'preview.start',
+  PREVIEW_STOP: 'preview.stop',
 } as const;
 
 export type IpcChannelName = (typeof IPC_CHANNELS)[keyof typeof IPC_CHANNELS];
@@ -304,6 +316,155 @@ export const DetectResultListSchema = z.array(DetectResultSchema);
 export const ModelInfoListSchema = z.array(ModelInfoSchema);
 export const VoidOutputSchema = z.void();
 
+export const StepTargetInputSchema = z.object({
+  stepId: z.string().min(1),
+});
+export type StepTargetInput = z.infer<typeof StepTargetInputSchema>;
+
+export const StepFileVMSchema = z.object({
+  id: z.string(),
+  path: z.string(),
+  change: z.enum(['added', 'modified', 'deleted']),
+  riskTags: z.array(z.string()).nullable(),
+  diffSummary: z.string().nullable(),
+  fullDiff: z.string().nullable(),
+});
+export type StepFileVM = z.infer<typeof StepFileVMSchema>;
+
+export const StepDiffOutputSchema = z.object({
+  stepId: z.string(),
+  summary: z.string().nullable(),
+  fullDiff: z.string().nullable(),
+  files: z.array(StepFileVMSchema),
+  whyApproach: z.string().nullable(),
+});
+export type StepDiffOutput = z.infer<typeof StepDiffOutputSchema>;
+
+export const ExplainSegmentInputSchema = z.object({
+  codeSnippet: z.string(),
+  language: z.string().optional(),
+});
+export type ExplainSegmentInput = z.infer<typeof ExplainSegmentInputSchema>;
+
+export const ExplainSegmentOutputSchema = z.object({
+  explanation: z.string(),
+});
+export type ExplainSegmentOutput = z.infer<typeof ExplainSegmentOutputSchema>;
+
+export const UndoStepOutputSchema = z.object({
+  undoneStepId: z.string(),
+  affectedFiles: z.array(z.string()),
+  dependentStepsCount: z.number(),
+});
+export type UndoStepOutput = z.infer<typeof UndoStepOutputSchema>;
+
+export const RedoStepOutputSchema = z.object({
+  redoneStepId: z.string(),
+});
+export type RedoStepOutput = z.infer<typeof RedoStepOutputSchema>;
+
+export const ProjectTargetInputSchema = z.object({
+  projectId: z.string().min(1),
+});
+export type ProjectTargetInput = z.infer<typeof ProjectTargetInputSchema>;
+
+export const EditableLocatorSchema = z.object({
+  line: z.number(),
+  col: z.number(),
+  length: z.number(),
+  originalSnippet: z.string(),
+});
+export type EditableLocatorVM = z.infer<typeof EditableLocatorSchema>;
+
+export const EditableItemSchema = z.object({
+  id: z.string(),
+  kind: z.enum(['text', 'color', 'number']),
+  label: z.string(),
+  value: z.string(),
+  file: z.string(),
+  locator: EditableLocatorSchema,
+});
+export type EditableItemVM = z.infer<typeof EditableItemSchema>;
+export const EditableItemListSchema = z.array(EditableItemSchema);
+
+export const SaveDirectEditInputSchema = z.object({
+  projectId: z.string(),
+  filePath: z.string(),
+  locator: EditableLocatorSchema,
+  newValue: z.string(),
+});
+export type SaveDirectEditInput = z.infer<typeof SaveDirectEditInputSchema>;
+
+export const SaveDirectEditOutputSchema = z.object({
+  ok: z.boolean(),
+  newContentHash: z.string(),
+});
+export type SaveDirectEditOutput = z.infer<typeof SaveDirectEditOutputSchema>;
+
+export const ConflictResolveInputSchema = z.object({
+  projectId: z.string(),
+  stepId: z.string(),
+  filePath: z.string(),
+  choice: z.enum(['keep_user_ask_ai', 'keep_user', 'use_ai']),
+  userVersion: z.string(),
+  aiVersion: z.string(),
+});
+export type ConflictResolveInput = z.infer<typeof ConflictResolveInputSchema>;
+
+export const ConflictResolveOutputSchema = z.object({
+  ok: z.boolean(),
+});
+export type ConflictResolveOutput = z.infer<typeof ConflictResolveOutputSchema>;
+
+export const UserEditItemSchema = z.object({
+  id: z.string(),
+  path: z.string(),
+  editedAt: z.string(),
+});
+export type UserEditItemVM = z.infer<typeof UserEditItemSchema>;
+
+export const DecisionItemSchema = z.object({
+  id: z.string(),
+  stepId: z.string().nullable(),
+  kind: z.enum(['approach', 'pick', 'switch']),
+  text: z.string(),
+  createdAt: z.string(),
+});
+export type DecisionItemVM = z.infer<typeof DecisionItemSchema>;
+
+export const ProjectHistoryOutputSchema = z.object({
+  steps: z.array(StepVMSchema),
+  userEdits: z.array(UserEditItemSchema),
+  decisions: z.array(DecisionItemSchema),
+});
+export type ProjectHistoryOutput = z.infer<typeof ProjectHistoryOutputSchema>;
+
+export const ProjectMapItemSchema = z.object({
+  id: z.string(),
+  feature: z.string(),
+  description: z.string().nullable(),
+  files: z.array(z.string()),
+  isSensitive: z.boolean().optional(),
+  updatedAt: z.string(),
+});
+export type ProjectMapItemVM = z.infer<typeof ProjectMapItemSchema>;
+export const ProjectMapItemListSchema = z.array(ProjectMapItemSchema);
+
+export const PreviewStatusOutputSchema = z.object({
+  isWebProject: z.boolean(),
+  isRunning: z.boolean(),
+  url: z.string().nullable(),
+  error: z.string().nullable(),
+});
+export type PreviewStatusOutput = z.infer<typeof PreviewStatusOutputSchema>;
+
+export const PreviewStartOutputSchema = z.object({
+  ok: z.boolean(),
+  url: z.string().nullable(),
+  error: z.string().nullable(),
+});
+export type PreviewStartOutput = z.infer<typeof PreviewStartOutputSchema>;
+
 export interface IpcContract<I extends z.ZodTypeAny, O extends z.ZodTypeAny> {
   readonly channel: IpcChannelName;
   readonly input: I;
@@ -446,6 +607,66 @@ export const IPC_CONTRACTS = {
     input: PermissionRespondInputSchema,
     output: VoidOutputSchema,
   },
+  [IPC_CHANNELS.CODE_STEP_DIFF]: {
+    channel: IPC_CHANNELS.CODE_STEP_DIFF,
+    input: StepTargetInputSchema,
+    output: StepDiffOutputSchema,
+  },
+  [IPC_CHANNELS.CODE_EXPLAIN_SEGMENT]: {
+    channel: IPC_CHANNELS.CODE_EXPLAIN_SEGMENT,
+    input: ExplainSegmentInputSchema,
+    output: ExplainSegmentOutputSchema,
+  },
+  [IPC_CHANNELS.CHECKPOINT_UNDO_STEP]: {
+    channel: IPC_CHANNELS.CHECKPOINT_UNDO_STEP,
+    input: StepTargetInputSchema,
+    output: UndoStepOutputSchema,
+  },
+  [IPC_CHANNELS.CHECKPOINT_REDO_STEP]: {
+    channel: IPC_CHANNELS.CHECKPOINT_REDO_STEP,
+    input: StepTargetInputSchema,
+    output: RedoStepOutputSchema,
+  },
+  [IPC_CHANNELS.PROJECT_EDITABLES]: {
+    channel: IPC_CHANNELS.PROJECT_EDITABLES,
+    input: ProjectTargetInputSchema,
+    output: EditableItemListSchema,
+  },
+  [IPC_CHANNELS.USER_EDITS_SAVE_DIRECT]: {
+    channel: IPC_CHANNELS.USER_EDITS_SAVE_DIRECT,
+    input: SaveDirectEditInputSchema,
+    output: SaveDirectEditOutputSchema,
+  },
+  [IPC_CHANNELS.PROJECT_CONFLICT_RESOLVE]: {
+    channel: IPC_CHANNELS.PROJECT_CONFLICT_RESOLVE,
+    input: ConflictResolveInputSchema,
+    output: ConflictResolveOutputSchema,
+  },
+  [IPC_CHANNELS.PROJECT_HISTORY]: {
+    channel: IPC_CHANNELS.PROJECT_HISTORY,
+    input: ProjectTargetInputSchema,
+    output: ProjectHistoryOutputSchema,
+  },
+  [IPC_CHANNELS.PROJECT_MAP]: {
+    channel: IPC_CHANNELS.PROJECT_MAP,
+    input: ProjectTargetInputSchema,
+    output: ProjectMapItemListSchema,
+  },
+  [IPC_CHANNELS.PREVIEW_STATUS]: {
+    channel: IPC_CHANNELS.PREVIEW_STATUS,
+    input: ProjectTargetInputSchema,
+    output: PreviewStatusOutputSchema,
+  },
+  [IPC_CHANNELS.PREVIEW_START]: {
+    channel: IPC_CHANNELS.PREVIEW_START,
+    input: ProjectTargetInputSchema,
+    output: PreviewStartOutputSchema,
+  },
+  [IPC_CHANNELS.PREVIEW_STOP]: {
+    channel: IPC_CHANNELS.PREVIEW_STOP,
+    input: ProjectTargetInputSchema,
+    output: VoidOutputSchema,
+  },
 } as const;
 
 export type IpcErrorCode = 'VALIDATION_ERROR' | 'INTERNAL_ERROR';
@@ -513,5 +734,31 @@ export interface CodeFleetBridge {
   };
   readonly permission: {
     respond(input: PermissionRespondInput): Promise<IpcResult<void>>;
+  };
+  readonly code: {
+    stepDiff(stepId: string): Promise<IpcResult<StepDiffOutput>>;
+    explainSegment(codeSnippet: string, language?: string): Promise<IpcResult<ExplainSegmentOutput>>;
+  };
+  readonly checkpoints: {
+    undoStep(stepId: string): Promise<IpcResult<UndoStepOutput>>;
+    redoStep(stepId: string): Promise<IpcResult<RedoStepOutput>>;
+  };
+  readonly directEdit: {
+    getEditables(projectId: string): Promise<IpcResult<EditableItemVM[]>>;
+    saveDirect(input: SaveDirectEditInput): Promise<IpcResult<SaveDirectEditOutput>>;
+  };
+  readonly conflict: {
+    resolve(input: ConflictResolveInput): Promise<IpcResult<ConflictResolveOutput>>;
+  };
+  readonly history: {
+    get(projectId: string): Promise<IpcResult<ProjectHistoryOutput>>;
+  };
+  readonly projectMap: {
+    get(projectId: string): Promise<IpcResult<ProjectMapItemVM[]>>;
+  };
+  readonly preview: {
+    status(projectId: string): Promise<IpcResult<PreviewStatusOutput>>;
+    start(projectId: string): Promise<IpcResult<PreviewStartOutput>>;
+    stop(projectId: string): Promise<IpcResult<void>>;
   };
 }

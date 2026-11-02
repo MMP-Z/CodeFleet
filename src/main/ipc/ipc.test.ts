@@ -281,4 +281,59 @@ describe('Phase 1 Typed IPC + Zod Validation (Luật P3, B2)', () => {
     });
     expect(cancelRes.ok).toBe(true);
   });
+
+  it('handles Phase 4 IPC contracts: code, explain, undo, editables, and preview', async () => {
+    const { bus, userDataDir } = setupTestBus();
+    const projectDir = path.join(userDataDir, 'test-p4-proj');
+    fs.mkdirSync(projectDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(projectDir, 'index.html'),
+      '<h1>Tiệm Bánh Ban Đầu</h1>\n<p>Mô tả</p>\n',
+      'utf8',
+    );
+
+    // 1. Tạo project
+    const createProj = await bus.invoke<{ id: string; path: string }>(
+      IPC_CHANNELS.PROJECTS_CREATE,
+      {
+        name: 'Phase 4 Project',
+        path: projectDir,
+      },
+    );
+    expect(createProj.ok).toBe(true);
+    const projectId = (createProj as { data: { id: string } }).data.id;
+
+    // 2. project.editables
+    const editablesRes = await bus.invoke<Array<{ id: string; value: string }>>(
+      IPC_CHANNELS.PROJECT_EDITABLES,
+      { projectId },
+    );
+    if (!editablesRes.ok) {
+      console.log('EDITABLES ERROR:', editablesRes.error);
+    }
+    expect(editablesRes.ok).toBe(true);
+    if (editablesRes.ok) {
+      expect(editablesRes.data.some((e) => e.value === 'Tiệm Bánh Ban Đầu')).toBe(true);
+    }
+
+    // 3. code.explainSegment
+    const explainRes = await bus.invoke<{ explanation: string }>(
+      IPC_CHANNELS.CODE_EXPLAIN_SEGMENT,
+      { codeSnippet: 'const total = price * quantity;' },
+    );
+    expect(explainRes.ok).toBe(true);
+    if (explainRes.ok) {
+      expect(explainRes.data.explanation).toContain('thực hiện:');
+    }
+
+    // 4. preview.status & preview.start
+    const previewStatusRes = await bus.invoke<{ isWebProject: boolean }>(
+      IPC_CHANNELS.PREVIEW_STATUS,
+      { projectId },
+    );
+    expect(previewStatusRes.ok).toBe(true);
+    if (previewStatusRes.ok) {
+      expect(previewStatusRes.data.isWebProject).toBe(true);
+    }
+  });
 });

@@ -120,6 +120,44 @@ const bridge: CodeFleetBridge = {
   permission: {
     respond: (input) => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PERMISSION_RESPOND], input),
   },
+  code: {
+    stepDiff: (stepId) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.CODE_STEP_DIFF], { stepId }),
+    explainSegment: (codeSnippet, language) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.CODE_EXPLAIN_SEGMENT], { codeSnippet, language }),
+  },
+  checkpoints: {
+    undoStep: (stepId) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.CHECKPOINT_UNDO_STEP], { stepId }),
+    redoStep: (stepId) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.CHECKPOINT_REDO_STEP], { stepId }),
+  },
+  directEdit: {
+    getEditables: (projectId) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PROJECT_EDITABLES], { projectId }),
+    saveDirect: (input) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.USER_EDITS_SAVE_DIRECT], input),
+  },
+  conflict: {
+    resolve: (input) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PROJECT_CONFLICT_RESOLVE], input),
+  },
+  history: {
+    get: (projectId) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PROJECT_HISTORY], { projectId }),
+  },
+  projectMap: {
+    get: (projectId) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PROJECT_MAP], { projectId }),
+  },
+  preview: {
+    status: (projectId) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PREVIEW_STATUS], { projectId }),
+    start: (projectId) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PREVIEW_START], { projectId }),
+    stop: (projectId) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PREVIEW_STOP], { projectId }),
+  },
 };
 
 // Luật B1: Preload chỉ lộ ra API đã định nghĩa, không lộ Node/ipcRenderer thô.
