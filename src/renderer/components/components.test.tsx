@@ -10,6 +10,10 @@ import { truncateMiddlePath } from './ProjectPill';
 import { Segmented } from './Segmented';
 import { Toast, TOAST_AUTO_DISMISS_MS } from './Toast';
 import { Toggle } from './Toggle';
+import { QuotaBar } from './QuotaBar';
+import { QuotaChip } from './QuotaChip';
+import { QuotaPopover } from './QuotaPopover';
+import type { QuotaSnapshot } from '@shared/ipc';
 
 describe('Phase 1 UI Primitives (UI_SPEC 1.1, 2, 4, Luật U2, P6)', () => {
   it('renders AppHeader with APP_NAME constant and respects featureFlags.devComponents (Luật P6)', () => {
@@ -149,5 +153,105 @@ describe('Phase 1 UI Primitives (UI_SPEC 1.1, 2, 4, Luật U2, P6)', () => {
     );
     expect(long).toContain('…');
     expect(long.endsWith('tiem-banh-nho')).toBe(true);
+  });
+
+  it('renders QuotaChip with correct tone and fires onClick', () => {
+    const onClick = vi.fn();
+    render(
+      <QuotaChip
+        agentId="claude"
+        label="Claude"
+        color="#D97706"
+        text="62%"
+        tone="ok"
+        onClick={onClick}
+      />,
+    );
+
+    const btn = screen.getByRole('button', { name: /Claude/i });
+    expect(btn).toBeInTheDocument();
+    expect(screen.getByText('62%')).toBeInTheDocument();
+
+    fireEvent.click(btn);
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders QuotaPopover and triggers onViewAll and onClose on Escape', () => {
+    const onClose = vi.fn();
+    const onViewAll = vi.fn();
+
+    const sampleSnap: QuotaSnapshot = {
+      id: 'snap-1',
+      agentId: 'claude',
+      model: null,
+      scope: 'shared',
+      plan: 'Claude Pro',
+      windows: [
+        { label: 'Cửa sổ 5 giờ', usedPercent: 62, resetsAt: '2026-11-02T22:40:00Z' },
+        { label: 'Tuần', usedPercent: 38, resetsAt: null },
+      ],
+      status: 'ok',
+      source: 'official',
+      capturedAt: '2026-11-02T20:41:00Z',
+    };
+
+    render(
+      <QuotaPopover
+        agentId="claude"
+        agentLabel="Claude"
+        snapshots={[sampleSnap]}
+        onClose={onClose}
+        onViewAll={onViewAll}
+      />,
+    );
+
+    expect(screen.getByText('Claude')).toBeInTheDocument();
+    expect(screen.getByText('Chính thức')).toBeInTheDocument();
+    expect(screen.getByText('Dùng chung cho mọi model')).toBeInTheDocument();
+    expect(screen.getByText('62%')).toBeInTheDocument();
+
+    const viewAllBtn = screen.getByText('Xem tất cả →');
+    fireEvent.click(viewAllBtn);
+    expect(onViewAll).toHaveBeenCalledTimes(1);
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('renders QuotaBar with multiple agents and toggles popover', () => {
+    const onViewDetails = vi.fn();
+    const snapshots: QuotaSnapshot[] = [
+      {
+        id: 's1',
+        agentId: 'claude',
+        model: null,
+        scope: 'shared',
+        plan: null,
+        windows: [{ label: '5h', usedPercent: 62, resetsAt: null }],
+        status: 'ok',
+        source: 'official',
+        capturedAt: '2026-11-02T10:00:00Z',
+      },
+      {
+        id: 's2',
+        agentId: 'codex',
+        model: null,
+        scope: 'shared',
+        plan: null,
+        windows: [{ label: '5h', usedPercent: 81, resetsAt: null }],
+        status: 'low',
+        source: 'estimated',
+        capturedAt: '2026-11-02T10:00:00Z',
+      },
+    ];
+
+    render(<QuotaBar snapshots={snapshots} onViewDetails={onViewDetails} />);
+
+    expect(screen.getByText('claude')).toBeInTheDocument();
+    expect(screen.getByText('codex')).toBeInTheDocument();
+
+    // Bấm vào chip claude mở popover
+    fireEvent.click(screen.getByRole('button', { name: /claude 62%/i }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 });

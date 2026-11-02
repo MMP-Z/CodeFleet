@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { ProjectRecord } from '@shared/ipc';
+import type { DetectResult, ProjectRecord, QuotaSnapshot } from '@shared/ipc';
 import { AppHeader, type NavRoute } from './components/AppHeader';
 import { ToastProvider } from './components/Toast';
 import { ChatPage } from './features/chat/ChatPage';
@@ -9,6 +9,7 @@ import { ProjectHistoryPage } from './features/history/ProjectHistoryPage';
 import { OnboardingPage } from './features/onboarding/OnboardingPage';
 import { ProjectSelectModal } from './features/projects/ProjectSelectModal';
 import { ProjectSelectPage } from './features/projects/ProjectSelectPage';
+import { QuotaDetailsPage } from './features/quota/QuotaDetailsPage';
 import { SettingsPage } from './features/settings/SettingsPage';
 import { getBridge } from './lib/bridge';
 
@@ -24,6 +25,7 @@ function readInitialRoute(allowDevComponents: boolean): AppRoute {
   }
   if (typeof window !== 'undefined') {
     if (window.location.hash === '#/settings') return 'settings';
+    if (window.location.hash === '#/quota') return 'quota';
     if (window.location.hash === '#/projects') return 'projects';
     if (window.location.hash === '#/history') return 'history';
     if (window.location.hash === '#/direct-edit') return 'direct-edit';
@@ -42,14 +44,28 @@ export function App(): React.JSX.Element {
   const [chatInitialStepId, setChatInitialStepId] = useState<string | null>(null);
   const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [quotaSnapshots, setQuotaSnapshots] = useState<readonly QuotaSnapshot[]>([]);
+  const [detectedAgents, setDetectedAgents] = useState<readonly DetectResult[]>([]);
 
   useEffect(() => {
     let mounted = true;
     async function init(): Promise<void> {
       try {
-        const res = await bridge.settings.get('onboarding.completed');
+        const [onboardingRes, quotaRes, agentsRes] = await Promise.all([
+          bridge.settings.get('onboarding.completed'),
+          bridge.quota.getAll(),
+          bridge.agents.detectAll(),
+        ]);
         if (!mounted) return;
-        if (res.ok && res.data) {
+
+        if (quotaRes.ok) {
+          setQuotaSnapshots(quotaRes.data);
+        }
+        if (agentsRes.ok) {
+          setDetectedAgents(agentsRes.data);
+        }
+
+        if (onboardingRes.ok && onboardingRes.data) {
           setOnboardingCompleted(true);
           const projRes = await bridge.projects.list();
           if (!mounted) return;
@@ -74,8 +90,16 @@ export function App(): React.JSX.Element {
       }
     }
     void init();
+
+    const unsubscribeQuota = bridge.quota.onUpdate((updated) => {
+      if (mounted) {
+        setQuotaSnapshots(updated);
+      }
+    });
+
     return () => {
       mounted = false;
+      unsubscribeQuota();
     };
   }, [bridge, route]);
 
@@ -85,6 +109,8 @@ export function App(): React.JSX.Element {
         setRoute('dev-components');
       } else if (window.location.hash === '#/settings') {
         setRoute('settings');
+      } else if (window.location.hash === '#/quota') {
+        setRoute('quota');
       } else if (window.location.hash === '#/projects') {
         setRoute('projects');
       } else if (window.location.hash === '#/history') {
@@ -124,11 +150,13 @@ export function App(): React.JSX.Element {
           ? '#/dev/components'
           : nextRoute === 'settings'
             ? '#/settings'
-            : nextRoute === 'history'
-              ? '#/history'
-              : nextRoute === 'chat'
-                ? '#/chat'
-                : '#/onboarding';
+            : nextRoute === 'quota'
+              ? '#/quota'
+              : nextRoute === 'history'
+                ? '#/history'
+                : nextRoute === 'chat'
+                  ? '#/chat'
+                  : '#/onboarding';
     }
   };
 
@@ -157,6 +185,7 @@ export function App(): React.JSX.Element {
     (!onboardingCompleted &&
       route !== 'dev-components' &&
       route !== 'settings' &&
+      route !== 'quota' &&
       route !== 'projects' &&
       route !== 'history' &&
       route !== 'direct-edit');
@@ -190,6 +219,8 @@ export function App(): React.JSX.Element {
           project={headerProject}
           onProjectClick={() => setIsSwitchModalOpen(true)}
           featureFlags={bridge.featureFlags}
+          quotaSnapshots={quotaSnapshots}
+          detectedAgents={detectedAgents}
         />
         <main className="flex-1 flex flex-col">
           {route === 'dev-components' && bridge.featureFlags.devComponents ? (
@@ -198,6 +229,8 @@ export function App(): React.JSX.Element {
             <OnboardingPage onCompleted={handleOnboardingCompleted} />
           ) : route === 'settings' ? (
             <SettingsPage />
+          ) : route === 'quota' ? (
+            <QuotaDetailsPage onNavigateToSettings={() => handleNavigate('settings')} />
           ) : route === 'projects' || !currentProject ? (
             <ProjectSelectPage onProjectSelected={handleProjectSelected} />
           ) : route === 'history' ? (

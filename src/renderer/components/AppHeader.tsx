@@ -1,9 +1,11 @@
 import { APP_NAME } from '@shared/constants';
 import type { FeatureFlags } from '@shared/feature-flags';
+import type { DetectResult, QuotaSnapshot } from '@shared/ipc';
 import { t } from '../i18n';
 import { ProjectPill } from './ProjectPill';
+import { QuotaBar } from './QuotaBar';
 
-export type NavRoute = 'chat' | 'history' | 'plugins' | 'settings' | 'dev-components';
+export type NavRoute = 'chat' | 'history' | 'quota' | 'plugins' | 'settings' | 'dev-components';
 
 export interface HeaderProjectSummary {
   readonly name: string;
@@ -16,6 +18,9 @@ export interface AppHeaderProps {
   readonly project?: HeaderProjectSummary;
   readonly onProjectClick?: () => void;
   readonly featureFlags: FeatureFlags;
+  readonly quotaSnapshots?: readonly QuotaSnapshot[];
+  readonly detectedAgents?: readonly DetectResult[];
+  readonly showQuota?: boolean;
 }
 
 /**
@@ -28,6 +33,9 @@ export function AppHeader({
   project,
   onProjectClick,
   featureFlags,
+  quotaSnapshots,
+  detectedAgents,
+  showQuota = true,
 }: AppHeaderProps): React.JSX.Element {
   const navItems: { route: NavRoute; label: string; visible: boolean }[] = [
     {
@@ -39,6 +47,11 @@ export function AppHeader({
       route: 'history',
       label: t('app.header.history'),
       visible: featureFlags.phase3Workspace,
+    },
+    {
+      route: 'quota',
+      label: t('app.header.quota'),
+      visible: true,
     },
     {
       route: 'plugins',
@@ -97,6 +110,14 @@ export function AppHeader({
       </nav>
 
       <div className="grow" />
+
+      {showQuota && quotaSnapshots && quotaSnapshots.length > 0 ? (
+        <QuotaBar
+          snapshots={quotaSnapshots}
+          agents={detectedAgents}
+          onViewDetails={() => onNavigate('quota')}
+        />
+      ) : null}
     </header>
   );
 }

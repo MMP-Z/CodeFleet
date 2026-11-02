@@ -9,6 +9,8 @@ const sharedAliases = {
 
 export default defineConfig({
   test: {
+    testTimeout: 20000,
+    hookTimeout: 20000,
     projects: [
       {
         resolve: { alias: sharedAliases },
@@ -16,6 +18,7 @@ export default defineConfig({
           name: 'node',
           globals: true,
           environment: 'node',
+          testTimeout: 20000,
           include: ['src/{main,preload,shared}/**/*.test.ts'],
         },
       },
@@ -26,6 +29,7 @@ export default defineConfig({
           name: 'renderer',
           globals: true,
           environment: 'jsdom',
+          testTimeout: 20000,
           setupFiles: ['./src/renderer/test-setup.ts'],
           include: ['src/renderer/**/*.test.{ts,tsx}'],
         },

@@ -7,7 +7,8 @@
       "plugins": "Plugin",
       "settings": "Cài đặt",
       "devComponents": "Thành phần UI (Dev)",
-      "switchProjectTitle": "Đổi dự án"
+      "switchProjectTitle": "Đổi dự án",
+      "quota": "Hạn mức"
     }
   },
   "common": {
@@ -117,6 +118,21 @@
     "stepNumber": "Bước {seq}",
     "stepRiskLabel": "Rủi ro cao: nên đọc kỹ",
     "viewCode": "Xem code",
+    "quota": {
+      "unknown": "Không rõ",
+      "allExhausted": "Đã hết",
+      "modelsExhausted": "model hết",
+      "exhaustedSuffix": "hết",
+      "estimatedSuffix": "ước lượng",
+      "popoverTitle": "Hạn mức {name}",
+      "scopeShared": "Dùng chung cho mọi model",
+      "scopeModel": "Tính riêng từng model",
+      "scopeUnknown": "Chưa rõ phạm vi",
+      "updatedAt": "Cập nhật lúc {time}",
+      "resetsAt": "Làm mới lúc {time}",
+      "seeAll": "Xem tất cả →",
+      "close": "Đóng"
+    },
     "codeNotRunNotice": "Bước này chưa chạy. Khi AI làm xong, phần code sẽ hiện ở đây.",
     "codePlaceholder": "Phần xem code chi tiết sẽ có đầy đủ ở Phase 4.",
     "previewPlaceholder": "Phần xem trước trang sẽ có đầy đủ ở Phase 4.",
@@ -359,6 +375,50 @@
     "errors": {
       "loadFailed": "Không đọc được cài đặt của ứng dụng. Bạn có thể bấm Thử lại.",
       "saveFailed": "Không lưu được thay đổi cài đặt: {message}"
+    }
+  },
+  "mh08": {
+    "title": "Hạn mức của các AI",
+    "description": "Mỗi AI cho bạn dùng một lượng nhất định trong một khoảng thời gian. Hết thì app tự chuyển sang model hoặc AI khác.",
+    "updatedAt": "Cập nhật lúc {time}",
+    "refresh": "↻ Làm mới",
+    "refreshing": "Đang làm mới…",
+    "noticeTitle": "Độ tin cậy của con số:",
+    "official": "Chính thức",
+    "officialDesc": "do AI tự báo",
+    "estimated": "Ước lượng",
+    "estimatedDesc": "app tự tính từ log trên máy, có thể lệch",
+    "detected": "Đã phát hiện",
+    "detectedDesc": "AI báo đã hết",
+    "unknown": "Không rõ",
+    "unknownDesc": "chưa có số liệu, app không đoán",
+    "planLabel": "Gói: {plan}",
+    "status": {
+      "ok": "Dùng được",
+      "low": "Sắp hết · app giảm ưu tiên",
+      "exhausted": "Đã hết · app tạm chuyển ô khác",
+      "unknown": "Không rõ"
+    },
+    "modelTable": {
+      "model": "Model",
+      "tier": "Bậc",
+      "status": "Trạng thái",
+      "notes": "Ghi chú",
+      "usedToday": "Hôm nay đã dùng",
+      "sourceAndReset": "Nguồn · làm mới",
+      "sharedNotice": "Dùng chung hạn mức"
+    },
+    "unknownCardText": "AI này không cho biết hạn mức và chưa có cách ước lượng. App vẫn dùng bình thường; nếu AI báo hết, app sẽ ghi nhận ngay và chuyển AI khác.",
+    "rulesCard": {
+      "title": "App dùng hạn mức thế nào khi chọn AI",
+      "rule1Label": "Model đã hết:",
+      "rule1": "không dùng tới khi được làm mới. Một model hết không có nghĩa cả AI hết.",
+      "rule2Label": "Model sắp hết:",
+      "rule2": "(từ 80%): vẫn dùng được nhưng ưu tiên thấp hơn.",
+      "rule3Label": "Bước nhạy cảm:",
+      "rule3": "(đăng nhập, thanh toán…): không bao giờ tự hạ xuống model nhanh.",
+      "rule4": "Đọc hạn mức không tốn hạn mức của bạn.",
+      "linkSettings": "Đổi ngưỡng cảnh báo và thông báo trong Cài đặt →"
     }
   },
   "dev": {

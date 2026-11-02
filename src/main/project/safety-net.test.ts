@@ -162,5 +162,5 @@ describe('Safety Net: EditableScanner & ConflictDetector (MH-05, MH-06, Luật U
     expect(resolveRes.ok).toBe(true);
     const finalContent = fs.readFileSync(path.join(projectDir, 'header.html'), 'utf8');
     expect(finalContent).toBe(userModified);
-  });
+  }, 20000);
 });

@@ -17,6 +17,7 @@ export interface PausedCardProps {
   readonly earliestResetAgent?: string;
   readonly onRetry: () => void;
   readonly onPickOtherAgent?: () => void;
+  readonly onViewQuota?: () => void;
 }
 
 export function PausedCard({
@@ -26,6 +27,7 @@ export function PausedCard({
   earliestResetAgent,
   onRetry,
   onPickOtherAgent,
+  onViewQuota,
 }: PausedCardProps): React.JSX.Element {
   return (
     <div className="bg-surface border border-warn-border rounded-card overflow-hidden my-4 shadow-sm">
@@ -74,6 +76,11 @@ export function PausedCard({
             {onPickOtherAgent && (
               <Button type="button" variant="default" size="md" onClick={onPickOtherAgent}>
                 {t('mh07.pinOther')}
+              </Button>
+            )}
+            {onViewQuota && (
+              <Button type="button" variant="default" size="md" onClick={onViewQuota}>
+                {t('mh03.quota.seeAll')}
               </Button>
             )}
           </div>
