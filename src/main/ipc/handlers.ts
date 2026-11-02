@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { app } from 'electron';
 import { IPC_CHANNELS, IPC_CONTRACTS, type AgentId, type StepVM } from '@shared/ipc';
 import { AgentRegistry } from '../agents/detect';
 import { ModelTierService } from '../agents/models';
@@ -17,6 +18,8 @@ import { UserEditsRepository } from '../db/user-edits-repo';
 import type { Logger } from '../logger/logger';
 import { Orchestrator } from '../orchestrator/orchestrator';
 import { PluginService } from '../plugins/plugin-service';
+import { AutoUpdaterService } from '../updater/updater-service';
+import { ElectronAutoUpdaterBackend } from '../updater/electron-backend';
 import { ConflictDetector } from '../project/conflict-detector';
 import { EditableScanner } from '../project/editable-scanner';
 import { PreviewServerService } from '../project/preview-server';
@@ -46,6 +49,7 @@ export interface IpcDependencies {
   readonly orchestrator?: Orchestrator;
   readonly pluginRepo?: PluginRepository;
   readonly pluginService?: PluginService;
+  readonly updaterService?: AutoUpdaterService;
   readonly pickFolderDialog?: () => Promise<{ canceled: boolean; folderPath: string | null }>;
   readonly broadcastEvent?: (channel: string, payload: unknown) => void;
 }
@@ -121,6 +125,20 @@ export function registerIpcHandlers(registrar: IpcRegistrar, deps: IpcDependenci
 
   const pluginRepo = deps.pluginRepo ?? new PluginRepository(db);
   const pluginService = deps.pluginService ?? new PluginService({ repo: pluginRepo });
+
+  const updaterService =
+    deps.updaterService ??
+    new AutoUpdaterService({
+      settingsRepo,
+      backend:
+        typeof app?.getVersion === 'function' ? new ElectronAutoUpdaterBackend() : undefined,
+    });
+
+  updaterService.onStateChange((state) => {
+    if (deps.broadcastEvent) {
+      deps.broadcastEvent('codefleet:update:state', state);
+    }
+  });
 
   const orchestrator =
     deps.orchestrator ??
@@ -699,6 +717,61 @@ export function registerIpcHandlers(registrar: IpcRegistrar, deps: IpcDependenci
     registrar,
     IPC_CONTRACTS[IPC_CHANNELS.PLUGINS_INSPECT_FROM_URL],
     ({ url }) => pluginService.inspectFromUrl(url),
+    ipcLogger,
+  );
+
+  // === UPDATER (PHASE 7) ===
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.UPDATE_GET_STATE],
+    () => updaterService.getState(),
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.UPDATE_CHECK],
+    (input) => updaterService.checkForUpdates(input?.manual ?? true),
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.UPDATE_DOWNLOAD],
+    async () => {
+      await updaterService.downloadUpdate();
+      return { ok: true };
+    },
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.UPDATE_RESTART],
+    () => {
+      updaterService.quitAndInstall();
+      return { ok: true };
+    },
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.UPDATE_SET_CHANNEL],
+    async ({ channel }) => {
+      await updaterService.setChannel(channel);
+      return updaterService.getState();
+    },
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.UPDATE_SET_AUTO_DOWNLOAD],
+    async ({ autoDownload }) => {
+      await updaterService.setAutoDownload(autoDownload);
+      return updaterService.getState();
+    },
     ipcLogger,
   );
 }

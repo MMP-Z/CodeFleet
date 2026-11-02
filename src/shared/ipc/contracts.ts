@@ -29,6 +29,18 @@ import {
   type PluginManifest,
   type PluginVM,
 } from '../plugins/manifest';
+import {
+  UpdateCheckResultSchema,
+  UpdateProgressSchema,
+  UpdateStateSchema,
+  type UpdateChannel,
+  type UpdateCheckResult,
+  type UpdateProgress,
+  type UpdateState,
+  type UpdateStatus,
+} from '../updater';
+export type { UpdateChannel, UpdateCheckResult, UpdateProgress, UpdateState, UpdateStatus };
+export { UpdateCheckResultSchema, UpdateProgressSchema, UpdateStateSchema };
 
 export * from '../plugins/manifest';
 export type { OrchestrationLogEntry, StepCodeVM, StepUiStatus };
@@ -84,6 +96,12 @@ export const IPC_CHANNELS = {
   PLUGINS_UNINSTALL: 'plugins.uninstall',
   PLUGINS_TOGGLE: 'plugins.toggle',
   PLUGINS_INSPECT_FROM_URL: 'plugins.inspectFromUrl',
+  UPDATE_GET_STATE: 'update.getState',
+  UPDATE_CHECK: 'update.check',
+  UPDATE_DOWNLOAD: 'update.download',
+  UPDATE_RESTART: 'update.restart',
+  UPDATE_SET_CHANNEL: 'update.setChannel',
+  UPDATE_SET_AUTO_DOWNLOAD: 'update.setAutoDownload',
 } as const;
 
 export type IpcChannelName = (typeof IPC_CHANNELS)[keyof typeof IPC_CHANNELS];
@@ -558,6 +576,28 @@ export type InspectPluginUrlInput = z.infer<typeof InspectPluginUrlInputSchema>;
 export const PluginVMListSchema = z.array(z.custom<PluginVM>());
 export const PluginVMSchema = z.custom<PluginVM>();
 
+export const UpdateCheckInputSchema = z
+  .object({
+    manual: z.boolean().optional(),
+  })
+  .optional();
+export type UpdateCheckInput = z.infer<typeof UpdateCheckInputSchema>;
+
+export const UpdateSetChannelInputSchema = z.object({
+  channel: z.enum(['stable', 'beta']),
+});
+export type UpdateSetChannelInput = z.infer<typeof UpdateSetChannelInputSchema>;
+
+export const UpdateSetAutoDownloadInputSchema = z.object({
+  autoDownload: z.boolean(),
+});
+export type UpdateSetAutoDownloadInput = z.infer<typeof UpdateSetAutoDownloadInputSchema>;
+
+export const UpdateOkOutputSchema = z.object({
+  ok: z.boolean(),
+});
+export type UpdateOkOutput = z.infer<typeof UpdateOkOutputSchema>;
+
 export interface IpcContract<I extends z.ZodTypeAny, O extends z.ZodTypeAny> {
   readonly channel: IpcChannelName;
   readonly input: I;
@@ -795,6 +835,36 @@ export const IPC_CONTRACTS = {
     input: InspectPluginUrlInputSchema,
     output: PluginManifestSchema,
   },
+  [IPC_CHANNELS.UPDATE_GET_STATE]: {
+    channel: IPC_CHANNELS.UPDATE_GET_STATE,
+    input: EmptyInputSchema,
+    output: UpdateStateSchema,
+  },
+  [IPC_CHANNELS.UPDATE_CHECK]: {
+    channel: IPC_CHANNELS.UPDATE_CHECK,
+    input: UpdateCheckInputSchema,
+    output: UpdateCheckResultSchema,
+  },
+  [IPC_CHANNELS.UPDATE_DOWNLOAD]: {
+    channel: IPC_CHANNELS.UPDATE_DOWNLOAD,
+    input: EmptyInputSchema,
+    output: UpdateOkOutputSchema,
+  },
+  [IPC_CHANNELS.UPDATE_RESTART]: {
+    channel: IPC_CHANNELS.UPDATE_RESTART,
+    input: EmptyInputSchema,
+    output: UpdateOkOutputSchema,
+  },
+  [IPC_CHANNELS.UPDATE_SET_CHANNEL]: {
+    channel: IPC_CHANNELS.UPDATE_SET_CHANNEL,
+    input: UpdateSetChannelInputSchema,
+    output: UpdateStateSchema,
+  },
+  [IPC_CHANNELS.UPDATE_SET_AUTO_DOWNLOAD]: {
+    channel: IPC_CHANNELS.UPDATE_SET_AUTO_DOWNLOAD,
+    input: UpdateSetAutoDownloadInputSchema,
+    output: UpdateStateSchema,
+  },
 } as const;
 
 export type IpcErrorCode = 'VALIDATION_ERROR' | 'INTERNAL_ERROR';
@@ -903,5 +973,14 @@ export interface CodeFleetBridge {
     uninstall(input: UninstallPluginInput): Promise<IpcResult<boolean>>;
     toggle(input: TogglePluginInput): Promise<IpcResult<boolean>>;
     inspectFromUrl(input: InspectPluginUrlInput): Promise<IpcResult<PluginManifest>>;
+  };
+  readonly update: {
+    getState(): Promise<IpcResult<UpdateState>>;
+    check(manual?: boolean): Promise<IpcResult<UpdateCheckResult>>;
+    download(): Promise<IpcResult<UpdateOkOutput>>;
+    restart(): Promise<IpcResult<UpdateOkOutput>>;
+    setChannel(channel: UpdateChannel): Promise<IpcResult<UpdateState>>;
+    setAutoDownload(autoDownload: boolean): Promise<IpcResult<UpdateState>>;
+    onStateChange(callback: (state: UpdateState) => void): () => void;
   };
 }

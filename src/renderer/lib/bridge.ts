@@ -259,6 +259,60 @@ export const fallbackBridge: CodeFleetBridge = {
       },
     }),
   },
+  update: {
+    getState: async () => ({
+      ok: true,
+      data: {
+        status: 'idle',
+        currentVersion: '0.1.0',
+        channel: 'stable',
+        autoDownload: true,
+        availableVersion: null,
+        releaseDate: null,
+        releaseNotes: null,
+        downloadProgress: null,
+        lastCheckedAt: null,
+        error: null,
+      },
+    }),
+    check: async () => ({
+      ok: true,
+      data: { hasUpdate: false, version: null, releaseNotes: null },
+    }),
+    download: async () => ({ ok: true, data: { ok: true } }),
+    restart: async () => ({ ok: true, data: { ok: true } }),
+    setChannel: async (channel) => ({
+      ok: true,
+      data: {
+        status: 'idle',
+        currentVersion: '0.1.0',
+        channel,
+        autoDownload: true,
+        availableVersion: null,
+        releaseDate: null,
+        releaseNotes: null,
+        downloadProgress: null,
+        lastCheckedAt: null,
+        error: null,
+      },
+    }),
+    setAutoDownload: async (autoDownload) => ({
+      ok: true,
+      data: {
+        status: 'idle',
+        currentVersion: '0.1.0',
+        channel: 'stable',
+        autoDownload,
+        availableVersion: null,
+        releaseDate: null,
+        releaseNotes: null,
+        downloadProgress: null,
+        lastCheckedAt: null,
+        error: null,
+      },
+    }),
+    onStateChange: () => () => {},
+  },
 };
 
 export function getBridge(): CodeFleetBridge {

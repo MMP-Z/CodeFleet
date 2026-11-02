@@ -10,6 +10,7 @@ import {
   type IpcContract,
   type IpcResult,
   type OrchestrationEventPayload,
+  type UpdateState,
 } from '@shared/ipc';
 import type { AppSettingsMap, SettingKey } from '@shared/settings';
 
@@ -172,6 +173,26 @@ const bridge: CodeFleetBridge = {
     toggle: (input) => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PLUGINS_TOGGLE], input),
     inspectFromUrl: (input) =>
       invokeContract(IPC_CONTRACTS[IPC_CHANNELS.PLUGINS_INSPECT_FROM_URL], input),
+  },
+  update: {
+    getState: () => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.UPDATE_GET_STATE], undefined),
+    check: (manual?: boolean) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.UPDATE_CHECK], { manual }),
+    download: () => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.UPDATE_DOWNLOAD], undefined),
+    restart: () => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.UPDATE_RESTART], undefined),
+    setChannel: (channel) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.UPDATE_SET_CHANNEL], { channel }),
+    setAutoDownload: (autoDownload) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.UPDATE_SET_AUTO_DOWNLOAD], { autoDownload }),
+    onStateChange: (callback) => {
+      const listener = (_event: unknown, state: UpdateState) => {
+        callback(state);
+      };
+      ipcRenderer.on('codefleet:update:state', listener);
+      return () => {
+        ipcRenderer.removeListener('codefleet:update:state', listener);
+      };
+    },
   },
 };
 

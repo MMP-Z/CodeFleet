@@ -408,4 +408,53 @@ describe('Phase 1 Typed IPC + Zod Validation (Luật P3, B2)', () => {
       expect(uninstallRes.data).toBe(true);
     }
   });
+
+  it('handles Phase 7 update IPC channels: getState, check, download, restart, setChannel, setAutoDownload', async () => {
+    const { bus } = setupTestBus();
+
+    // 1. update.getState
+    const stateRes = await bus.invoke<{ status: string; channel: string; autoDownload: boolean }>(
+      IPC_CHANNELS.UPDATE_GET_STATE,
+    );
+    expect(stateRes.ok).toBe(true);
+    if (stateRes.ok) {
+      expect(stateRes.data.status).toBe('idle');
+      expect(stateRes.data.channel).toBe('stable');
+      expect(stateRes.data.autoDownload).toBe(true);
+    }
+
+    // 2. update.setChannel
+    const setChannelRes = await bus.invoke<{ channel: string }>(
+      IPC_CHANNELS.UPDATE_SET_CHANNEL,
+      { channel: 'beta' },
+    );
+    expect(setChannelRes.ok).toBe(true);
+    if (setChannelRes.ok) {
+      expect(setChannelRes.data.channel).toBe('beta');
+    }
+
+    // 3. update.setAutoDownload
+    const setAutoRes = await bus.invoke<{ autoDownload: boolean }>(
+      IPC_CHANNELS.UPDATE_SET_AUTO_DOWNLOAD,
+      { autoDownload: false },
+    );
+    expect(setAutoRes.ok).toBe(true);
+    if (setAutoRes.ok) {
+      expect(setAutoRes.data.autoDownload).toBe(false);
+    }
+
+    // 4. update.check
+    const checkRes = await bus.invoke<{ hasUpdate: boolean }>(IPC_CHANNELS.UPDATE_CHECK, {
+      manual: true,
+    });
+    expect(checkRes.ok).toBe(true);
+
+    // 5. update.download
+    const downloadRes = await bus.invoke<{ ok: boolean }>(IPC_CHANNELS.UPDATE_DOWNLOAD);
+    expect(downloadRes.ok).toBe(true);
+
+    // 6. update.restart
+    const restartRes = await bus.invoke<{ ok: boolean }>(IPC_CHANNELS.UPDATE_RESTART);
+    expect(restartRes.ok).toBe(true);
+  });
 });
