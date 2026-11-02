@@ -1,0 +1,127 @@
+import crypto from 'node:crypto';
+import type { PluginManifest } from '../../shared/plugins/manifest';
+
+export function computeSha256(content: string): string {
+  return crypto.createHash('sha256').update(content, 'utf8').digest('hex');
+}
+
+export const DEFAULT_OFFICIAL_CATALOG: readonly PluginManifest[] = [
+  {
+    id: 'example.template-landing',
+    name: 'Mẫu landing page',
+    version: '1.0.0',
+    kind: 'template',
+    minAppVersion: '0.1.0',
+    description: 'Trang giới thiệu một trang: banner, tính năng, bảng giá, form liên hệ.',
+    author: 'CodeFleet Team',
+    permissions: ['project:write'],
+    entry: 'template.json',
+    checksum: computeSha256('template:landing:v1.0.0'),
+    icon: '▤',
+    color: '#7A4F00',
+    isCurated: true,
+    config: {
+      templateType: 'web',
+      entryFile: 'index.html',
+    },
+  },
+  {
+    id: 'example.skill-ecommerce-safety',
+    name: 'Hướng dẫn: web bán hàng an toàn',
+    version: '2.2.0',
+    kind: 'skill-pack',
+    minAppVersion: '0.1.0',
+    description:
+      'Nhắc AI luôn kiểm tra giá ở phía máy chủ, không lưu thẻ thanh toán, đánh dấu rủi ro.',
+    author: 'Security Fleet',
+    permissions: ['project:read'],
+    entry: 'skills.json',
+    checksum: computeSha256('skill:ecommerce-safety:v2.2.0'),
+    icon: '✦',
+    color: '#007A55',
+    isCurated: true,
+    config: {
+      rules: ['no-hardcoded-credentials', 'server-side-validation'],
+    },
+  },
+  {
+    id: 'example.mcp-database',
+    name: 'Kết nối cơ sở dữ liệu (MCP)',
+    version: '0.4.0',
+    kind: 'mcp-server',
+    minAppVersion: '0.1.0',
+    description:
+      'Cho AI xem cấu trúc cơ sở dữ liệu trên máy bạn để viết code khớp hơn (giao thức MCP).',
+    author: 'Database Community',
+    permissions: ['project:read', 'process:run', 'mcp:connect'],
+    entry: 'mcp-server.json',
+    checksum: computeSha256('mcp:database:v0.4.0'),
+    icon: 'DB',
+    color: '#2563EB',
+    isCurated: true,
+    config: {
+      protocol: 'mcp-2024-11-05',
+      command: 'sqlite-mcp-server',
+    },
+  },
+  {
+    id: 'example.agent-qwen',
+    name: 'Thêm AI: Qwen Coder',
+    version: '1.2.0',
+    kind: 'agent-adapter',
+    minAppVersion: '0.1.0',
+    description:
+      'Cho app điều phối thêm một AI dòng lệnh nói được giao thức ACP. Bạn cần tự cài AI đó.',
+    author: 'Qwen OpenSource',
+    permissions: ['process:run'],
+    entry: 'adapter.json',
+    checksum: computeSha256('agent:qwen:v1.2.0'),
+    icon: '⌘',
+    color: '#6366F1',
+    isCurated: true,
+    config: {
+      agentId: 'qwen',
+      displayName: 'Qwen Coder',
+      shortName: 'Qwen',
+      command: 'qwen --acp',
+      models: ['qwen-2.5-coder-32b', 'qwen-2.5-coder-7b'],
+    },
+  },
+  {
+    id: 'example.template-shop',
+    name: 'Mẫu web bán hàng',
+    version: '1.3.0',
+    kind: 'template',
+    minAppVersion: '0.1.0',
+    description: 'Trang sản phẩm, giỏ hàng, trang thanh toán giả lập để thử nghiệm.',
+    author: 'CodeFleet Team',
+    permissions: ['project:write'],
+    entry: 'template.json',
+    checksum: computeSha256('template:shop:v1.3.0'),
+    icon: '▦',
+    color: '#0D9488',
+    isCurated: true,
+    config: {
+      templateType: 'react-shop',
+      entryFile: 'src/App.tsx',
+    },
+  },
+  {
+    id: 'example.template-corrupt',
+    name: 'Mẫu blog (lỗi)',
+    version: '0.9.0',
+    kind: 'template',
+    minAppVersion: '0.1.0',
+    description: 'Plugin này không mở được: file khai báo bị hỏng. App vẫn chạy bình thường.',
+    author: 'Unknown',
+    permissions: ['project:write'],
+    entry: 'corrupt-entry.json',
+    checksum: 'bad-sha256-hash-causing-mismatch',
+    icon: '!',
+    color: '#DC2626',
+    isCurated: false,
+    config: {
+      corrupted: true,
+    },
+  },
+];
