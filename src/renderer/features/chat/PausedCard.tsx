@@ -21,40 +21,12 @@ export interface PausedCardProps {
 
 export function PausedCard({
   stepSeq,
-  quotaStatuses,
+  quotaStatuses = [],
   earliestResetTime,
   earliestResetAgent,
   onRetry,
   onPickOtherAgent,
 }: PausedCardProps): React.JSX.Element {
-  const defaultStatuses: PausedAgentQuotaStatus[] = quotaStatuses ?? [
-    {
-      agentId: 'claude',
-      displayName: 'Claude',
-      statusText: t('mh07.statusExhausted', { time: '22:40' }),
-      color: '#C2603A',
-    },
-    {
-      agentId: 'codex',
-      displayName: 'Codex',
-      statusText: t('mh07.statusExhausted', { time: '23:15' }),
-      color: '#10A37F',
-    },
-    {
-      agentId: 'gemini',
-      displayName: 'Gemini Pro',
-      statusText: t('mh07.statusExhausted', { time: '00:00' }),
-      color: '#1A73E8',
-    },
-    {
-      agentId: 'gemini',
-      displayName: 'Gemini Flash',
-      statusText: t('mh07.statusAvailableFast', { percent: '77' }),
-      isFastTierOnly: true,
-      color: '#1A73E8',
-    },
-  ];
-
   return (
     <div className="bg-surface border border-warn-border rounded-card overflow-hidden my-4 shadow-sm">
       <div className="p-3.5 bg-warn-bg text-warn-ink font-bold text-small flex items-center gap-2">
@@ -64,23 +36,25 @@ export function PausedCard({
       <div className="p-4 flex flex-col gap-3.5 text-small text-cf-text">
         <p className="leading-relaxed">{t('mh07.explanation', { seq: stepSeq.toString() })}</p>
 
-        <div className="bg-surface-2/40 border border-border rounded-lg p-3 flex flex-col gap-2">
-          {defaultStatuses.map((s, idx) => (
-            <div key={idx} className="flex items-center justify-between text-[13px]">
-              <span className="flex items-center gap-2 font-medium">
-                <span
-                  className="w-2 h-2 rounded-full inline-block"
-                  style={{ backgroundColor: s.color ?? '#55625D' }}
-                  aria-hidden="true"
-                />
-                {s.displayName}
-              </span>
-              <Pill tone={s.isFastTierOnly ? 'warn' : 'danger'} className="text-[11px] py-0">
-                {s.statusText}
-              </Pill>
-            </div>
-          ))}
-        </div>
+        {quotaStatuses.length > 0 && (
+          <div className="bg-surface-2/40 border border-border rounded-lg p-3 flex flex-col gap-2">
+            {quotaStatuses.map((s, idx) => (
+              <div key={idx} className="flex items-center justify-between text-[13px]">
+                <span className="flex items-center gap-2 font-medium">
+                  <span
+                    className="w-2 h-2 rounded-full inline-block"
+                    style={{ backgroundColor: s.color ?? '#55625D' }}
+                    aria-hidden="true"
+                  />
+                  {s.displayName}
+                </span>
+                <Pill tone={s.isFastTierOnly ? 'warn' : 'danger'} className="text-[11px] py-0">
+                  {s.statusText}
+                </Pill>
+              </div>
+            ))}
+          </div>
+        )}
 
         {earliestResetTime && earliestResetAgent && (
           <div className="text-[12px] text-muted">

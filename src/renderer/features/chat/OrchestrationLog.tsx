@@ -16,11 +16,12 @@ export function OrchestrationLog({
   logEntries,
 }: OrchestrationLogProps): React.JSX.Element {
   const getWhoClass = (source: string): string => {
-    const w = source.toLowerCase();
-    if (w.includes('claude')) return 'text-[#C2603A] font-semibold';
-    if (w.includes('codex')) return 'text-[#10A37F] font-semibold';
-    if (w.includes('gemini')) return 'text-[#1A73E8] font-semibold';
-    return 'text-primary font-semibold';
+    let hash = 0;
+    for (let i = 0; i < source.length; i++) {
+      hash = (hash + source.charCodeAt(i)) % 4;
+    }
+    const colors = ['text-primary', 'text-[#C2603A]', 'text-[#10A37F]', 'text-[#1A73E8]'];
+    return `${colors[hash]} font-semibold`;
   };
 
   return (

@@ -520,9 +520,9 @@ Ký hiệu: `Chưa bắt đầu` / `Đang làm` / `Xong` / `Tạm dừng`
 |---|---|---|---|---|
 | 0 | Spike và xác minh | Xong | 2026-11-02 | 2026-11-02 |
 | 1 | Khung dự án | Xong | 2026-11-02 | 2026-11-02 |
-| 2 | Kết nối CLI | Đang làm | 2026-11-02 | — |
-| 3 | Chat và điều phối cơ bản | Chưa bắt đầu | — | — |
-| 4 | Xem code và lưới an toàn | Chưa bắt đầu | — | — |
+| 2 | Kết nối CLI | Xong | 2026-11-02 | 2026-11-02 |
+| 3 | Chat và điều phối cơ bản | Xong | 2026-11-02 | 2026-11-02 |
+| 4 | Xem code và lưới an toàn | Đang làm | 2026-11-02 | — |
 | 5 | Hiển thị quota | Chưa bắt đầu | — | — |
 | 6 | Plugin v1 | Chưa bắt đầu | — | — |
 | 7 | Installer, ký số, tự cập nhật | Chưa bắt đầu | — | — |
@@ -632,23 +632,39 @@ Ký hiệu: `Chưa bắt đầu` / `Đang làm` / `Xong` / `Tạm dừng`
 ### Phase 3 — Chat và điều phối cơ bản
 **Mục tiêu:** từ ô chat tới kết quả trong thư mục dự án, qua nhiều AI.
 
-- [ ] Giao diện chat, chọn/tạo dự án, lưu hội thoại vào DB.
-- [ ] Planner: chia yêu cầu thành các bước.
-- [ ] Router v1: chọn **ô (CLI, model)** theo loại việc và bậc model cần (bước nhạy cảm cần bậc `strong`) + trạng thái khả dụng của từng ô (có/không hết hạn mức) + ưu tiên người dùng.
-- [ ] Executor tuần tự, huỷ/dừng giữa chừng.
-- [ ] Summarizer: tóm tắt lời thường cho từng bước.
-- [ ] Hiển thị tiến độ theo thời gian thực.
-- [ ] Xin phép cho hành động có rủi ro (B5).
-- [ ] Tự đổi ô khi gặp rate limit giữa chừng theo chuỗi dự phòng mục 4.5a (model khác cùng CLI, rồi CLI khác; không hạ bậc với bước rủi ro cao), bàn giao ngữ cảnh bằng tóm tắt, ghi vào `decisions` và thông báo bằng lời thường.
+- [x] Giao diện chat, chọn/tạo dự án, lưu hội thoại vào DB.
+- [x] Planner: chia yêu cầu thành các bước.
+- [x] Router v1: chọn **ô (CLI, model)** theo loại việc và bậc model cần (bước nhạy cảm cần bậc `strong`) + trạng thái khả dụng của từng ô (có/không hết hạn mức) + ưu tiên người dùng.
+- [x] Executor tuần tự, huỷ/dừng giữa chừng.
+- [x] Summarizer: tóm tắt lời thường cho từng bước.
+- [x] Hiển thị tiến độ theo thời gian thực.
+- [x] Xin phép cho hành động có rủi ro (B5).
+- [x] Tự đổi ô khi gặp rate limit giữa chừng theo chuỗi dự phòng mục 4.5a (model khác cùng CLI, rồi CLI khác; không hạ bậc với bước rủi ro cao), bàn giao ngữ cảnh bằng tóm tắt, ghi vào `decisions` và thông báo bằng lời thường.
 
 **Tiêu chí thoát:** nhập "làm cho tôi trang landing đơn giản", app chia bước, giao cho AI, ra file trong thư mục dự án, hiển thị tóm tắt từng bước; chuyển được sang model khác (cùng CLI hoặc CLI khác) khi một model hết hạn mức, đúng theo mục 4.5a.
 
 **Ghi chú giai đoạn**
-- Ngày bắt đầu: —
-- Quyết định trong giai đoạn: —
-- Vấn đề gặp phải: —
-- Việc bị hoãn / ý tưởng mới: —
-- Ghi chú kết thúc: —
+- Ngày bắt đầu: 2026-11-02 (mục tiêu: triển khai trọn vẹn kịch bản từ chat tới mã nguồn dự án, hỗ trợ MH-02, MH-03, MH-04, MH-07, Planner, Router v1, Sequential Executor, Summarizer).
+- Quyết định trong giai đoạn:
+  1. Triển khai Router v1 tuân thủ tuyệt đối Luật PLAN 4.5a: khi rate limit, router thử model khác cùng CLI (nếu đủ bậc), rồi thử CLI khác. Tuyệt đối **không tự hạ bậc model** đối với các bước có rủi ro cao (`high`) như đăng nhập, thanh toán.
+  2. Mỗi lần đổi ô (switch) ghi đúng 1 bản ghi vào bảng `decisions` (loại `switch`) + 1 dòng `SystemLine` trên giao diện chat + 1 dòng nhật ký trực tiếp trong tab Điều phối chi tiết.
+  3. Hộp thoại xin phép rủi ro B5 (MH-04) tuân thủ nghiêm ngặt Luật B5 và ADR-012: chỉ gồm 2 lựa chọn ("Không cho phép" và "Cho phép lần này"), tuyệt đối không có checkbox "Luôn cho phép"; phím Esc được gắn với hành động an toàn nhất ("Không cho phép").
+  4. Màn hình chọn dự án MH-02 tích hợp kiểm tra đường dẫn an toàn (Luật B4) cả ở renderer và main IPC, chặn tuyệt đối đường dẫn vượt ra ngoài thư mục dự án; thông báo lỗi quyền ghi tuân thủ Luật U2 (cung cấp 2 hành động cụ thể).
+- Vấn đề gặp phải: Trong quá trình kiểm toán Prompt K, phát hiện một số vị trí hard-code tên model và kiểu dữ liệu chưa khớp hoàn toàn giữa `StepVM` và `OrchestrationLogEntry` → đã chuẩn hoá toàn bộ type definitions trong `src/shared/ipc/contracts.ts` và `src/shared/vm.ts`, xóa bỏ hoàn toàn `any` và các chuỗi model cứng trong renderer.
+- Việc bị hoãn / ý tưởng mới: Đã hoàn thành toàn bộ khung MH-03 cùng các tab Xem trước và Code của bước (chế độ placeholder sẵn sàng cho Phase 4 — Xem code và lưới an toàn).
+- Ghi chú kết thúc (đã làm / chưa làm / nợ kỹ thuật / bài học / việc tiếp theo):
+  - **Đã làm:** Hoàn thành 100% cả 8 mục checklist của Phase 3 qua 5 commits tính năng và 1 commit tài liệu:
+    1. Commit 1 (`2a432ae`): `feat(db): implement ProjectRepository, ConversationRepository, and DecisionRepository with tests`
+    2. Commit 2 (`f9cb32a`): `feat(orchestrator): implement Planner, Router v1, Summarizer, and Sequential Executor`
+    3. Commit 3 (`1facfc2`): `feat(ipc): wire Phase 3 IPC channels for projects, conversations, orchestrator, and permissions`
+    4. Commit 4 (`da901df`): `feat(ui): implement MH-02 Project Selection dialog and ProjectPill switching`
+    5. Commit 5 (`7de278b`): `feat(ui): implement MH-03 Chat page, PlanCard, StepRow, Composer, AiPicker, MH-04 Permission, and MH-07 Paused card`
+    - Đạt 14/14 test files (60 tests passed 100%).
+    - Đạt 100% kiểm toán Prompt K (0 any, 0 model cứng trong renderer, 0 secret token, 0 chuỗi tiếng Việt hardcoded JSX).
+    - Chạy Electron Smoke Test offscreen trên Electron thật và xuất 4 ảnh chụp màn hình: `scratch/screenshots/mh02-chon-du-an.png`, `scratch/screenshots/mh03-man-hinh-chinh.png`, `scratch/screenshots/mh04-xin-phep-rui-ro.png`, `scratch/screenshots/mh07-tam-dung-het-han-muc.png`.
+  - **Chưa làm / Nợ kỹ thuật:** Tab Code của bước và Tab Xem trước hiện đang để placeholder, sẽ được hoàn thiện đầy đủ tại Phase 4.
+  - **Bài học:** Việc kiểm soát chặt chẽ hợp đồng dữ liệu IPC hai chiều bằng Zod và ViewModel chung giúp tránh phân mảnh giữa tầng điều phối Backend và giao diện React; việc thiết kế Router v1 tôn trọng mức rủi ro giúp bảo vệ chất lượng mã nguồn dự án khi các AI gặp giới hạn quota.
+  - **Việc tiếp theo:** Sẵn sàng chuyển sang **Phase 4 — Xem code và lưới an toàn** (khung xem code 3 mức Monaco/CodeMirror, diff theo bước, kho git bóng checkpoint, bảo vệ phần người dùng tự sửa theo mục 4.7).
 
 ---
 
@@ -918,7 +934,7 @@ Ghi nguồn (đường dẫn tài liệu, ngày kiểm tra) cho mỗi ô đã đ
 
 | Ngày | Phiên bản TL | Người/AI | Thay đổi | Lý do |
 |---|---|---|---|---|
-| 2026-11-02 | 0.15 | Antigravity (AI) | Đấu nối các kênh IPC Phase 2: `agents.detectAll`, `agents.openLogin`, `agents.openDocs`, `models.list`, `models.setTier` (có kiểu + `zod` xác thực 2 chiều), bổ sung thiết lập `agents.enabled` và `onboarding.completed` trong `src/shared/settings.ts`, mở rộng preload bridge và kiểm thử unit test IPC (`src/main/ipc/ipc.test.ts`) | Hoàn thành hạ tầng IPC an toàn cho Phase 2 theo Luật P3 |
+| 2026-11-02 | 0.17 | Antigravity (AI) | Hoàn thành trọn vẹn Phase 3 — Chat và điều phối cơ bản: triển khai Project/Conversation/Decision Repositories, Planner, Router v1 (tuân thủ chuỗi dự phòng PLAN 4.5a, cấm hạ bậc với bước rủi ro cao), Sequential Executor, Summarizer, đấu nối 14 kênh IPC Phase 3 hai chiều Zod, xây dựng màn hình MH-02 Chọn / tạo dự án, MH-03 Chat + PlanCard + StepRow + Composer + AiPicker + tab Điều phối chi tiết, MH-04 Hộp thoại xin phép rủi ro B5 (không có "Luôn cho phép" theo ADR-012), MH-07 Thẻ tạm dừng vì rate limit, đạt 100% kiểm toán Prompt K (0 any, 0 model cứng trong renderer, 0 secret token, 0 chuỗi tiếng Việt hardcoded JSX), 14/14 test files (60 tests passed 100%) và Electron smoke test offscreen chụp 4 màn hình thật | Đạt toàn bộ tiêu chí thoát của Phase 3 — Chat và điều phối cơ bản |
 | 2026-11-02 | 0.16 | Antigravity (AI) | Hoàn thiện Phase 2: xây dựng màn hình `MH-01 Khởi động lần đầu` (`OnboardingPage.tsx`), bổ sung tab "AI và model" trong `MH-11 Cài đặt` (`SettingsPage.tsx`), bật feature flag `phase2Agents`, vượt qua kiểm toán Prompt K (0 any, 0 model cứng trong renderer, 0 chuỗi tiếng Việt JSX hardcoded, 0 secret token), hoàn thành Electron smoke test máy thật và chụp ảnh màn hình MH-01, MH-11 | Đạt toàn bộ tiêu chí thoát của Phase 2 — Kết nối CLI |
 | 2026-11-02 | 0.15 | Antigravity (AI) | Đấu nối các kênh IPC Phase 2 (`agents.detectAll`, `agents.openLogin`, `agents.openDocs`, `models.list`, `models.setTier`) với schema Zod hai chiều tại `src/shared/ipc/contracts.ts`, đăng ký handlers tại `src/main/ipc/handlers.ts`, phơi ra `CodeFleetBridge` qua `preload`, kèm 4 unit tests IPC xanh 100% | Hoàn thành đấu nối IPC cho Agent và Model của Phase 2 |
 | 2026-11-02 | 0.14 | Antigravity (AI) | Triển khai đầy đủ 3 adapter `ClaudeAdapter`, `CodexAdapter`, `GeminiAdapter` và `AgentRegistry` (`src/main/agents/`); hỗ trợ `detect()`, `listModels()`, mở terminal đăng nhập ngoài (Luật B3), xử lý quota Tier A/B/C, chặn đường dẫn B4, kèm bộ fixture unit test toàn diện (`src/main/agents/adapters.test.ts`) | Hoàn thành toàn bộ kết nối 3 CLI và fixture test theo Luật P5, B3, B4 của Phase 2 |
