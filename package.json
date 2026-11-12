@@ -1,0 +1,17 @@
+{
+  "name": "codefleet",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CodeFleet terminal CLI",
+  "license": "UNLICENSED",
+  "bin": {
+    "codefleet": "scripts/codefleet.cjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "zod": "^4.0.0"
+  }
+}
