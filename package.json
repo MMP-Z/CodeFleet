@@ -7,12 +7,18 @@
   "bin": {
     "codefleet": "scripts/codefleet.cjs"
   },
+  "files": [
+    "scripts/codefleet.cjs",
+    "out/cli",
+    "resources/model-tiers.default.json"
+  ],
   "author": "CodeFleet Team",
   "license": "UNLICENSED",
   "scripts": {
     "cli": "node scripts/codefleet.cjs",
     "install:cli": "node scripts/install-cli.cjs",
     "build:cli": "node scripts/build-cli.cjs",
+    "prepack": "node scripts/build-cli.cjs",
     "dev": "electron-rebuild -f -w better-sqlite3 && electron-vite dev",
     "build": "pnpm typecheck && electron-vite build",
     "start": "electron-rebuild -f -w better-sqlite3 && electron-vite preview",

@@ -2,6 +2,16 @@
 
 ## Cài trên Windows
 
+Nếu máy đã có Node.js 22+ và Git, có thể cài CLI từ GitHub bằng npm:
+
+```powershell
+npm.cmd install --global "git+https://github.com/MMP-Z/CodeFleet.git#main"
+```
+
+Chạy `codefleet.cmd --agents` để xem tình trạng các AI CLI. Sau khi đăng nhập agent, dùng `codefleet.cmd --agent auto --mode subagent` tại thư mục công việc. Nếu repo là private, tài khoản Git trên máy phải có quyền đọc.
+
+### Cài từ bản clone để phát triển
+
 Trong PowerShell, cài Git và Node.js 22 qua WinGet:
 
 ```powershell
