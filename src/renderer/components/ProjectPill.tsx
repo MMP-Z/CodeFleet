@@ -27,10 +27,19 @@ export function ProjectPill({ name, path, onClick }: ProjectPillProps): React.JS
   const shortPath = truncateMiddlePath(path);
   const content = (
     <>
-      <span>{name}</span>
-      <span aria-hidden="true">·</span>
-      <span className="font-mono text-small">{shortPath}</span>
-      {onClick ? <span aria-hidden="true">▾</span> : null}
+      <span aria-hidden="true" className="text-primary-ink font-bold">
+        $
+      </span>
+      <span className="text-text font-semibold">{name}</span>
+      <span aria-hidden="true" className="text-muted">
+        ·
+      </span>
+      <span className="font-mono text-[11px] text-muted">{shortPath}</span>
+      {onClick ? (
+        <span aria-hidden="true" className="text-muted text-[10px]">
+          ▾
+        </span>
+      ) : null}
     </>
   );
 
@@ -40,7 +49,7 @@ export function ProjectPill({ name, path, onClick }: ProjectPillProps): React.JS
         type="button"
         title={`${t('app.header.switchProjectTitle')}: ${path}`}
         onClick={onClick}
-        className="inline-flex items-center gap-1.5 px-3 py-1 border border-border rounded-pill text-[13px] text-muted bg-surface hover:bg-surface-2 transition-colors"
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-border rounded-btn text-[12px] font-mono text-muted bg-bg/70 hover:bg-surface-2 hover:border-primary/40 transition-colors"
       >
         {content}
       </button>
@@ -50,7 +59,7 @@ export function ProjectPill({ name, path, onClick }: ProjectPillProps): React.JS
   return (
     <span
       title={path}
-      className="inline-flex items-center gap-1.5 px-3 py-1 border border-border rounded-pill text-[13px] text-muted bg-surface"
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-border rounded-btn text-[12px] font-mono text-muted bg-bg/70"
     >
       {content}
     </span>

@@ -313,6 +313,64 @@ export const fallbackBridge: CodeFleetBridge = {
     }),
     onStateChange: () => () => {},
   },
+  workspace: {
+    tree: async () => ({
+      ok: true,
+      data: {
+        rootPath: 'D:/PROJECT/CODEFLEET',
+        files: [
+          {
+            name: 'spikes',
+            path: 'spikes',
+            isDirectory: true,
+            children: [
+              {
+                name: '01-shadow-git.mjs',
+                path: 'spikes/01-shadow-git.mjs',
+                isDirectory: false,
+                size: 11131,
+              },
+              {
+                name: '02-run-sqlite-electron.mjs',
+                path: 'spikes/02-run-sqlite-electron.mjs',
+                isDirectory: false,
+                size: 2347,
+              },
+            ],
+          },
+          {
+            name: 'src',
+            path: 'src',
+            isDirectory: true,
+            children: [
+              {
+                name: 'App.tsx',
+                path: 'src/App.tsx',
+                isDirectory: false,
+                size: 10787,
+              },
+            ],
+          },
+          {
+            name: 'package.json',
+            path: 'package.json',
+            isDirectory: false,
+            size: 2419,
+          },
+        ],
+      },
+    }),
+    readFile: async (_projectId, filePath) => ({
+      ok: true,
+      data: {
+        filePath,
+        content: `// Sample content for ${filePath}\nimport assert from 'node:assert/strict';\n\nconsole.log('CodeFleet Workspace Viewer');`,
+        language: 'javascript',
+        lineCount: 4,
+        size: 85,
+      },
+    }),
+  },
 };
 
 export function getBridge(): CodeFleetBridge {

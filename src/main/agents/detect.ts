@@ -1,7 +1,6 @@
 import { spawn } from 'node:child_process';
 import path from 'node:path';
-import { shell } from 'electron';
-import { resolveAgentBinary } from './binary-resolver';
+import { isGitHubCli, resolveAgentBinary } from './binary-resolver';
 import { ClaudeAdapter } from './claude';
 import { CodexAdapter } from './codex';
 import { CopilotAdapter } from './copilot';
@@ -38,6 +37,7 @@ export const defaultTerminalLauncher = async (command: string): Promise<void> =>
 };
 
 export const defaultUrlOpener = async (url: string): Promise<void> => {
+  const { shell } = await import('electron');
   await shell.openExternal(url);
 };
 
@@ -92,8 +92,9 @@ export class AgentRegistry {
   /**
    * Phát hiện trạng thái cài đặt, đăng nhập và số model của tất cả AI CLI đã đăng ký.
    */
-  public async detectAll(): Promise<DetectResult[]> {
-    const promises = Array.from(this.adapters.values()).map(async (adapter) => {
+  public async detectAll(agentId?: AgentId): Promise<DetectResult[]> {
+    const adapters = agentId === undefined ? this.getAllAdapters() : [this.getAdapter(agentId)];
+    const promises = adapters.map(async (adapter) => {
       try {
         return await adapter.detect();
       } catch (err) {
@@ -126,9 +127,10 @@ export class AgentRegistry {
   public async openLoginTerminal(agentId: AgentId): Promise<void> {
     const adapter = this.getAdapter(agentId);
     const binary = resolveAgentBinary(agentId);
-    let cmdToRun = adapter.loginCommand;
+    let cmdToRun =
+      agentId === 'copilot' && isGitHubCli(binary) ? 'gh auth login' : adapter.loginCommand;
     if (binary.includes(path.sep) || binary.includes('/')) {
-      const parts = adapter.loginCommand.split(' ');
+      const parts = cmdToRun.split(' ');
       parts[0] = `"${binary}"`;
       cmdToRun = parts.join(' ');
     }

@@ -194,6 +194,11 @@ const bridge: CodeFleetBridge = {
       };
     },
   },
+  workspace: {
+    tree: (projectId) => invokeContract(IPC_CONTRACTS[IPC_CHANNELS.WORKSPACE_TREE], { projectId }),
+    readFile: (projectId, filePath) =>
+      invokeContract(IPC_CONTRACTS[IPC_CHANNELS.WORKSPACE_READ_FILE], { projectId, filePath }),
+  },
 };
 
 // Luật B1: Preload chỉ lộ ra API đã định nghĩa, không lộ Node/ipcRenderer thô.

@@ -224,7 +224,8 @@ export function parseCopilotRateLimit(rawInput: string | object): Omit<QuotaSnap
     if (!isExhausted) return null;
 
     // Trích xuất model nếu có
-    const model = data.error?.data?.model ?? msg.match(/model '([^']+)'/)?.[1] ?? 'claude-3.5-sonnet';
+    const model =
+      data.error?.data?.model ?? msg.match(/model '([^']+)'/)?.[1] ?? 'claude-3.5-sonnet';
 
     // Giờ reset mặc định: nửa đêm 00:00 ngày hôm sau
     const midnight = new Date();

@@ -54,11 +54,16 @@ export type PermissionHandler = (request: {
   options: string[];
 }) => Promise<string>;
 
+export type CodexSandboxMode = 'read-only' | 'workspace-write' | 'danger-full-access';
+
 export interface StartSessionOptions {
   cwd: string;
   projectId?: string;
   model?: string | null;
   resumeId?: string;
+  allowNonGitWorkspace?: boolean;
+  readOnly?: boolean;
+  codexSandbox?: CodexSandboxMode;
   onPermissionRequest?: PermissionHandler;
 }
 
@@ -86,5 +91,5 @@ export interface AgentAdapter {
   detect(): Promise<DetectResult>;
   listModels(): Promise<ModelInfo[]>;
   startSession(opts: StartSessionOptions): Promise<AgentSession>;
-  getQuota(): Promise<QuotaSnapshot[]>;
+  getQuota(model?: string): Promise<QuotaSnapshot[]>;
 }

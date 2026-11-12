@@ -113,7 +113,7 @@
         "darwin": "brew install copilot-cli",
         "linux": "curl -fsSL https://raw.githubusercontent.com/github/copilot-cli/main/install.sh | bash"
       },
-      "loginCommand": "copilot auth login",
+      "loginCommand": "copilot login",
       "models": [
         {
           "id": "claude-3.5-sonnet",

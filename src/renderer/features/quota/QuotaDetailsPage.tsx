@@ -403,21 +403,15 @@ export function QuotaDetailsPage({
         <h3 className="text-sm font-bold text-text">{t('mh08.rulesCard.title')}</h3>
         <ul className="flex flex-col gap-1.5 text-muted pl-4 list-disc leading-relaxed">
           <li>
-            <strong className="text-text font-semibold">
-              {t('mh08.rulesCard.rule1Label')}
-            </strong>{' '}
+            <strong className="text-text font-semibold">{t('mh08.rulesCard.rule1Label')}</strong>{' '}
             {t('mh08.rulesCard.rule1')}
           </li>
           <li>
-            <strong className="text-text font-semibold">
-              {t('mh08.rulesCard.rule2Label')}
-            </strong>{' '}
+            <strong className="text-text font-semibold">{t('mh08.rulesCard.rule2Label')}</strong>{' '}
             {t('mh08.rulesCard.rule2')}
           </li>
           <li>
-            <strong className="text-text font-semibold">
-              {t('mh08.rulesCard.rule3Label')}
-            </strong>{' '}
+            <strong className="text-text font-semibold">{t('mh08.rulesCard.rule3Label')}</strong>{' '}
             {t('mh08.rulesCard.rule3')}
           </li>
           <li className="text-primary-ink font-semibold">{t('mh08.rulesCard.rule4')}</li>

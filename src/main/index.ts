@@ -84,7 +84,9 @@ app.whenReady().then(() => {
       const win = BrowserWindow.getFocusedWindow();
       const options = {
         title: 'Chọn thư mục dự án',
-        properties: ['openDirectory', 'createDirectory'] as Array<'openDirectory' | 'createDirectory'>,
+        properties: ['openDirectory', 'createDirectory'] as Array<
+          'openDirectory' | 'createDirectory'
+        >,
       };
       const res = win
         ? await dialog.showOpenDialog(win, options)

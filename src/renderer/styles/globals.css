@@ -11,16 +11,74 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-bg-rgb: 244 245 242;
+    --color-surface-rgb: 255 255 255;
+    --color-surface-2-rgb: 251 251 249;
+    --color-border-rgb: 220 224 219;
+    --color-line-rgb: 236 238 234;
+    --color-dashed-rgb: 197 204 199;
+    --color-text-rgb: 22 32 29;
+    --color-muted-rgb: 85 98 93;
+    --color-primary-rgb: 11 107 93;
+    --color-primary-soft-rgb: 221 240 234;
+    --color-primary-ink-rgb: 11 63 55;
+    --color-primary-row-rgb: 238 247 244;
+    --color-warn-bg-rgb: 255 239 201;
+    --color-warn-ink-rgb: 122 79 0;
+    --color-warn-border-rgb: 232 207 142;
+    --color-ok-bg-rgb: 221 243 230;
+    --color-ok-ink-rgb: 23 102 63;
+    --color-info-bg-rgb: 221 235 250;
+    --color-info-ink-rgb: 11 92 173;
+    --color-danger-rgb: 210 59 48;
+    --color-danger-bg-rgb: 252 233 230;
+    --color-danger-ink-rgb: 155 35 27;
+    --color-bar-ok-rgb: 46 158 101;
+    --color-bar-low-rgb: 217 147 13;
+  }
+
+  /* CMD Terminal Dark - Mặc định hoặc khi kích hoạt theme */
+  :root[data-theme='zed-dark'],
+  body[data-theme='zed-dark'],
+  .theme-zed,
+  .dark {
+    --color-bg-rgb: 10 12 14; /* #0a0c0e - Near-black neutral terminal canvas */
+    --color-surface-rgb: 15 18 22; /* #0f1216 - Primary terminal panel */
+    --color-surface-2-rgb: 21 25 31; /* #15191f - Elevated/header bar surface */
+    --color-border-rgb: 38 45 54; /* #262d36 - Subtle 1px structural separator */
+    --color-line-rgb: 27 32 39; /* #1b2027 - Subtle inner divider */
+    --color-dashed-rgb: 54 63 75; /* #363f4b */
+    --color-text-rgb: 226 232 240; /* #e2e8f0 - Crisp terminal foreground */
+    --color-muted-rgb: 125 138 154; /* #7d8a9a - Muted comment/meta tone */
+    --color-primary-rgb: 34 197 94; /* #22c55e - Restrained terminal green */
+    --color-primary-soft-rgb: 14 34 23; /* #0e2217 - Low-contrast green highlight */
+    --color-primary-ink-rgb: 74 222 128; /* #4ade80 - Bright green terminal ink */
+    --color-primary-row-rgb: 15 29 22; /* #0f1d16 */
+    --color-warn-bg-rgb: 40 31 14;
+    --color-warn-ink-rgb: 251 191 36;
+    --color-warn-border-rgb: 105 80 18;
+    --color-ok-bg-rgb: 14 36 24;
+    --color-ok-ink-rgb: 74 222 128;
+    --color-info-bg-rgb: 12 33 44; /* #0c212c */
+    --color-info-ink-rgb: 56 189 248; /* #38bdf8 - Restrained terminal cyan */
+    --color-danger-rgb: 239 68 68;
+    --color-danger-bg-rgb: 46 18 21;
+    --color-danger-ink-rgb: 248 113 113;
+    --color-bar-ok-rgb: 34 197 94;
+    --color-bar-low-rgb: 245 158 11;
+  }
+
   * {
     box-sizing: border-box;
   }
 
   body {
     margin: 0;
-    background-color: #f4f5f2;
-    color: #16201d;
-    font-family: 'Be Vietnam Pro', system-ui, sans-serif;
-    font-size: 14px;
+    background-color: rgb(var(--color-bg-rgb));
+    color: rgb(var(--color-text-rgb));
+    font-family: 'JetBrains Mono', 'Be Vietnam Pro', ui-monospace, monospace;
+    font-size: 13px;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
   }
@@ -41,12 +99,12 @@
   textarea:focus-visible,
   a:focus-visible,
   summary:focus-visible {
-    outline: 2px solid #0b6b5d;
-    outline-offset: 2px;
+    outline: 1px solid rgb(var(--color-primary-rgb));
+    outline-offset: 1px;
   }
 
   a {
-    color: #0b6b5d;
+    color: rgb(var(--color-primary-rgb));
   }
 
   h1,
@@ -54,24 +112,79 @@
   h3 {
     margin: 0;
     line-height: 1.3;
+    font-family: 'JetBrains Mono', 'Be Vietnam Pro', ui-monospace, monospace;
   }
 
   h1 {
-    font-size: 22px;
+    font-size: 18px;
     font-weight: 700;
   }
 
   h2 {
-    font-size: 17px;
+    font-size: 15px;
     font-weight: 700;
   }
 
   h3 {
-    font-size: 15px;
+    font-size: 13.5px;
     font-weight: 700;
   }
 
   p {
     margin: 0;
   }
+
+  /* Scrollbars phong cách CMD Terminal */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: rgb(var(--color-bg-rgb));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--color-border-rgb) / 0.85);
+    border-radius: 0px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--color-primary-rgb) / 0.65);
+  }
+}
+
+/* Syntax Highlighting Tokens (CMD Terminal Theme) */
+.syntax-keyword {
+  color: #38bdf8;
+  font-weight: 600;
+}
+.syntax-function {
+  color: #4ade80;
+}
+.syntax-string {
+  color: #a3e635;
+}
+.syntax-number {
+  color: #fbbf24;
+}
+.syntax-comment {
+  color: #64748b;
+  font-style: italic;
+}
+.syntax-type {
+  color: #2dd4bf;
+}
+.syntax-tag {
+  color: #f87171;
+}
+.syntax-attr {
+  color: #fbbf24;
+}
+.syntax-operator {
+  color: #67e8f9;
+}
+.syntax-boolean {
+  color: #fb923c;
+  font-weight: 600;
+}
+.syntax-punctuation {
+  color: #94a3b8;
 }

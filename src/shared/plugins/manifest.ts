@@ -46,11 +46,7 @@ export const PluginManifestSchema = z.object({
 export type PluginManifest = z.infer<typeof PluginManifestSchema>;
 
 export type PluginStatus =
-  | 'not_installed'
-  | 'installed'
-  | 'update_available'
-  | 'corrupted'
-  | 'disabled';
+  'not_installed' | 'installed' | 'update_available' | 'corrupted' | 'disabled';
 
 export interface PluginRecord {
   readonly id: string;

@@ -657,9 +657,7 @@ export function SettingsPage({ isModal = false }: SettingsPageProps = {}): React
                     <strong className="text-sm font-semibold text-cf-text">
                       {t('mh11.update.channelLabel')}
                     </strong>
-                    <span className="text-xs text-cf-muted">
-                      {t('mh11.update.channelHint')}
-                    </span>
+                    <span className="text-xs text-cf-muted">{t('mh11.update.channelHint')}</span>
                   </div>
                   <Segmented
                     options={[

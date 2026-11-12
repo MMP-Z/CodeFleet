@@ -40,19 +40,27 @@ export function Composer({
   };
 
   return (
-    <div className="p-4 bg-surface border-t border-border flex flex-col gap-2.5">
+    <div className="p-3 bg-surface border-t border-border flex flex-col gap-2 font-mono">
       <div className="flex gap-2 items-end">
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={handleKeyDown}
-          rows={2}
-          placeholder={placeholder ?? t('mh03.composer.placeholder')}
-          aria-label={t('mh03.composer.ariaLabel')}
-          className="flex-1 p-2.5 border border-border rounded-lg text-small bg-bg text-cf-text focus:outline-none focus:ring-1 focus:ring-primary resize-none"
-        />
+        <div className="flex-1 flex items-start gap-2 px-2.5 py-2 border border-border rounded-input bg-bg focus-within:border-primary transition-colors">
+          <span
+            aria-hidden="true"
+            className="select-none text-primary-ink font-bold text-small leading-[1.45] pt-0.5"
+          >
+            $
+          </span>
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            rows={2}
+            placeholder={placeholder ?? t('mh03.composer.placeholder')}
+            aria-label={t('mh03.composer.ariaLabel')}
+            className="flex-1 bg-transparent text-small font-mono text-cf-text placeholder:text-muted/70 focus:outline-none resize-none"
+          />
+        </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-1.5">
           {running && (
             <Button type="button" variant="danger" size="lg" onClick={onStop}>
               {t('mh03.composer.stop')}
@@ -73,7 +81,9 @@ export function Composer({
 
       <div className="flex flex-wrap items-center justify-between gap-3 text-small text-muted">
         <AiPicker value={aiPick} onChange={onAiPickChange} disabled={running} />
-        <span className="text-[12px]">{t('mh03.composer.undoableGuarantee')}</span>
+        <span className="text-[11px] font-mono text-muted">
+          {t('mh03.composer.undoableGuarantee')}
+        </span>
       </div>
     </div>
   );

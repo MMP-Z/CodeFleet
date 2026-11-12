@@ -60,16 +60,15 @@ export class AutoUpdaterService {
 
   constructor(options: AutoUpdaterServiceOptions = {}) {
     const defaultVersion =
-      options.currentVersion ?? (typeof app?.getVersion === 'function' ? app.getVersion() : '0.1.0');
+      options.currentVersion ??
+      (typeof app?.getVersion === 'function' ? app.getVersion() : '0.1.0');
 
     this.settingsRepo = options.settingsRepo;
     this.backend = options.backend;
     this.isDev = options.isDev ?? false;
 
-    const initialChannel: UpdateChannel =
-      this.settingsRepo?.get('update.channel') ?? 'stable';
-    const initialAutoDownload =
-      this.settingsRepo?.get('update.autoDownload') ?? true;
+    const initialChannel: UpdateChannel = this.settingsRepo?.get('update.channel') ?? 'stable';
+    const initialAutoDownload = this.settingsRepo?.get('update.autoDownload') ?? true;
 
     this.state = {
       status: 'idle',
@@ -306,8 +305,12 @@ export class AutoUpdaterService {
    */
   private compareVersions(v1: string, v2: string): number {
     const clean = (v: string) => v.replace(/^v/, '').split('-')[0] ?? '';
-    const parts1 = clean(v1).split('.').map((p) => parseInt(p, 10) || 0);
-    const parts2 = clean(v2).split('.').map((p) => parseInt(p, 10) || 0);
+    const parts1 = clean(v1)
+      .split('.')
+      .map((p) => parseInt(p, 10) || 0);
+    const parts2 = clean(v2)
+      .split('.')
+      .map((p) => parseInt(p, 10) || 0);
 
     for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
       const p1 = parts1[i] ?? 0;

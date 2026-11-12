@@ -13,6 +13,8 @@ import { Toggle } from './Toggle';
 import { QuotaBar } from './QuotaBar';
 import { QuotaChip } from './QuotaChip';
 import { QuotaPopover } from './QuotaPopover';
+import { CodeViewer } from './CodeViewer';
+import { FileTree } from './FileTree';
 import type { QuotaSnapshot } from '@shared/ipc';
 
 describe('Phase 1 UI Primitives (UI_SPEC 1.1, 2, 4, Luật U2, P6)', () => {
@@ -272,5 +274,48 @@ describe('Phase 1 UI Primitives (UI_SPEC 1.1, 2, 4, Luật U2, P6)', () => {
     // Bấm vào chip claude mở popover
     fireEvent.click(screen.getByRole('button', { name: /claude 62%/i }));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('renders CodeViewer with line numbers, file path and tab', () => {
+    render(
+      <CodeViewer
+        filePath="spikes/01-shadow-git.mjs"
+        content={`const x = 42;\nconsole.log(x);`}
+        language="javascript"
+      />,
+    );
+
+    expect(screen.getByText('01-shadow-git.mjs')).toBeInTheDocument();
+    expect(screen.getByText('spikes/01-shadow-git.mjs')).toBeInTheDocument();
+    expect(screen.getByText('2 dòng')).toBeInTheDocument();
+    expect(screen.getByText('1')).toBeInTheDocument();
+    expect(screen.getByText('2')).toBeInTheDocument();
+  });
+
+  it('renders FileTree and allows selecting a file', () => {
+    const onSelectFile = vi.fn();
+    render(
+      <FileTree
+        projectName="CODEFLEET"
+        files={[
+          {
+            name: 'spikes',
+            path: 'spikes',
+            isDirectory: true,
+            children: [
+              { name: '01-shadow-git.mjs', path: 'spikes/01-shadow-git.mjs', isDirectory: false },
+            ],
+          },
+          { name: 'package.json', path: 'package.json', isDirectory: false },
+        ]}
+        onSelectFile={onSelectFile}
+      />,
+    );
+
+    expect(screen.getByText('CODEFLEET')).toBeInTheDocument();
+    expect(screen.getByText('package.json')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('package.json'));
+    expect(onSelectFile).toHaveBeenCalledWith('package.json');
   });
 });

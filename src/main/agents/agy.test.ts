@@ -46,11 +46,11 @@ describe('AgyAdapter', () => {
   });
 
   it('detect() trả về not_installed khi binary không tồn tại hoặc lỗi', async () => {
-    const adapter = new AgyAdapter(
-      modelsService,
-      sessionRepo,
-      async () => ({ stdout: '', stderr: 'command not found', code: 127 }),
-    );
+    const adapter = new AgyAdapter(modelsService, sessionRepo, async () => ({
+      stdout: '',
+      stderr: 'command not found',
+      code: 127,
+    }));
 
     const result = await adapter.detect();
     expect(result.installed).toBe(false);
@@ -62,24 +62,20 @@ describe('AgyAdapter', () => {
   });
 
   it('detect() trả về ready khi binary trả về version và models thành công', async () => {
-    const adapter = new AgyAdapter(
-      modelsService,
-      sessionRepo,
-      async (_cmd, args) => {
-        if (args[0] === '--version') {
-          return { stdout: '1.4.11', stderr: '', code: 0 };
-        }
-        if (args[0] === 'models') {
-          return {
-            stdout:
-              'Fetching available models...\ngemini-4-argon-medium\tGemini 4 Argon (Medium)\ngemini-3.8-flash-high\tGemini 3.8 Flash (High)\n',
-            stderr: '',
-            code: 0,
-          };
-        }
-        return { stdout: '', stderr: '', code: 0 };
-      },
-    );
+    const adapter = new AgyAdapter(modelsService, sessionRepo, async (_cmd, args) => {
+      if (args[0] === '--version') {
+        return { stdout: '1.4.11', stderr: '', code: 0 };
+      }
+      if (args[0] === 'models') {
+        return {
+          stdout:
+            'Fetching available models...\ngemini-4-argon-medium\tGemini 4 Argon (Medium)\ngemini-3.8-flash-high\tGemini 3.8 Flash (High)\n',
+          stderr: '',
+          code: 0,
+        };
+      }
+      return { stdout: '', stderr: '', code: 0 };
+    });
 
     const result = await adapter.detect();
     expect(result.installed).toBe(true);

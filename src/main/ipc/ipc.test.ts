@@ -434,10 +434,9 @@ describe('Phase 1 Typed IPC + Zod Validation (Luật P3, B2)', () => {
     }
 
     // 2. update.setChannel
-    const setChannelRes = await bus.invoke<{ channel: string }>(
-      IPC_CHANNELS.UPDATE_SET_CHANNEL,
-      { channel: 'beta' },
-    );
+    const setChannelRes = await bus.invoke<{ channel: string }>(IPC_CHANNELS.UPDATE_SET_CHANNEL, {
+      channel: 'beta',
+    });
     expect(setChannelRes.ok).toBe(true);
     if (setChannelRes.ok) {
       expect(setChannelRes.data.channel).toBe('beta');

@@ -1,8 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import Database from 'better-sqlite3';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { migration001Initial } from '../db/migrations/001-initial';
+import * as binaryResolver from './binary-resolver';
+import * as copilotAuth from './copilot-auth';
 import { CopilotAdapter, CopilotSessionInstance } from './copilot';
 import { ModelTierService } from './models';
 import { AgentSessionRepository } from './session-repo';
@@ -33,6 +35,7 @@ describe('CopilotAdapter', () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     try {
       db.close();
     } catch {
@@ -46,11 +49,11 @@ describe('CopilotAdapter', () => {
   });
 
   it('detect() trả về not_installed khi binary không tồn tại hoặc lỗi', async () => {
-    const adapter = new CopilotAdapter(
-      modelsService,
-      sessionRepo,
-      async () => ({ stdout: '', stderr: 'command not found', code: 127 }),
-    );
+    const adapter = new CopilotAdapter(modelsService, sessionRepo, async () => ({
+      stdout: '',
+      stderr: 'command not found',
+      code: 127,
+    }));
 
     const result = await adapter.detect();
     expect(result.installed).toBe(false);
@@ -61,30 +64,23 @@ describe('CopilotAdapter', () => {
     expect(result.logoLetter).toBe('P');
   });
 
-  it('detect() trả về ready khi binary trả về version và auth status thành công', async () => {
-    const adapter = new CopilotAdapter(
-      modelsService,
-      sessionRepo,
-      async (_cmd, args) => {
-        if (args[0] === '--version') {
-          return { stdout: 'gh version 2.60.0 (2024-10-15)', stderr: '', code: 0 };
-        }
-        if (args[0] === 'auth' && args[1] === 'status') {
-          return {
-            stdout: 'github.com\n  ✓ Logged in to github.com as user (keyring)\n',
-            stderr: '',
-            code: 0,
-          };
-        }
-        return { stdout: '', stderr: '', code: 0 };
-      },
-    );
+  it.each([
+    [true, 'ready'],
+    [false, 'not_logged_in'],
+    [null, 'error'],
+  ] as const)('detect() chuyển trạng thái Copilot %s thành %s', async (authenticated, status) => {
+    vi.spyOn(binaryResolver, 'resolveAgentBinary').mockReturnValue('copilot');
+    vi.spyOn(copilotAuth, 'getCopilotAuthStatus').mockResolvedValue(authenticated);
+    const adapter = new CopilotAdapter(modelsService, sessionRepo, async (_cmd, args) => {
+      expect(args).toEqual(['--version']);
+      return { stdout: 'GitHub Copilot CLI 1.0.109', stderr: '', code: 0 };
+    });
 
     const result = await adapter.detect();
     expect(result.installed).toBe(true);
-    expect(result.version).toBe('2.60.0');
-    expect(result.loggedIn).toBe(true);
-    expect(result.status).toBe('ready');
+    expect(result.version).toBe('1.0.109');
+    expect(result.loggedIn).toBe(authenticated === true);
+    expect(result.status).toBe(status);
     expect(result.modelsCount).toBeGreaterThan(0);
   });
 
@@ -136,5 +132,41 @@ describe('CopilotAdapter', () => {
       usage: { inputTokens: 150, outputTokens: 75 },
     });
     expect(session.getExternalSessionId()).toBe('copilot-session-123');
+  });
+
+  it('streams Copilot JSONL once and retains the session ID for follow-up prompts', async () => {
+    const adapter = new CopilotAdapter(modelsService, sessionRepo);
+    const session = (await adapter.startSession({
+      cwd: tempDir,
+      model: 'auto',
+    })) as CopilotSessionInstance;
+    const events: AgentEvent[] = [];
+    const streamed = new Set<string>();
+    const collect = (event: AgentEvent): void => {
+      events.push(event);
+    };
+    session.processNdjsonLines(
+      [
+        '{"type":"session.start","data":{"sessionId":"new-session"}}',
+        '{"type":"assistant.message_delta","data":{"messageId":"m1","deltaContent":"Xin "}}',
+      ],
+      collect,
+      streamed,
+    );
+    session.processNdjsonLines(
+      [
+        '{"type":"assistant.message_delta","data":{"messageId":"m1","deltaContent":"chào"}}',
+        '{"type":"assistant.message","data":{"messageId":"m1","content":"Xin chào"}}',
+        '{"type":"result","sessionId":"new-session","exitCode":0}',
+      ],
+      collect,
+      streamed,
+    );
+    expect(events).toEqual([
+      { type: 'message', text: 'Xin ' },
+      { type: 'message', text: 'chào' },
+      { type: 'done', externalSessionId: 'new-session', usage: undefined },
+    ]);
+    expect(session.getExternalSessionId()).toBe('new-session');
   });
 });

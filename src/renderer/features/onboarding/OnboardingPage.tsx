@@ -11,10 +11,7 @@ export interface OnboardingPageProps {
   readonly initialStep?: 1 | 2 | 3;
 }
 
-export const OnboardingPage: React.FC<OnboardingPageProps> = ({
-  onCompleted,
-  initialStep = 1,
-}) => {
+export const OnboardingPage: React.FC<OnboardingPageProps> = ({ onCompleted, initialStep = 1 }) => {
   const bridge = getBridge();
 
   const [step, setStep] = useState<1 | 2 | 3>(initialStep);
@@ -187,17 +184,13 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
             <h1 className="text-2xl font-bold tracking-tight text-cf-text">
               {t('mh01.welcomeTitle')}
             </h1>
-            <p className="text-sm text-cf-muted leading-relaxed">
-              {t('mh01.welcomeSubtitle')}
-            </p>
+            <p className="text-sm text-cf-muted leading-relaxed">{t('mh01.welcomeSubtitle')}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-cf-surface border border-cf-line rounded-cf-card p-4 flex flex-col gap-2">
               <div className="text-2xl">🖥️</div>
-              <h2 className="text-sm font-bold text-cf-text">
-                {t('mh01.welcomePillar1Title')}
-              </h2>
+              <h2 className="text-sm font-bold text-cf-text">{t('mh01.welcomePillar1Title')}</h2>
               <p className="text-xs text-cf-muted leading-relaxed">
                 {t('mh01.welcomePillar1Desc')}
               </p>
@@ -205,9 +198,7 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
 
             <div className="bg-cf-surface border border-cf-line rounded-cf-card p-4 flex flex-col gap-2">
               <div className="text-2xl">📁</div>
-              <h2 className="text-sm font-bold text-cf-text">
-                {t('mh01.welcomePillar2Title')}
-              </h2>
+              <h2 className="text-sm font-bold text-cf-text">{t('mh01.welcomePillar2Title')}</h2>
               <p className="text-xs text-cf-muted leading-relaxed">
                 {t('mh01.welcomePillar2Desc')}
               </p>
@@ -215,9 +206,7 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
 
             <div className="bg-cf-surface border border-cf-line rounded-cf-card p-4 flex flex-col gap-2">
               <div className="text-2xl">🛡️</div>
-              <h2 className="text-sm font-bold text-cf-text">
-                {t('mh01.welcomePillar3Title')}
-              </h2>
+              <h2 className="text-sm font-bold text-cf-text">{t('mh01.welcomePillar3Title')}</h2>
               <p className="text-xs text-cf-muted leading-relaxed">
                 {t('mh01.welcomePillar3Desc')}
               </p>
@@ -239,12 +228,8 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
         <div className="flex flex-col gap-6">
           {/* Tiêu đề & mô tả */}
           <div className="flex flex-col gap-1.5">
-            <h1 className="text-2xl font-bold tracking-tight text-cf-text">
-              {t('mh01.title')}
-            </h1>
-            <p className="text-sm text-cf-muted leading-relaxed">
-              {t('mh01.description')}
-            </p>
+            <h1 className="text-2xl font-bold tracking-tight text-cf-text">{t('mh01.title')}</h1>
+            <p className="text-sm text-cf-muted leading-relaxed">{t('mh01.description')}</p>
           </div>
 
           {/* Thẻ danh sách CLI */}
@@ -321,9 +306,7 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
 
                       {agent.status === 'not_logged_in' && (
                         <div className="flex flex-col gap-2 mt-1">
-                          <p className="text-xs text-cf-muted">
-                            {t('mh01.card.notLoggedInDesc')}
-                          </p>
+                          <p className="text-xs text-cf-muted">{t('mh01.card.notLoggedInDesc')}</p>
                           <ol className="list-decimal list-inside text-xs text-cf-muted space-y-1">
                             <li>{t('mh01.card.notLoggedInStep1')}</li>
                             <li>{t('mh01.card.notLoggedInStep2')}</li>
@@ -343,9 +326,7 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
 
                       {agent.status === 'not_installed' && (
                         <div className="flex flex-col gap-2 mt-1">
-                          <p className="text-xs text-cf-muted">
-                            {t('mh01.card.notInstalledDesc')}
-                          </p>
+                          <p className="text-xs text-cf-muted">{t('mh01.card.notInstalledDesc')}</p>
                           <ol className="list-decimal list-inside text-xs text-cf-muted space-y-1.5">
                             <li>
                               {t('mh01.card.notInstalledStep1')}{' '}
@@ -368,10 +349,7 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
                                     variant="default"
                                     size="sm"
                                     onClick={() =>
-                                      void handleCopyCommand(
-                                        agent.agentId,
-                                        agent.installCommand!,
-                                      )
+                                      void handleCopyCommand(agent.agentId, agent.installCommand!)
                                     }
                                   >
                                     {copiedAgentId === agent.agentId
@@ -389,9 +367,7 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
                               className="text-xs text-cf-muted hover:text-cf-text underline"
                               onClick={() => handleToggleSkip(agent.agentId)}
                             >
-                              {isSkipped
-                                ? t('mh01.card.skipped')
-                                : t('mh01.card.skip')}
+                              {isSkipped ? t('mh01.card.skipped') : t('mh01.card.skip')}
                             </button>
                           </div>
                         </div>
@@ -405,11 +381,7 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
                             })}
                           </p>
                           <div className="pt-1">
-                            <Button
-                              variant="default"
-                              size="sm"
-                              onClick={() => void checkAll()}
-                            >
+                            <Button variant="default" size="sm" onClick={() => void checkAll()}>
                               {t('mh01.card.errorRetry')}
                             </Button>
                           </div>
@@ -440,9 +412,7 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
                   : t('mh01.git.missing')}
               </Pill>
             </div>
-            <p className="text-xs text-cf-muted leading-relaxed">
-              {t('mh01.git.desc')}
-            </p>
+            <p className="text-xs text-cf-muted leading-relaxed">{t('mh01.git.desc')}</p>
           </div>
 
           {/* Lưu ý an toàn */}
@@ -475,9 +445,7 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
             <h1 className="text-2xl font-bold tracking-tight text-cf-text">
               {t('mh01.readyStepTitle')}
             </h1>
-            <p className="text-sm text-cf-muted leading-relaxed">
-              {t('mh01.readyStepSubtitle')}
-            </p>
+            <p className="text-sm text-cf-muted leading-relaxed">{t('mh01.readyStepSubtitle')}</p>
           </div>
 
           <div className="bg-cf-surface border border-cf-line rounded-cf-card p-6 flex flex-col gap-4">

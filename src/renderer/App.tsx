@@ -50,6 +50,26 @@ export function App(): React.JSX.Element {
   const [isInitializing, setIsInitializing] = useState(true);
   const [quotaSnapshots, setQuotaSnapshots] = useState<readonly QuotaSnapshot[]>([]);
   const [detectedAgents, setDetectedAgents] = useState<readonly DetectResult[]>([]);
+  const [theme, setTheme] = useState<'zed-dark' | 'sage'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('codefleet_theme');
+      if (saved === 'sage' || saved === 'zed-dark') return saved;
+    }
+    return 'zed-dark'; // Mặc định là Zed Dark huyền bí
+  });
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('codefleet_theme', theme);
+    }
+  }, [theme]);
+
+  const toggleTheme = (): void => {
+    setTheme((prev) => (prev === 'zed-dark' ? 'sage' : 'zed-dark'));
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -215,21 +235,27 @@ export function App(): React.JSX.Element {
   if (isInitializing && route !== 'dev-components') {
     return (
       <div
-        className="min-h-screen flex items-center justify-center bg-cf-bg"
+        className="min-h-screen flex items-center justify-center bg-cf-bg font-mono"
         aria-busy="true"
         aria-label="Loading"
       >
-        <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        <div className="w-6 h-6 rounded-btn border-2 border-primary border-t-transparent animate-spin" />
       </div>
     );
   }
 
   return (
     <ToastProvider>
-      <div className="min-h-screen flex flex-col bg-cf-bg text-cf-text font-sans">
+      <div
+        className={`min-h-screen flex flex-col bg-cf-bg text-cf-text font-mono ${theme === 'zed-dark' ? 'theme-zed dark' : ''}`}
+        data-theme={theme}
+      >
         <AppHeader
           activeNav={
-            route === 'onboarding' || route === 'projects' || route === 'direct-edit' || route === 'settings'
+            route === 'onboarding' ||
+            route === 'projects' ||
+            route === 'direct-edit' ||
+            route === 'settings'
               ? 'chat'
               : route
           }
@@ -241,6 +267,8 @@ export function App(): React.JSX.Element {
           detectedAgents={detectedAgents}
           onOpenSettings={() => setIsSettingsOpen(true)}
           isSettingsOpen={isSettingsOpen}
+          currentTheme={theme}
+          onToggleTheme={toggleTheme}
         />
         <main className="flex-1 flex flex-col">
           {route === 'dev-components' && bridge.featureFlags.devComponents ? (
@@ -285,10 +313,7 @@ export function App(): React.JSX.Element {
           onProjectSelected={handleProjectSelected}
         />
 
-        <SettingsModal
-          open={isSettingsOpen}
-          onClose={handleCloseSettings}
-        />
+        <SettingsModal open={isSettingsOpen} onClose={handleCloseSettings} />
       </div>
     </ToastProvider>
   );

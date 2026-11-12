@@ -1,7 +1,54 @@
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import type { AgentId } from './types';
+
+let codexDesktopBinary: string | undefined;
+
+function findCodexDesktop(): string | undefined {
+  if (codexDesktopBinary && fs.existsSync(codexDesktopBinary)) return codexDesktopBinary;
+  try {
+    const installLocation = execFileSync(
+      'powershell.exe',
+      [
+        '-NoProfile',
+        '-NonInteractive',
+        '-Command',
+        '[Console]::OutputEncoding = [Text.Encoding]::UTF8; Get-AppxPackage -Name OpenAI.Codex | Select-Object -First 1 -ExpandProperty InstallLocation',
+      ],
+      { encoding: 'utf8', windowsHide: true, timeout: 4000, stdio: ['ignore', 'pipe', 'ignore'] },
+    ).trim();
+    if (!path.isAbsolute(installLocation)) return;
+    const binary = path.join(installLocation, 'app', 'resources', 'codex.exe');
+    if (fs.existsSync(binary)) {
+      codexDesktopBinary = binary;
+      return binary;
+    }
+  } catch {
+    // The standalone Codex installation is also supported.
+  }
+  return undefined;
+}
+
+function getCodexPathCandidates(): string[] {
+  return (process.env.PATH ?? '')
+    .split(path.delimiter)
+    .map((entry) => entry.trim().replace(/^"|"$/g, ''))
+    .filter(
+      (entry) =>
+        path.isAbsolute(entry) &&
+        !path
+          .normalize(entry)
+          .split(path.sep)
+          .some((segment) => segment.toLowerCase() === '.sandbox-bin'),
+    )
+    .flatMap((entry) =>
+      process.platform === 'win32'
+        ? [path.join(entry, 'codex.exe'), path.join(entry, 'codex.cmd')]
+        : [path.join(entry, 'codex')],
+    );
+}
 
 /**
  * Trả về danh sách các đường dẫn ứng viên có thể chứa file thực thi của từng AI CLI.
@@ -19,8 +66,8 @@ export function getAgentBinaryCandidates(agentId: AgentId): string[] {
   switch (agentId) {
     case 'codex':
       return [
-        // 1. OpenAI Codex Desktop / sandbox-bin (Windows/macOS standard location)
-        path.join(home, '.codex', '.sandbox-bin', `codex${exeSuffix}`),
+        // Keep Codex beside the helper binaries supplied by its installation.
+        ...getCodexPathCandidates(),
         path.join(home, '.codex', 'bin', `codex${exeSuffix}`),
         // 2. Local Programs directory
         path.join(localAppData, 'Programs', 'Codex', `codex${exeSuffix}`),
@@ -50,6 +97,7 @@ export function getAgentBinaryCandidates(agentId: AgentId): string[] {
       const progFiles = process.env.ProgramFiles || 'C:\\Program Files';
       return [
         // 1. GitHub Copilot CLI official MSI installer location (winget install GitHub.Copilot)
+        path.join(localAppData, 'GitHubCopilotCLI', `copilot${exeSuffix}`),
         path.join(progFiles, 'GitHub Copilot', `copilot${exeSuffix}`),
         path.join(progFiles, 'GitHub Copilot CLI', `copilot${exeSuffix}`),
         path.join(localAppData, 'Programs', 'GitHub Copilot', `copilot${exeSuffix}`),
@@ -88,6 +136,10 @@ export function getAgentBinaryCandidates(agentId: AgentId): string[] {
   }
 }
 
+export function isGitHubCli(binary: string): boolean {
+  return /^gh(?:\.exe|\.cmd)?$/i.test(path.basename(binary));
+}
+
 /**
  * Tìm file thực thi khả dụng nhất của một AI CLI:
  * Kiểm tra các thư mục cài đặt tiêu chuẩn trước; nếu không thấy thì trả về tên lệnh mặc định trên PATH.
@@ -104,6 +156,9 @@ export function resolveAgentBinary(agentId: AgentId): string {
         // Bỏ qua lỗi truy cập file hệ thống
       }
     }
+  }
+  if (agentId === 'codex' && process.platform === 'win32') {
+    return findCodexDesktop() ?? agentId;
   }
   return agentId;
 }

@@ -68,9 +68,7 @@ export function formatQuotaChipSummary(
     // Tối đa 2 model: liệt kê model khác ok (kèm model ok còn lại nếu có)
     const parts: string[] = [];
     for (const snap of agentSnapshots) {
-      const modelName = snap.model
-        ? snap.model.replace(/^[a-z0-9]+-/, '')
-        : 'Model';
+      const modelName = snap.model ? snap.model.replace(/^[a-z0-9]+-/, '') : 'Model';
       const shortName = modelName.charAt(0).toUpperCase() + modelName.slice(1);
 
       if (snap.status === 'exhausted') {

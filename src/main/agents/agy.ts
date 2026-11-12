@@ -1,4 +1,5 @@
-import { spawn } from 'node:child_process';
+import { spawn, type ChildProcess } from 'node:child_process';
+import { stopAgentProcess } from './stop-process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -154,7 +155,7 @@ export class AgyAdapter implements AgentAdapter {
     return this.modelsService.syncAgentModels(this.id, discovered);
   }
 
-  public async getQuota(): Promise<QuotaSnapshot[]> {
+  public async getQuota(model?: string): Promise<QuotaSnapshot[]> {
     if (this.customQuotaResolver) {
       const raw = await this.customQuotaResolver();
       if (raw) {
@@ -164,6 +165,38 @@ export class AgyAdapter implements AgentAdapter {
         } catch {
           // bỏ qua lỗi json
         }
+      }
+    }
+    const usage = await this.runner(resolveAgentBinary(this.id), [
+      '--print',
+      '/usage',
+      '--print-timeout',
+      '12s',
+      '--output-format',
+      'text',
+    ]);
+    if (usage.code === 0) {
+      const windows = this.parseUsageWindows(usage.stdout, model);
+      if (windows.length) {
+        const used = Math.max(...windows.map((window) => window.usedPercent));
+        return [
+          {
+            agentId: this.id,
+            model: model && model !== 'auto' ? model : null,
+            scope: model && model !== 'auto' ? 'model' : 'unknown',
+            windows,
+            status:
+              !model || model === 'auto'
+                ? 'unknown'
+                : used >= 100
+                  ? 'exhausted'
+                  : used >= 80
+                    ? 'low'
+                    : 'ok',
+            source: 'official',
+            updatedAt: new Date().toISOString(),
+          },
+        ];
       }
     }
     if (this.lastRateLimitSnapshot) {
@@ -180,6 +213,42 @@ export class AgyAdapter implements AgentAdapter {
         updatedAt: new Date().toISOString(),
       },
     ];
+  }
+
+  private parseUsageWindows(output: string, model?: string) {
+    const windows = new Map<
+      string,
+      { label: string; usedPercent: number; resetsAt: string | null }
+    >();
+    for (const line of output.split(/\r?\n/)) {
+      const [group, limit, percent, reset] = line.split('\t').map((column) => column.trim());
+      if (!group || !limit || !percent || !/^\d+(?:\.\d+)?%$/.test(percent)) continue;
+      const remaining = Number(percent.slice(0, -1));
+      if (remaining < 0 || remaining > 100) continue;
+      const groupName = group.toLowerCase();
+      const modelId = model?.toLowerCase();
+      if (modelId && modelId !== 'auto') {
+        const applies =
+          groupName === 'gemini models'
+            ? modelId.startsWith('gemini-')
+            : groupName === 'claude and gpt models'
+              ? /^(claude|gpt)-/.test(modelId)
+              : modelId.startsWith(groupName.replace(/\s+/g, '-'));
+        if (!applies) continue;
+      }
+      const label = /five hour/i.test(limit) ? '5 giờ' : /weekly/i.test(limit) ? 'Tuần' : null;
+      if (!label) continue;
+      const usedPercent = 100 - remaining;
+      const current = windows.get(label);
+      if (!current || usedPercent > current.usedPercent) {
+        windows.set(label, {
+          label,
+          usedPercent,
+          resetsAt: reset && Number.isFinite(Date.parse(reset)) ? reset : null,
+        });
+      }
+    }
+    return [...windows.values()];
   }
 
   public async startSession(opts: StartSessionOptions): Promise<AgentSession> {
@@ -200,6 +269,7 @@ export class AgyAdapter implements AgentAdapter {
       this.sessionRepo,
       this,
       binary,
+      opts.readOnly,
     );
   }
 }
@@ -209,6 +279,7 @@ export class AgySessionInstance implements AgentSession {
   public readonly agentId = 'agy' as const;
   public readonly cwd: string;
   public readonly model: string | null;
+  private child: ChildProcess | null = null;
   private externalSessionId: string | null;
   private readonly binary: string;
 
@@ -220,6 +291,7 @@ export class AgySessionInstance implements AgentSession {
     private readonly sessionRepo: AgentSessionRepository,
     public readonly adapter: AgyAdapter,
     binary = 'agy',
+    private readonly readOnly = false,
   ) {
     this.id = id;
     this.cwd = cwd;
@@ -243,6 +315,7 @@ export class AgySessionInstance implements AgentSession {
     }
 
     const args = ['--print', prompt, '--output-format', 'stream-json'];
+    if (this.readOnly) args.push('--mode', 'plan', '--sandbox');
     if (this.model) {
       args.push('--model', this.model);
     }
@@ -251,12 +324,14 @@ export class AgySessionInstance implements AgentSession {
     }
 
     const execOpts = getCommandExecutionOptions(this.binary);
+    if (this.readOnly && execOpts.shell) throw new Error('Cần agy.exe để chạy subagent an toàn.');
     return new Promise((resolve, reject) => {
       const child = spawn(this.binary, args, {
         cwd: this.cwd,
         shell: execOpts.shell,
       });
 
+      this.child = child;
       let buffer = '';
       child.stdout?.on('data', (chunk) => {
         buffer += chunk.toString();
@@ -276,6 +351,7 @@ export class AgySessionInstance implements AgentSession {
       });
 
       child.on('close', (code) => {
+        this.child = null;
         if (buffer.trim()) {
           this.processNdjsonLines([buffer], onEvent);
         }
@@ -361,6 +437,6 @@ export class AgySessionInstance implements AgentSession {
   }
 
   public async cancel(): Promise<void> {
-    // Không cần can thiệp nếu process đã kết thúc
+    await stopAgentProcess(this.child);
   }
 }

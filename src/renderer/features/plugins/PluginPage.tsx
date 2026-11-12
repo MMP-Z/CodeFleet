@@ -156,9 +156,7 @@ export function PluginPage(): React.JSX.Element {
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="flex flex-col gap-1.5">
             <h1 className="text-2xl font-bold text-cf-text">{t('mh10.title')}</h1>
-            <p className="text-small text-muted max-w-2xl leading-relaxed">
-              {t('mh10.subtitle')}
-            </p>
+            <p className="text-small text-muted max-w-2xl leading-relaxed">{t('mh10.subtitle')}</p>
           </div>
           <Button variant="default" onClick={() => setIsLinkDialogOpen(true)}>
             {t('mh10.installFromLink')}

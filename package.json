@@ -4,9 +4,15 @@
   "private": true,
   "description": "CodeFleet — Ứng dụng desktop điều phối AI CLI để vibe code có hiểu",
   "main": "./out/main/index.cjs",
+  "bin": {
+    "codefleet": "scripts/codefleet.cjs"
+  },
   "author": "CodeFleet Team",
   "license": "UNLICENSED",
   "scripts": {
+    "cli": "node scripts/codefleet.cjs",
+    "install:cli": "node scripts/install-cli.cjs",
+    "build:cli": "node scripts/build-cli.cjs",
     "dev": "electron-rebuild -f -w better-sqlite3 && electron-vite dev",
     "build": "pnpm typecheck && electron-vite build",
     "start": "electron-rebuild -f -w better-sqlite3 && electron-vite preview",

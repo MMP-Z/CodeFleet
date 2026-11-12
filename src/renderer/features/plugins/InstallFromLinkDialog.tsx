@@ -66,10 +66,7 @@ export function InstallFromLinkDialog({
         </div>
 
         {/* Notice tone danger (Luật U2: kèm hành động rõ ràng) */}
-        <Notice
-          tone="danger"
-          actions={[{ label: t('mh10.dialogLink.cancel'), onClick: onClose }]}
-        >
+        <Notice tone="danger" actions={[{ label: t('mh10.dialogLink.cancel'), onClick: onClose }]}>
           {t('mh10.dialogLink.dangerNotice')}
         </Notice>
 

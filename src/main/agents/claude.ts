@@ -1,4 +1,7 @@
-import { spawn } from 'node:child_process';
+import { spawn, type ChildProcess } from 'node:child_process';
+import { stopAgentProcess } from './stop-process';
+import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { z } from 'zod';
 import { assertPathInsideProject, writeProjectFileSafe } from '../security/path-guard';
@@ -74,6 +77,30 @@ export const defaultCommandRunner: CommandRunner = (cmd, args, options) => {
   });
 };
 
+/**
+ * Đọc hạn mức gói Claude.ai (5 giờ / tuần) bằng chính token OAuth mà Claude Code đã lưu.
+ * Không gửi prompt; không tự làm mới token hết hạn.
+ */
+export async function fetchClaudeOAuthUsage(): Promise<unknown> {
+  const configDir = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude');
+  const credentials = JSON.parse(
+    await fs.promises.readFile(path.join(configDir, '.credentials.json'), 'utf8'),
+  ) as { claudeAiOauth?: { accessToken?: unknown; expiresAt?: unknown } };
+  const oauth = credentials.claudeAiOauth;
+  if (typeof oauth?.accessToken !== 'string' || !oauth.accessToken) return null;
+  if (typeof oauth.expiresAt === 'number' && oauth.expiresAt <= Date.now()) return null;
+  const response = await fetch('https://api.anthropic.com/api/oauth/usage', {
+    headers: {
+      Authorization: `Bearer ${oauth.accessToken}`,
+      'anthropic-beta': 'oauth-2025-04-20',
+      'Content-Type': 'application/json',
+    },
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!response.ok) return null;
+  return response.json();
+}
+
 export class ClaudeAdapter implements AgentAdapter {
   public readonly id = 'claude' as const;
   public readonly displayName: string;
@@ -90,6 +117,7 @@ export class ClaudeAdapter implements AgentAdapter {
     private readonly sessionRepo: AgentSessionRepository,
     private readonly runner: CommandRunner = defaultCommandRunner,
     private readonly customQuotaResolver?: () => Promise<string | null>,
+    private readonly usageFetcher: () => Promise<unknown> = fetchClaudeOAuthUsage,
   ) {
     const config = this.modelsService.getAgentCatalogConfig('claude');
     this.displayName = config.displayName;
@@ -128,29 +156,15 @@ export class ClaudeAdapter implements AgentAdapter {
     const versionMatch = res.stdout.match(/([0-9]+\.[0-9]+(?:\.[0-9]+)?)/);
     const version = versionMatch ? versionMatch[1] : res.stdout.trim() || 'unknown';
 
-    // Kiểm tra trạng thái auth
-    const authRes = await this.runner(binary, ['status', '--json']);
-    let loggedIn = false;
-    let status: 'ready' | 'not_logged_in' | 'error' = 'not_logged_in';
-
-    if (authRes.code === 0) {
-      try {
-        const parsed = JSON.parse(authRes.stdout);
-        loggedIn = Boolean(parsed.loggedIn ?? parsed.authenticated ?? true);
-        status = loggedIn ? 'ready' : 'not_logged_in';
-      } catch {
-        loggedIn = !authRes.stdout.toLowerCase().includes('not logged in');
-        status = loggedIn ? 'ready' : 'not_logged_in';
-      }
-    } else if (
-      authRes.stderr.toLowerCase().includes('login') ||
-      authRes.stdout.toLowerCase().includes('login')
-    ) {
-      loggedIn = false;
-      status = 'not_logged_in';
-    } else {
-      status = 'not_logged_in';
+    const authRes = await this.runner(binary, ['auth', 'status']);
+    let authenticated: boolean | null = null;
+    try {
+      const parsed = z.object({ loggedIn: z.boolean() }).safeParse(JSON.parse(authRes.stdout));
+      if (parsed.success) authenticated = parsed.data.loggedIn;
+    } catch {
+      // Older or failed CLI commands can return non-JSON output.
     }
+    const status = authenticated === null ? 'error' : authenticated ? 'ready' : 'not_logged_in';
 
     const models = await this.listModels();
 
@@ -166,9 +180,10 @@ export class ClaudeAdapter implements AgentAdapter {
       loginCommand: this.loginCommand,
       installed: true,
       version,
-      loggedIn,
+      loggedIn: authenticated === true,
       status,
-      errorDetail: null,
+      errorDetail:
+        status === 'error' ? 'Không xác minh được trạng thái đăng nhập Claude Code.' : null,
       modelsCount: models.length,
     };
   }
@@ -232,6 +247,44 @@ export class ClaudeAdapter implements AgentAdapter {
     }
   }
 
+  /** Parse the plan usage reply used by Claude Code's own `/usage` view. */
+  public parseOAuthUsage(raw: unknown): QuotaSnapshot | null {
+    if (!raw || typeof raw !== 'object') return null;
+    const data = raw as Record<string, unknown>;
+    const windows = [];
+    for (const [key, label] of [
+      ['five_hour', '5 giờ'],
+      ['seven_day', 'Tuần'],
+    ] as const) {
+      const window = data[key] as { utilization?: unknown; resets_at?: unknown } | null;
+      if (!window || typeof window.utilization !== 'number') continue;
+      const reset =
+        typeof window.resets_at === 'string'
+          ? Date.parse(window.resets_at)
+          : typeof window.resets_at === 'number'
+            ? window.resets_at > 1e11
+              ? window.resets_at
+              : window.resets_at * 1000
+            : NaN;
+      windows.push({
+        label,
+        usedPercent: Math.max(0, Math.min(100, window.utilization)),
+        resetsAt: Number.isFinite(reset) ? new Date(reset).toISOString() : null,
+      });
+    }
+    if (!windows.length) return null;
+    const used = Math.max(...windows.map((window) => window.usedPercent));
+    return {
+      agentId: this.id,
+      model: null,
+      scope: 'shared',
+      windows,
+      status: used >= 100 ? 'exhausted' : used >= 80 ? 'low' : 'ok',
+      source: 'official',
+      updatedAt: new Date().toISOString(),
+    };
+  }
+
   public async getQuota(): Promise<QuotaSnapshot[]> {
     if (this.customQuotaResolver) {
       const raw = await this.customQuotaResolver();
@@ -239,11 +292,11 @@ export class ClaudeAdapter implements AgentAdapter {
         return [this.parseQuotaTierA(raw)];
       }
     }
-    // Đọc thụ động từ Claude statusline nếu có
-    const binary = resolveAgentBinary(this.id);
-    const res = await this.runner(binary, ['status', '--json']);
-    if (res.code === 0 && res.stdout) {
-      return [this.parseQuotaTierA(res.stdout)];
+    try {
+      const official = this.parseOAuthUsage(await this.usageFetcher());
+      if (official) return [official];
+    } catch {
+      // Không có đăng nhập Claude.ai (API key) hoặc mạng lỗi: hạ về unknown.
     }
     return [
       {
@@ -275,6 +328,7 @@ export class ClaudeAdapter implements AgentAdapter {
       sessionRecord.externalId,
       this.sessionRepo,
       binary,
+      opts.readOnly,
     );
   }
 }
@@ -284,6 +338,7 @@ class ClaudeSessionInstance implements AgentSession {
   public readonly agentId = 'claude' as const;
   public readonly cwd: string;
   public readonly model: string | null;
+  private child: ChildProcess | null = null;
   private externalSessionId: string | null;
   private readonly binary: string;
 
@@ -294,6 +349,7 @@ class ClaudeSessionInstance implements AgentSession {
     externalSessionId: string | null,
     private readonly sessionRepo: AgentSessionRepository,
     binary = 'claude',
+    private readonly readOnly = false,
   ) {
     this.id = id;
     this.cwd = cwd;
@@ -317,14 +373,14 @@ class ClaudeSessionInstance implements AgentSession {
     }
 
     // Khi chạy thật với binary claude
-    const args = ['--print', '--output-format', 'json'];
+    const args = ['--print', '--output-format', 'stream-json', '--verbose'];
+    if (this.readOnly) args.push('--tools', 'Read,Glob,Grep', '--disallowedTools', 'mcp__*');
     if (this.model) {
       args.push('--model', this.model);
     }
     if (this.externalSessionId) {
       args.push('--resume', this.externalSessionId);
     }
-    args.push(prompt);
 
     const execOpts = getCommandExecutionOptions(this.binary);
     return new Promise((resolve, reject) => {
@@ -333,6 +389,9 @@ class ClaudeSessionInstance implements AgentSession {
         shell: execOpts.shell,
       });
 
+      this.child = child;
+      child.stdin?.on('error', () => {});
+      child.stdin?.end(prompt);
       let buffer = '';
       child.stdout?.on('data', (chunk) => {
         buffer += chunk.toString();
@@ -349,6 +408,7 @@ class ClaudeSessionInstance implements AgentSession {
       });
 
       child.on('close', (code) => {
+        this.child = null;
         if (buffer.trim()) {
           this.processNdjsonLines([buffer.trim()], onEvent);
         }
@@ -447,5 +507,7 @@ class ClaudeSessionInstance implements AgentSession {
 
   public async respondPermission(): Promise<void> {}
 
-  public async cancel(): Promise<void> {}
+  public async cancel(): Promise<void> {
+    await stopAgentProcess(this.child);
+  }
 }

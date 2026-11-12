@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
   AgentId,
   AiPickOption,
@@ -9,8 +9,11 @@ import type {
   OrchestrationLogEntry,
   ProjectRecord,
   StepVM,
+  WorkspaceFileNode,
 } from '@shared/ipc';
+import { CodeViewer } from '../../components/CodeViewer';
 import { Composer } from '../../components/Composer';
+import { FileTree } from '../../components/FileTree';
 import { PlanCard } from '../../components/PlanCard';
 import { SystemLine } from '../../components/SystemLine';
 import { t } from '../../i18n';
@@ -30,7 +33,18 @@ export interface ChatPageProps {
   readonly initialActiveStepId?: string | null;
 }
 
-type RightTab = 'preview' | 'code' | 'detail';
+export type CenterTab = 'file' | 'diff' | 'preview' | 'log';
+
+function findFirstCodeFile(nodes: readonly WorkspaceFileNode[]): WorkspaceFileNode | null {
+  for (const n of nodes) {
+    if (!n.isDirectory) return n;
+    if (n.children && n.children.length > 0) {
+      const found = findFirstCodeFile(n.children);
+      if (found) return found;
+    }
+  }
+  return null;
+}
 
 export function ChatPage({
   project,
@@ -58,8 +72,54 @@ export function ChatPage({
   const [permissionRequest, setPermissionRequest] = useState<PermissionRequestData | null>(null);
   const [conflict, setConflict] = useState<FileConflictVM | null>(null);
 
-  const [rightTab, setRightTab] = useState<RightTab>(initialActiveStepId ? 'code' : 'detail');
-  const [isRightCollapsed, setIsRightCollapsed] = useState(false);
+  // Trạng thái Workspace / Cây thư mục và Code Viewer
+  const [workspaceFiles, setWorkspaceFiles] = useState<readonly WorkspaceFileNode[]>([]);
+  const [activeFilePath, setActiveFilePath] = useState<string | null>(null);
+  const [fileContent, setFileContent] = useState<string | null>(null);
+  const [fileLanguage, setFileLanguage] = useState<string>('javascript');
+  const [centerTab, setCenterTab] = useState<CenterTab>(initialActiveStepId ? 'diff' : 'file');
+  const [isFileTreeCollapsed, setIsFileTreeCollapsed] = useState(false);
+
+  const handleSelectFile = useCallback(
+    async (filePath: string): Promise<void> => {
+      setActiveFilePath(filePath);
+      setCenterTab('file');
+      try {
+        const res = await bridge.workspace.readFile(project.id, filePath);
+        if (res.ok) {
+          setFileContent(res.data.content);
+          setFileLanguage(res.data.language);
+        } else {
+          setFileContent(`// Không thể đọc file: ${res.error.message}`);
+        }
+      } catch {
+        setFileContent('// Lỗi đọc file');
+      }
+    },
+    [bridge, project.id],
+  );
+
+  // Nạp cây thư mục dự án
+  const loadWorkspaceTree = useCallback(async (): Promise<void> => {
+    try {
+      const res = await bridge.workspace.tree(project.id);
+      if (res.ok) {
+        setWorkspaceFiles(res.data.files);
+        if (!activeFilePath && res.data.files.length > 0) {
+          const first = findFirstCodeFile(res.data.files);
+          if (first) {
+            void handleSelectFile(first.path);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Lỗi nạp cây thư mục:', err);
+    }
+  }, [bridge, project.id, activeFilePath, handleSelectFile]);
+
+  useEffect(() => {
+    void loadWorkspaceTree();
+  }, [loadWorkspaceTree]);
 
   // Khởi tạo hoặc nạp hội thoại
   useEffect(() => {
@@ -126,6 +186,8 @@ export function ChatPage({
             }
             return [...prev, updatedStep];
           });
+          // Tự động làm mới cây thư mục nếu AI vừa tạo/sửa file
+          void loadWorkspaceTree();
           break;
         }
         case 'system_line': {
@@ -147,24 +209,26 @@ export function ChatPage({
           break;
         }
         case 'permission_requested': {
-          const perm = payload.data as PermissionRequestData;
-          setPermissionRequest(perm);
+          setPermissionRequest(payload.data as PermissionRequestData);
           break;
         }
         case 'conflict_detected': {
-          const data = payload.data as FileConflictVM;
-          setConflict(data);
+          setConflict(payload.data as FileConflictVM);
+          break;
+        }
+        case 'execution_done': {
+          setRunning(false);
+          void loadWorkspaceTree();
+          break;
+        }
+        case 'execution_stopped': {
+          setRunning(false);
           break;
         }
         case 'execution_paused': {
-          const data = payload.data as { stepSeq: number };
-          setPausedStepSeq(data.stepSeq);
           setRunning(false);
-          break;
-        }
-        case 'execution_done':
-        case 'execution_stopped': {
-          setRunning(false);
+          const data = payload.data as { stepSeq?: number };
+          setPausedStepSeq(data?.stepSeq ?? 1);
           break;
         }
       }
@@ -173,27 +237,45 @@ export function ChatPage({
     return () => {
       unsubscribe();
     };
-  }, [bridge, conversationId]);
+  }, [bridge, conversationId, loadWorkspaceTree]);
 
-  // Cuộn xuống khi có tin mới
+  // Tự cuộn chat xuống cuối khi có tin nhắn mới
   useEffect(() => {
     if (chatScrollRef.current) {
       chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
     }
-  }, [messages, steps, systemLines, pausedStepSeq]);
+  }, [messages, steps, systemLines]);
 
-  const handleSend = async (content: string): Promise<void> => {
+  const handleSend = async (promptText: string): Promise<void> => {
     if (!conversationId || running) return;
+
+    const userMsg: MessageRecord = {
+      id: `client-${Date.now()}`,
+      conversationId,
+      role: 'user',
+      content: promptText,
+      createdAt: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, userMsg]);
     setRunning(true);
-    setPausedStepSeq(null);
+
     const aiPickOption: AiPickOption | undefined =
       aiPick === 'auto' ? { type: 'auto' } : { type: 'agent', agentId: aiPick as AgentId };
 
-    await bridge.orchestrator.send({
-      conversationId,
-      prompt: content,
-      aiPick: aiPickOption,
-    });
+    try {
+      const res = await bridge.orchestrator.send({
+        conversationId,
+        prompt: promptText,
+        aiPick: aiPickOption,
+      });
+      if (!res.ok) {
+        setRunning(false);
+        setSystemLines((prev) => [...prev, `Lỗi gửi yêu cầu: ${res.error.message}`]);
+      }
+    } catch (err) {
+      setRunning(false);
+      setSystemLines((prev) => [...prev, `Lỗi không xác định: ${String(err)}`]);
+    }
   };
 
   const handleStop = async (): Promise<void> => {
@@ -242,18 +324,31 @@ export function ChatPage({
   const isEmptyChat = messages.length === 0;
 
   return (
-    <div className="flex-1 flex overflow-hidden">
-      {/* KHUNG TRÁI: VÙNG CHAT CHÍNH */}
-      <main className="flex-1 flex flex-col min-w-0 bg-cf-bg border-r border-border">
-        <div ref={chatScrollRef} className="flex-1 overflow-y-auto p-4 md:p-6 flex flex-col gap-4">
+    <div className="flex-1 flex overflow-hidden min-h-0 bg-cf-bg select-none">
+      {/* =========================================================
+          CỘT 1: CHAT PANEL (TRÁI) — Phong cách Agent Thread của Zed
+          ========================================================= */}
+      <section className="w-80 lg:w-96 flex-none flex flex-col border-r border-border bg-surface overflow-hidden">
+        {/* Agent Thread Header */}
+        <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-border bg-surface-2/40 text-xs select-none">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+            <strong className="text-muted tracking-wider uppercase text-[11px] font-bold">
+              Agent Thread
+            </strong>
+          </div>
+          <span className="text-[11px] text-muted font-mono">{messages.length} tin</span>
+        </div>
+
+        {/* Message stream */}
+        <div ref={chatScrollRef} className="flex-1 overflow-y-auto p-3 flex flex-col gap-3">
           {isEmptyChat ? (
-            /* TRẠNG THÁI CHAT TRỐNG (MH-12) */
-            <div className="flex-1 flex flex-col items-center justify-center text-center max-w-lg mx-auto py-12">
-              <div className="w-14 h-14 rounded-2xl bg-primary-soft flex items-center justify-center text-2xl text-primary font-bold mb-3 select-none">
+            <div className="flex-1 flex flex-col items-center justify-center text-center max-w-xs mx-auto py-8">
+              <div className="w-12 h-12 rounded-2xl bg-primary-soft flex items-center justify-center text-2xl text-primary font-bold mb-3 select-none">
                 ✦
               </div>
-              <h2 className="text-xl font-bold text-cf-text mb-1">{t('mh03.empty.title')}</h2>
-              <p className="text-muted text-small mb-6 leading-relaxed">
+              <h2 className="text-base font-bold text-cf-text mb-1">{t('mh03.empty.title')}</h2>
+              <p className="text-muted text-xs mb-5 leading-relaxed">
                 {t('mh03.empty.description')}
               </p>
 
@@ -261,21 +356,21 @@ export function ChatPage({
                 <button
                   type="button"
                   onClick={() => void handleSend(t('mh03.empty.prompt1'))}
-                  className="px-4 py-2.5 rounded-full border border-border bg-surface text-small text-cf-text hover:border-primary/60 hover:bg-surface-2 transition-colors cursor-pointer text-left"
+                  className="px-3 py-2 rounded-lg border border-border bg-surface text-xs text-cf-text hover:border-primary/60 hover:bg-surface-2 transition-colors cursor-pointer text-left font-mono"
                 >
                   {t('mh03.empty.prompt1')}
                 </button>
                 <button
                   type="button"
                   onClick={() => void handleSend(t('mh03.empty.prompt2'))}
-                  className="px-4 py-2.5 rounded-full border border-border bg-surface text-small text-cf-text hover:border-primary/60 hover:bg-surface-2 transition-colors cursor-pointer text-left"
+                  className="px-3 py-2 rounded-lg border border-border bg-surface text-xs text-cf-text hover:border-primary/60 hover:bg-surface-2 transition-colors cursor-pointer text-left font-mono"
                 >
                   {t('mh03.empty.prompt2')}
                 </button>
                 <button
                   type="button"
                   onClick={() => void handleSend(t('mh03.empty.prompt3'))}
-                  className="px-4 py-2.5 rounded-full border border-border bg-surface text-small text-cf-text hover:border-primary/60 hover:bg-surface-2 transition-colors cursor-pointer text-left"
+                  className="px-3 py-2 rounded-lg border border-border bg-surface text-xs text-cf-text hover:border-primary/60 hover:bg-surface-2 transition-colors cursor-pointer text-left font-mono"
                 >
                   {t('mh03.empty.prompt3')}
                 </button>
@@ -285,17 +380,17 @@ export function ChatPage({
             <>
               {messages.map((msg) =>
                 msg.role === 'user' ? (
-                  <div key={msg.id} className="flex justify-end">
-                    <div className="max-w-[80%] bg-primary text-white p-3.5 rounded-2xl rounded-tr-sm text-small leading-relaxed shadow-sm">
+                  <div key={msg.id} className="flex justify-end select-text">
+                    <div className="max-w-[85%] bg-primary text-white p-3 rounded-2xl rounded-tr-xs text-small leading-relaxed shadow-sm font-sans">
                       {msg.content}
                     </div>
                   </div>
                 ) : (
-                  <div key={msg.id} className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary-soft text-primary font-bold flex items-center justify-center flex-none select-none text-small">
+                  <div key={msg.id} className="flex items-start gap-2.5 select-text">
+                    <div className="w-7 h-7 rounded-full bg-primary-soft text-primary font-bold flex items-center justify-center flex-none select-none text-xs">
                       CF
                     </div>
-                    <div className="flex-1 max-w-[85%] bg-surface border border-border p-4 rounded-2xl rounded-tl-sm text-small text-cf-text leading-relaxed shadow-sm">
+                    <div className="flex-1 max-w-[88%] bg-surface-2 border border-border p-3.5 rounded-2xl rounded-tl-xs text-small text-cf-text leading-relaxed shadow-sm font-sans">
                       {msg.content}
                     </div>
                   </div>
@@ -309,8 +404,12 @@ export function ChatPage({
                   activeStepId={activeStepId}
                   onViewCode={(stepId) => {
                     setActiveStepId(stepId);
-                    setRightTab('code');
-                    setIsRightCollapsed(false);
+                    setCenterTab('diff');
+                    void bridge.code.stepDiff(stepId).then((res) => {
+                      if (res.ok && res.data.files.length > 0) {
+                        void handleSelectFile(res.data.files[0].path);
+                      }
+                    });
                   }}
                 />
               )}
@@ -325,7 +424,7 @@ export function ChatPage({
                 <PausedCard
                   stepSeq={pausedStepSeq}
                   onRetry={() => void handleRetryPaused()}
-                  onPickOtherAgent={() => setRightTab('detail')}
+                  onPickOtherAgent={() => setCenterTab('log')}
                   onViewQuota={onNavigateToQuota}
                 />
               )}
@@ -333,7 +432,7 @@ export function ChatPage({
           )}
         </div>
 
-        {/* COMPOSER */}
+        {/* COMPOSER NHẬP TIN NHẮN */}
         <Composer
           running={running}
           aiPick={aiPick}
@@ -341,83 +440,76 @@ export function ChatPage({
           onSend={(content) => void handleSend(content)}
           onStop={() => void handleStop()}
         />
-      </main>
+      </section>
 
-      {/* KHUNG PHẢI: 3 TABS (XEM TRƯỚC, CODE, ĐIỀU PHỐI CHI TIẾT) */}
-      {isRightCollapsed ? (
-        <aside className="w-10 bg-surface-2 border-l border-border flex flex-col items-center py-3">
-          <button
-            type="button"
-            title={t('mh03.tabs.expandAria')}
-            aria-label={t('mh03.tabs.expandAria')}
-            onClick={() => setIsRightCollapsed(false)}
-            className="p-1.5 rounded hover:bg-line text-muted cursor-pointer"
-          >
-            ⇤
-          </button>
-        </aside>
-      ) : (
-        <aside className="w-96 lg:w-[440px] flex-none bg-surface flex flex-col border-l border-border overflow-hidden">
-          {/* Header tabs */}
-          <div className="flex items-center justify-between p-3 border-b border-line bg-surface-2/30">
-            <div className="flex gap-1" role="tablist" aria-label={t('mh03.tabs.ariaLabel')}>
+      {/* =========================================================
+          CỘT 2: CODE VIEWER (GIỮA) — Không gian trọng tâm của IDE
+          ========================================================= */}
+      <main className="flex-1 flex flex-col min-w-0 bg-surface overflow-hidden border-r border-border">
+        {centerTab === 'file' ? (
+          activeFilePath ? (
+            <CodeViewer
+              filePath={activeFilePath}
+              content={fileContent ?? '// Đang tải nội dung...'}
+              language={fileLanguage}
+              onAskSnippet={(snippet) => {
+                void handleSend(`Giải thích đoạn mã này giúp tôi:\n\`\`\`\n${snippet}\n\`\`\``);
+              }}
+              activeTab={centerTab}
+              onTabChange={setCenterTab}
+              hasDiff={steps.length > 0}
+            />
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-muted gap-3">
+              <span className="text-4xl">💻</span>
+              <p className="text-small font-medium text-text">
+                Chọn một file từ cây thư mục bên phải để xem code
+              </p>
+              <p className="text-xs text-muted max-w-sm">
+                Bạn có thể duyệt toàn bộ file trong dự án hoặc theo dõi code do AI chỉnh sửa trực
+                tiếp tại đây.
+              </p>
+            </div>
+          )
+        ) : centerTab === 'diff' ? (
+          <div className="flex-1 flex flex-col overflow-hidden bg-surface">
+            {/* Header tab navigation */}
+            <div className="flex items-center gap-1 border-b border-border bg-surface-2/40 px-3 pt-2">
+              {activeFilePath && (
+                <button
+                  type="button"
+                  onClick={() => setCenterTab('file')}
+                  className="px-3 py-1.5 text-xs text-muted hover:text-text cursor-pointer font-mono"
+                >
+                  📄 {activeFilePath.split('/').pop()}
+                </button>
+              )}
               <button
                 type="button"
-                role="tab"
-                aria-selected={rightTab === 'preview'}
-                onClick={() => setRightTab('preview')}
-                className={`px-3 py-1.5 rounded-md text-small font-medium transition-colors ${
-                  rightTab === 'preview'
-                    ? 'bg-surface text-cf-text shadow-sm'
-                    : 'text-muted hover:text-cf-text'
-                }`}
+                className="px-3 py-1.5 text-xs bg-surface border-t border-x border-border font-semibold text-text rounded-t flex items-center gap-1"
               >
-                {t('mh03.tabs.preview')}
+                <span>⚡</span>
+                <span>{t('mh03.tabs.code')} (Diff)</span>
               </button>
               <button
                 type="button"
-                role="tab"
-                aria-selected={rightTab === 'code'}
-                onClick={() => setRightTab('code')}
-                className={`px-3 py-1.5 rounded-md text-small font-medium transition-colors ${
-                  rightTab === 'code'
-                    ? 'bg-surface text-cf-text shadow-sm'
-                    : 'text-muted hover:text-cf-text'
-                }`}
+                onClick={() => setCenterTab('preview')}
+                className="px-3 py-1.5 text-xs text-muted hover:text-text cursor-pointer flex items-center gap-1"
               >
-                {t('mh03.tabs.code')}
+                <span>🌐</span>
+                <span>{t('mh03.tabs.preview')}</span>
               </button>
               <button
                 type="button"
-                role="tab"
-                aria-selected={rightTab === 'detail'}
-                onClick={() => setRightTab('detail')}
-                className={`px-3 py-1.5 rounded-md text-small font-medium transition-colors ${
-                  rightTab === 'detail'
-                    ? 'bg-surface text-cf-text shadow-sm'
-                    : 'text-muted hover:text-cf-text'
-                }`}
+                onClick={() => setCenterTab('log')}
+                className="px-3 py-1.5 text-xs text-muted hover:text-text cursor-pointer flex items-center gap-1"
               >
-                {t('mh03.tabs.detail')}
+                <span>📜</span>
+                <span>{t('mh03.tabs.detail')}</span>
               </button>
             </div>
 
-            <button
-              type="button"
-              title={t('mh03.tabs.collapseAria')}
-              aria-label={t('mh03.tabs.collapseAria')}
-              onClick={() => setIsRightCollapsed(true)}
-              className="text-small text-muted hover:text-cf-text p-1 cursor-pointer"
-            >
-              {t('mh03.tabs.collapse')}
-            </button>
-          </div>
-
-          {/* Nội dung tab */}
-          <div className="flex-1 overflow-y-auto p-4 flex flex-col min-h-0">
-            {rightTab === 'preview' && <PreviewTab projectId={project.id} />}
-
-            {rightTab === 'code' && (
+            <div className="flex-1 overflow-y-auto p-4">
               <StepCodeTab
                 step={
                   steps.find((s) => s.id === activeStepId) ?? (steps.length > 0 ? steps[0] : null)
@@ -438,14 +530,112 @@ export function ChatPage({
                   );
                 }}
               />
-            )}
-
-            {rightTab === 'detail' && (
-              <OrchestrationLog reasons={reasons} logEntries={logEntries} />
-            )}
+            </div>
           </div>
-        </aside>
-      )}
+        ) : centerTab === 'preview' ? (
+          <div className="flex-1 flex flex-col overflow-hidden bg-surface">
+            {/* Header tab navigation */}
+            <div className="flex items-center gap-1 border-b border-border bg-surface-2/40 px-3 pt-2">
+              {activeFilePath && (
+                <button
+                  type="button"
+                  onClick={() => setCenterTab('file')}
+                  className="px-3 py-1.5 text-xs text-muted hover:text-text cursor-pointer font-mono"
+                >
+                  📄 {activeFilePath.split('/').pop()}
+                </button>
+              )}
+              {steps.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setCenterTab('diff')}
+                  className="px-3 py-1.5 text-xs text-muted hover:text-text cursor-pointer flex items-center gap-1"
+                >
+                  <span>⚡</span>
+                  <span>{t('mh03.tabs.code')} (Diff)</span>
+                </button>
+              )}
+              <button
+                type="button"
+                className="px-3 py-1.5 text-xs bg-surface border-t border-x border-border font-semibold text-text rounded-t flex items-center gap-1"
+              >
+                <span>🌐</span>
+                <span>{t('mh03.tabs.preview')}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setCenterTab('log')}
+                className="px-3 py-1.5 text-xs text-muted hover:text-text cursor-pointer flex items-center gap-1"
+              >
+                <span>📜</span>
+                <span>{t('mh03.tabs.detail')}</span>
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4">
+              <PreviewTab projectId={project.id} />
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex flex-col overflow-hidden bg-surface">
+            {/* Header tab navigation */}
+            <div className="flex items-center gap-1 border-b border-border bg-surface-2/40 px-3 pt-2">
+              {activeFilePath && (
+                <button
+                  type="button"
+                  onClick={() => setCenterTab('file')}
+                  className="px-3 py-1.5 text-xs text-muted hover:text-text cursor-pointer font-mono"
+                >
+                  📄 {activeFilePath.split('/').pop()}
+                </button>
+              )}
+              {steps.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setCenterTab('diff')}
+                  className="px-3 py-1.5 text-xs text-muted hover:text-text cursor-pointer flex items-center gap-1"
+                >
+                  <span>⚡</span>
+                  <span>{t('mh03.tabs.code')} (Diff)</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setCenterTab('preview')}
+                className="px-3 py-1.5 text-xs text-muted hover:text-text cursor-pointer flex items-center gap-1"
+              >
+                <span>🌐</span>
+                <span>{t('mh03.tabs.preview')}</span>
+              </button>
+              <button
+                type="button"
+                className="px-3 py-1.5 text-xs bg-surface border-t border-x border-border font-semibold text-text rounded-t flex items-center gap-1"
+              >
+                <span>📜</span>
+                <span>{t('mh03.tabs.detail')}</span>
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4">
+              <OrchestrationLog reasons={reasons} logEntries={logEntries} />
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* =========================================================
+          CỘT 3: FILE TREE EXPLORER (PHẢI) — Cây thư mục dự án
+          ========================================================= */}
+      <FileTree
+        files={workspaceFiles}
+        activeFilePath={activeFilePath}
+        modifiedFiles={[]}
+        onSelectFile={(path) => void handleSelectFile(path)}
+        onRefresh={() => void loadWorkspaceTree()}
+        projectName={project.name}
+        isCollapsed={isFileTreeCollapsed}
+        onToggleCollapse={() => setIsFileTreeCollapsed((prev) => !prev)}
+      />
 
       {/* HỘP THOẠI XIN PHÉP RỦI RO B5 (MH-04) */}
       <PermissionDialog

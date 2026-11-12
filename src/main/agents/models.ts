@@ -251,14 +251,20 @@ export class ModelTierService {
    */
   public ensureCatalogSeeded(): void {
     // Dọn dẹp triệt để các model giả cũ nếu còn tồn tại trong DB
-    this.db.prepare(`
+    this.db
+      .prepare(
+        `
       DELETE FROM models 
       WHERE agent_id = 'codex' 
         AND model_id IN ('gpt-5-codex', 'codex-mini-latest')
-    `).run();
+    `,
+      )
+      .run();
 
     for (const agentId of this.getKnownAgentIds()) {
-      const agentCount = this.db.prepare('SELECT COUNT(*) AS cnt FROM models WHERE agent_id = ?').get(agentId) as {
+      const agentCount = this.db
+        .prepare('SELECT COUNT(*) AS cnt FROM models WHERE agent_id = ?')
+        .get(agentId) as {
         cnt: number;
       };
       if (agentCount.cnt === 0) {

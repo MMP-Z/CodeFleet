@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import Database from 'better-sqlite3';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import * as binaryResolver from './binary-resolver';
 import { migration001Initial } from '../db/migrations/001-initial';
 import { PathViolationError } from '../security/path-guard';
 import { ClaudeAdapter, type CommandRunner } from './claude';
@@ -83,6 +84,7 @@ describe('Adapters: Claude, Codex, Copilot, AGY & AgentRegistry (Luật P5, P10,
         if (args.includes('--version')) {
           return { stdout: 'claude-code 1.2.0', stderr: '', code: 0 };
         }
+        expect(args).toEqual(['auth', 'status']);
         return { stdout: '{"loggedIn":true}', stderr: '', code: 0 };
       };
       const adapter3 = new ClaudeAdapter(modelsService, sessionRepo, readyRunner);
@@ -336,6 +338,8 @@ describe('Adapters: Claude, Codex, Copilot, AGY & AgentRegistry (Luật P5, P10,
     });
 
     it('mở cửa sổ login bằng lệnh chính thức qua terminalLauncher theo Luật B3', async () => {
+      // Keep the login-command test independent of binaries installed on the test machine.
+      const resolver = vi.spyOn(binaryResolver, 'resolveAgentBinary').mockImplementation((id) => id);
       let launchedCommand = '';
       const registry = new AgentRegistry({
         modelsService,
@@ -352,10 +356,11 @@ describe('Adapters: Claude, Codex, Copilot, AGY & AgentRegistry (Luật P5, P10,
       expect(launchedCommand).toMatch(/(?:codex|codex\.exe"?) login/);
 
       await registry.openLoginTerminal('copilot');
-      expect(launchedCommand).toBe('copilot auth login');
+      expect(launchedCommand).toBe('copilot login');
 
       await registry.openLoginTerminal('agy');
       expect(launchedCommand).toMatch(/(?:agy|agy\.exe"?)/);
+      resolver.mockRestore();
     });
   });
 });

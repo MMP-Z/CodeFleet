@@ -23,6 +23,8 @@ export interface AppHeaderProps {
   readonly showQuota?: boolean;
   readonly onOpenSettings?: () => void;
   readonly isSettingsOpen?: boolean;
+  readonly currentTheme?: 'zed-dark' | 'sage';
+  readonly onToggleTheme?: () => void;
 }
 
 /**
@@ -40,6 +42,8 @@ export function AppHeader({
   showQuota = true,
   onOpenSettings,
   isSettingsOpen = false,
+  currentTheme = 'zed-dark',
+  onToggleTheme,
 }: AppHeaderProps): React.JSX.Element {
   const navItems: { route: NavRoute; label: string; visible: boolean }[] = [
     {
@@ -70,22 +74,25 @@ export function AppHeader({
   ];
 
   return (
-    <header className="relative z-10 flex flex-wrap items-center gap-x-4 gap-y-3 px-5 py-3 bg-surface border-b border-border">
-      <div className="flex items-center gap-2.5">
+    <header className="relative z-10 flex flex-wrap items-center gap-x-3 gap-y-2 px-3.5 py-2 bg-surface border-b border-border font-mono">
+      <div className="flex items-center gap-2">
         <div
           aria-hidden="true"
-          className="w-7 h-7 rounded-btn bg-primary flex items-center justify-center"
+          className="h-6 px-1.5 rounded-btn bg-primary-soft border border-primary/50 text-primary-ink flex items-center justify-center text-[11px] font-bold tracking-tight select-none"
         >
-          <span className="w-2.5 h-2.5 border-2 border-surface rounded-pill block" />
+          &gt;_
         </div>
-        <strong className="text-sub-title font-bold text-text">{APP_NAME}</strong>
+        <strong className="text-[13px] font-bold tracking-tight text-text">{APP_NAME}</strong>
+        <span aria-hidden="true" className="text-[11px] text-muted hidden sm:inline">
+          ::cmd
+        </span>
       </div>
 
       {project ? (
         <ProjectPill name={project.name} path={project.path} onClick={onProjectClick} />
       ) : null}
 
-      <nav aria-label={t('app.header.navAria')} className="flex flex-wrap gap-1.5">
+      <nav aria-label={t('app.header.navAria')} className="flex flex-wrap gap-1">
         {navItems
           .filter((item) => item.visible)
           .map((item) => {
@@ -96,10 +103,10 @@ export function AppHeader({
                 type="button"
                 aria-current={isCurrent ? 'page' : undefined}
                 onClick={() => onNavigate(item.route)}
-                className={`min-h-[34px] px-2.5 py-[5px] border rounded-btn text-[13px] transition-colors ${
+                className={`min-h-[28px] px-2.5 py-1 border rounded-btn text-[12px] font-mono transition-colors ${
                   isCurrent
-                    ? 'bg-primary-soft border-primary/30 text-primary-ink font-semibold'
-                    : 'bg-surface border-border text-text hover:bg-surface-2'
+                    ? 'bg-primary-soft border-primary/60 text-primary-ink font-semibold'
+                    : 'bg-bg/60 border-border text-muted hover:text-text hover:bg-surface-2'
                 }`}
               >
                 {item.label}
@@ -110,7 +117,7 @@ export function AppHeader({
 
       <div className="grow" />
 
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2">
         {showQuota && quotaSnapshots && quotaSnapshots.length > 0 ? (
           <QuotaBar
             snapshots={quotaSnapshots}
@@ -119,20 +126,36 @@ export function AppHeader({
           />
         ) : null}
 
+        {onToggleTheme && (
+          <button
+            type="button"
+            onClick={onToggleTheme}
+            title={
+              currentTheme === 'zed-dark'
+                ? 'Đổi sang theme Sáng'
+                : 'Đổi sang theme Zed Tối (Huyền bí)'
+            }
+            aria-label="Đổi giao diện Sáng / Tối"
+            className="min-h-[28px] min-w-[28px] px-2 border rounded-btn flex items-center justify-center transition-colors cursor-pointer bg-bg/60 border-border text-muted hover:text-text hover:bg-surface-2 text-xs font-mono"
+          >
+            {currentTheme === 'zed-dark' ? '🌙' : '☀️'}
+          </button>
+        )}
+
         <button
           type="button"
           aria-label={t('app.header.settings')}
           title={t('app.header.settings')}
           aria-current={isSettingsOpen || activeNav === 'settings' ? 'page' : undefined}
           onClick={onOpenSettings ?? (() => onNavigate('settings'))}
-          className={`min-h-[34px] min-w-[34px] p-2 border rounded-btn flex items-center justify-center transition-all cursor-pointer group ${
+          className={`min-h-[28px] min-w-[28px] p-1.5 border rounded-btn flex items-center justify-center transition-colors cursor-pointer group ${
             isSettingsOpen || activeNav === 'settings'
-              ? 'bg-primary-soft border-primary/40 text-primary-ink shadow-sm'
-              : 'bg-surface border-border text-cf-muted hover:text-text hover:bg-surface-2'
+              ? 'bg-primary-soft border-primary/60 text-primary-ink'
+              : 'bg-bg/60 border-border text-cf-muted hover:text-text hover:bg-surface-2'
           }`}
         >
           <svg
-            className="w-4 h-4 transition-transform duration-200 group-hover:rotate-45"
+            className="w-3.5 h-3.5 transition-transform duration-200 group-hover:rotate-45"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"

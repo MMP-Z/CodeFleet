@@ -45,7 +45,7 @@ export class PluginRepository {
     readonly grantedPermissions: readonly PluginPermission[];
     readonly installedAt?: string;
   }): PluginRecord {
-    const enabled = record.enabled ?? true ? 1 : 0;
+    const enabled = (record.enabled ?? true) ? 1 : 0;
     const installedAt = record.installedAt ?? new Date().toISOString();
     const permissionsJson = JSON.stringify(record.grantedPermissions);
 

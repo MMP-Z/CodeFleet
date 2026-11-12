@@ -1,6 +1,14 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import { app } from 'electron';
-import { IPC_CHANNELS, IPC_CONTRACTS, type AgentId, type StepVM } from '@shared/ipc';
+import {
+  IPC_CHANNELS,
+  IPC_CONTRACTS,
+  type AgentId,
+  type StepVM,
+  type WorkspaceFileNode,
+} from '@shared/ipc';
+import { assertPathInsideProject } from '../security/path-guard';
 import { AgentRegistry } from '../agents/detect';
 import { ModelTierService } from '../agents/models';
 import { AgentSessionRepository } from '../agents/session-repo';
@@ -130,8 +138,7 @@ export function registerIpcHandlers(registrar: IpcRegistrar, deps: IpcDependenci
     deps.updaterService ??
     new AutoUpdaterService({
       settingsRepo,
-      backend:
-        typeof app?.getVersion === 'function' ? new ElectronAutoUpdaterBackend() : undefined,
+      backend: typeof app?.getVersion === 'function' ? new ElectronAutoUpdaterBackend() : undefined,
     });
 
   updaterService.onStateChange((state) => {
@@ -332,7 +339,9 @@ export function registerIpcHandlers(registrar: IpcRegistrar, deps: IpcDependenci
           const win = BrowserWindow?.getFocusedWindow?.();
           const options = {
             title: 'Chọn thư mục dự án',
-            properties: ['openDirectory', 'createDirectory'] as Array<'openDirectory' | 'createDirectory'>,
+            properties: ['openDirectory', 'createDirectory'] as Array<
+              'openDirectory' | 'createDirectory'
+            >,
           };
           const res = win
             ? await dialog.showOpenDialog(win, options)
@@ -793,6 +802,157 @@ export function registerIpcHandlers(registrar: IpcRegistrar, deps: IpcDependenci
     },
     ipcLogger,
   );
+
+  // === WORKSPACE / CODE VIEWER ===
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.WORKSPACE_TREE],
+    ({ projectId }) => {
+      const project = projectRepo.getById(projectId);
+      if (!project) throw new Error('Dự án không tồn tại');
+      const files = buildDirectoryTree(project.path);
+      return {
+        rootPath: project.path,
+        files,
+      };
+    },
+    ipcLogger,
+  );
+
+  registerTypedHandler(
+    registrar,
+    IPC_CONTRACTS[IPC_CHANNELS.WORKSPACE_READ_FILE],
+    ({ projectId, filePath }) => {
+      const project = projectRepo.getById(projectId);
+      if (!project) throw new Error('Dự án không tồn tại');
+      const safePath = assertPathInsideProject(project.path, filePath);
+      if (!fs.existsSync(safePath) || fs.statSync(safePath).isDirectory()) {
+        throw new Error(`File không tồn tại: ${filePath}`);
+      }
+      const stat = fs.statSync(safePath);
+      if (stat.size > 2 * 1024 * 1024) {
+        throw new Error(
+          `File quá lớn (${(stat.size / 1024 / 1024).toFixed(1)}MB), chỉ hỗ trợ file dưới 2MB.`,
+        );
+      }
+      const content = fs.readFileSync(safePath, 'utf8');
+      const lines = content.split('\n');
+      return {
+        filePath,
+        content,
+        language: detectLanguage(filePath),
+        lineCount: lines.length,
+        size: stat.size,
+      };
+    },
+    ipcLogger,
+  );
+}
+
+function detectLanguage(filePath: string): string {
+  const ext = path.extname(filePath).toLowerCase();
+  switch (ext) {
+    case '.ts':
+    case '.tsx':
+      return 'typescript';
+    case '.js':
+    case '.jsx':
+    case '.mjs':
+    case '.cjs':
+      return 'javascript';
+    case '.json':
+      return 'json';
+    case '.html':
+    case '.htm':
+      return 'html';
+    case '.css':
+    case '.scss':
+      return 'css';
+    case '.md':
+    case '.markdown':
+      return 'markdown';
+    case '.yml':
+    case '.yaml':
+      return 'yaml';
+    case '.py':
+      return 'python';
+    case '.sh':
+    case '.bash':
+      return 'shell';
+    case '.sql':
+      return 'sql';
+    default:
+      return 'plaintext';
+  }
+}
+
+function buildDirectoryTree(
+  projectRoot: string,
+  currentRelPath: string = '',
+  depth: number = 0,
+  maxDepth: number = 5,
+): WorkspaceFileNode[] {
+  if (depth > maxDepth) return [];
+  const currentDir = currentRelPath ? path.join(projectRoot, currentRelPath) : projectRoot;
+  if (!fs.existsSync(currentDir)) return [];
+
+  const ignoredNames = new Set([
+    '.git',
+    '.tmp',
+    'node_modules',
+    'out',
+    'dist',
+    'release',
+    '.vscode',
+    '.idea',
+    '.turbo',
+    '.next',
+    '.nuxt',
+    'coverage',
+  ]);
+
+  try {
+    const entries = fs.readdirSync(currentDir, { withFileTypes: true });
+    const nodes: WorkspaceFileNode[] = [];
+
+    const folders = entries.filter((e) => e.isDirectory() && !ignoredNames.has(e.name));
+    const files = entries.filter((e) => e.isFile() && !ignoredNames.has(e.name));
+
+    folders.sort((a, b) => a.name.localeCompare(b.name));
+    files.sort((a, b) => a.name.localeCompare(b.name));
+
+    for (const folder of folders) {
+      const folderRel = currentRelPath ? `${currentRelPath}/${folder.name}` : folder.name;
+      const children = buildDirectoryTree(projectRoot, folderRel, depth + 1, maxDepth);
+      nodes.push({
+        name: folder.name,
+        path: folderRel,
+        isDirectory: true,
+        children,
+      });
+    }
+
+    for (const file of files) {
+      const fileRel = currentRelPath ? `${currentRelPath}/${file.name}` : file.name;
+      let size = 0;
+      try {
+        const stat = fs.statSync(path.join(projectRoot, fileRel));
+        size = stat.size;
+      } catch {
+        // ignore
+      }
+      nodes.push({
+        name: file.name,
+        path: fileRel,
+        isDirectory: false,
+        size,
+      });
+    }
+
+    return nodes;
+  } catch {
+    return [];
+  }
 }
 
 export const registerPhase1IpcHandlers = registerIpcHandlers;

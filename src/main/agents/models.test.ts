@@ -100,12 +100,14 @@ describe('ModelTierService & AgentSessionRepository (Luật P10, ADR-019)', () =
     });
 
     // 1. Giả lập DB có 2 model cũ
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO models (agent_id, model_id, label, tier, available, detected_at)
       VALUES 
         ('codex', 'old-obsolete-model', 'Old Model', 'balanced', 1, datetime('now')),
         ('codex', 'gpt-6.1-sol', 'GPT-6.1 Sol', 'balanced', 1, datetime('now'))
-    `).run();
+    `,
+    ).run();
 
     // 2. Đồng bộ danh sách mới chỉ gồm gpt-6-astra và gpt-6.1-sol
     const synced = service.syncAgentModels('codex', [
@@ -118,18 +120,22 @@ describe('ModelTierService & AgentSessionRepository (Luật P10, ADR-019)', () =
     // Kiểm tra trong DB: old-obsolete-model đã bị xoá
     const remaining = service.listModels('codex');
     expect(remaining).toHaveLength(2);
-    expect(remaining.map((m) => m.id)).toEqual(expect.arrayContaining(['gpt-6-astra', 'gpt-6.1-sol']));
+    expect(remaining.map((m) => m.id)).toEqual(
+      expect.arrayContaining(['gpt-6-astra', 'gpt-6.1-sol']),
+    );
     expect(remaining.find((m) => m.id === 'old-obsolete-model')).toBeUndefined();
   });
 
   it('tự động thanh trừng các model giả gpt-5-codex và codex-mini-latest khi khởi tạo catalog', () => {
     // Giả lập DB cũ chứa 2 model giả
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO models (agent_id, model_id, label, tier, available, detected_at)
       VALUES 
         ('codex', 'gpt-5-codex', 'GPT-5 Codex', 'strong', 1, datetime('now')),
         ('codex', 'codex-mini-latest', 'Codex Mini', 'fast', 1, datetime('now'))
-    `).run();
+    `,
+    ).run();
 
     const service = new ModelTierService({
       db,

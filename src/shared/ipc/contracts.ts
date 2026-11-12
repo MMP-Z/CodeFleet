@@ -102,6 +102,8 @@ export const IPC_CHANNELS = {
   UPDATE_RESTART: 'update.restart',
   UPDATE_SET_CHANNEL: 'update.setChannel',
   UPDATE_SET_AUTO_DOWNLOAD: 'update.setAutoDownload',
+  WORKSPACE_TREE: 'workspace.tree',
+  WORKSPACE_READ_FILE: 'workspace.readFile',
 } as const;
 
 export type IpcChannelName = (typeof IPC_CHANNELS)[keyof typeof IPC_CHANNELS];
@@ -598,6 +600,50 @@ export const UpdateOkOutputSchema = z.object({
 });
 export type UpdateOkOutput = z.infer<typeof UpdateOkOutputSchema>;
 
+export interface WorkspaceFileNode {
+  name: string;
+  path: string;
+  isDirectory: boolean;
+  size?: number;
+  children?: WorkspaceFileNode[];
+}
+
+export const WorkspaceFileNodeSchema: z.ZodType<WorkspaceFileNode> = z.lazy(() =>
+  z.object({
+    name: z.string(),
+    path: z.string(),
+    isDirectory: z.boolean(),
+    size: z.number().optional(),
+    children: z.array(WorkspaceFileNodeSchema).optional(),
+  }),
+);
+
+export const WorkspaceTreeInputSchema = z.object({
+  projectId: z.string(),
+});
+export type WorkspaceTreeInput = z.infer<typeof WorkspaceTreeInputSchema>;
+
+export const WorkspaceTreeOutputSchema = z.object({
+  rootPath: z.string(),
+  files: z.array(WorkspaceFileNodeSchema),
+});
+export type WorkspaceTreeOutput = z.infer<typeof WorkspaceTreeOutputSchema>;
+
+export const WorkspaceReadFileInputSchema = z.object({
+  projectId: z.string(),
+  filePath: z.string(),
+});
+export type WorkspaceReadFileInput = z.infer<typeof WorkspaceReadFileInputSchema>;
+
+export const WorkspaceReadFileOutputSchema = z.object({
+  filePath: z.string(),
+  content: z.string(),
+  language: z.string(),
+  lineCount: z.number(),
+  size: z.number(),
+});
+export type WorkspaceReadFileOutput = z.infer<typeof WorkspaceReadFileOutputSchema>;
+
 export interface IpcContract<I extends z.ZodTypeAny, O extends z.ZodTypeAny> {
   readonly channel: IpcChannelName;
   readonly input: I;
@@ -865,6 +911,16 @@ export const IPC_CONTRACTS = {
     input: UpdateSetAutoDownloadInputSchema,
     output: UpdateStateSchema,
   },
+  [IPC_CHANNELS.WORKSPACE_TREE]: {
+    channel: IPC_CHANNELS.WORKSPACE_TREE,
+    input: WorkspaceTreeInputSchema,
+    output: WorkspaceTreeOutputSchema,
+  },
+  [IPC_CHANNELS.WORKSPACE_READ_FILE]: {
+    channel: IPC_CHANNELS.WORKSPACE_READ_FILE,
+    input: WorkspaceReadFileInputSchema,
+    output: WorkspaceReadFileOutputSchema,
+  },
 } as const;
 
 export type IpcErrorCode = 'VALIDATION_ERROR' | 'INTERNAL_ERROR';
@@ -982,5 +1038,9 @@ export interface CodeFleetBridge {
     setChannel(channel: UpdateChannel): Promise<IpcResult<UpdateState>>;
     setAutoDownload(autoDownload: boolean): Promise<IpcResult<UpdateState>>;
     onStateChange(callback: (state: UpdateState) => void): () => void;
+  };
+  readonly workspace: {
+    tree(projectId: string): Promise<IpcResult<WorkspaceTreeOutput>>;
+    readFile(projectId: string, filePath: string): Promise<IpcResult<WorkspaceReadFileOutput>>;
   };
 }
